@@ -64,6 +64,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         protected IDistributedAccessManagerOperationRouter mockOperationRouter;
         protected IDistributedAccessManagerWriterAdministrator mockSourceShardGroupWriterAdministrator;
         protected IDistributedAccessManagerShardGroupSplitter mockShardGroupSplitter;
+        protected IDistributedAccessManagerShardGroupMerger mockShardGroupMerger;
         protected IKubernetesClientShim mockKubernetesClientShim;
         protected IApplicationLogger mockApplicationLogger;
         protected IMetricLogger mockMetricLogger;
@@ -89,6 +90,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter>();
             mockSourceShardGroupWriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
             mockShardGroupSplitter = Substitute.For<IDistributedAccessManagerShardGroupSplitter>();
+            mockShardGroupMerger = Substitute.For<IDistributedAccessManagerShardGroupMerger>();
             mockKubernetesClientShim = Substitute.For<IKubernetesClientShim>();
             mockApplicationLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
@@ -1876,7 +1878,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public void SplitShardGroupAsync_ParameterSplitHashRangeEndEqualToParameterSplitHashRangeStart()
+        public void SplitShardGroupAsync_ParameterSplitHashRangeEndLessThanParameterSplitHashRangeStart()
         {
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -1897,7 +1899,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     DataElement.User, 
                     Int32.MinValue, 
                     0, 
-                    0,
+                    -1,
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
@@ -1910,7 +1912,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Parameter 'splitHashRangeEnd' with value 0 must be greater than parameter 'splitHashRangeStart' with value 0."));
+            Assert.That(e.Message, Does.StartWith($"Parameter 'splitHashRangeEnd' with value -1 must be greater than or equal to parameter 'splitHashRangeStart' with value 0."));
             Assert.AreEqual("splitHashRangeEnd", e.ParamName);
         }
 
@@ -1989,7 +1991,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Parameter 'splitHashRangeStart' with value {Int32.MinValue} must be greater than parameter 'hashRangeStart' wth value {Int32.MinValue}."));
+            Assert.That(e.Message, Does.StartWith($"Parameter 'splitHashRangeStart' with value {Int32.MinValue} must be greater than parameter 'hashRangeStart' with value {Int32.MinValue}."));
             Assert.AreEqual("splitHashRangeStart", e.ParamName);
 
 
@@ -3612,7 +3614,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupSplit>());
             mockMetricLogger.Received(1).End(eventCopyBeginId, Arg.Any<EventCopyTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<DistributedOperationRouterNodeCreated>());
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, $"Splitting User shard group with hash range start value {Int32.MinValue} at new shard group with hash range start value 0...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, $"Splitting User shard group with hash range start value {Int32.MinValue} to new shard group at hash range start value 0...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value 0...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
@@ -3866,7 +3868,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupSplit>());
             mockMetricLogger.Received(1).End(eventCopyBeginId, Arg.Any<EventCopyTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<DistributedOperationRouterNodeCreated>());
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, $"Splitting Group shard group with hash range start value {Int32.MinValue} at new shard group with hash range start value -1073741824...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, $"Splitting Group shard group with hash range start value {Int32.MinValue} to new shard group at hash range start value -1073741824...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'Group' and hash range start value -1073741824...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
@@ -4005,6 +4007,432 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_0", groupShardGroupConfigurationSet[2].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-0-service:5000/", groupShardGroupConfigurationSet[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-0-service:5000/", groupShardGroupConfigurationSet[2].WriterNodeClientConfiguration.BaseUrl.ToString());
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_DistributedAccessManagerInstanceNotCreated()
+        {
+            var e = Assert.ThrowsAsync<InvalidOperationException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                    );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"A distributed AccessManager instance has not been created."));
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_DataElementSetToGroupToGroupMapping()
+        {
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                CreateInstanceConfiguration(),
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            var e = Assert.ThrowsAsync<ArgumentException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.GroupToGroupMapping,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Shard group merging is not supported for 'DataElement' 'GroupToGroupMapping'."));
+            Assert.AreEqual("dataElement", e.ParamName);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ParameterSourceShardGroup2HashRangeEndLessThanParameterSourceShardGroup2HashRangeStart()
+        {
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                CreateInstanceConfiguration(),
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            var e = Assert.ThrowsAsync<ArgumentOutOfRangeException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    -1,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceShardGroup2HashRangeEnd' with value -1 must be greater than or equal to parameter 'sourceShardGroup2HashRangeStart' with value 0."));
+            Assert.AreEqual("sourceShardGroup2HashRangeEnd", e.ParamName);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_SourceShardGroup1HashRangeStartParameterInvalid()
+        {
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                CreateInstanceConfiguration(),
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            var e = Assert.ThrowsAsync<ArgumentException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    1,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceShardGroup1HashRangeStart' with value 1 contains an invalid hash range start value for 'User' shard groups."));
+            Assert.AreEqual("sourceShardGroup1HashRangeStart", e.ParamName);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_SourceShardGroup2HashRangeStartParameterEqualToSourceShardGroup1HashRangeStartParameter()
+        {
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            var e = Assert.ThrowsAsync<ArgumentOutOfRangeException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    Int32.MinValue,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceShardGroup2HashRangeStart' with value {Int32.MinValue} must be greater than parameter 'sourceShardGroup1HashRangeStart' with value {Int32.MinValue}."));
+            Assert.AreEqual("sourceShardGroup2HashRangeStart", e.ParamName);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_SourceShardGroup2HashRangeStartParameterInvalid()
+        {
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            var e = Assert.ThrowsAsync<ArgumentException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceShardGroup2HashRangeStart' with value 0 contains an invalid hash range start value for 'User' shard groups."));
+            Assert.AreEqual("sourceShardGroup2HashRangeStart", e.ParamName);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ParameterSourceShardGroup1HashRangeStartAndSourceShardGroup2HashRangeStartDoNotContainConsecutiveShardGroups()
+        {
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            instanceConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+            {
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    Int32.MinValue,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
+                ),
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    -1073741824,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n1073741824-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n1073741824-service:5000/"))
+                ),
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    0,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
+                )
+            };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            var e = Assert.ThrowsAsync<ArgumentException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"The next consecutive shard group after shard group with hash range start value -2147483648 has hash range start value -1073741824, whereas parameter 'sourceShardGroup2HashRangeStart' contained 0.  The shard groups specified by parameters 'sourceShardGroup1HashRangeStart' and 'sourceShardGroup2HashRangeStart' must be consecutive."));
+            Assert.AreEqual("sourceShardGroup2HashRangeStart", e.ParamName);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_SourceShardGroup2HashRangeEndParameterInvalid()
+        {
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            instanceConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+            {
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    Int32.MinValue,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
+                ),
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    -1073741824,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n1073741824-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n1073741824-service:5000/"))
+                ),
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    0,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
+                )
+            };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            var e = Assert.ThrowsAsync<ArgumentOutOfRangeException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    -1073741824,
+                    0,
+                    100,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceShardGroup2HashRangeEnd' with value 100 contains a different hash range end value to the hash range end value {Int32.MaxValue} of the second source shard group being merged."));
+            Assert.AreEqual("sourceShardGroup2HashRangeEnd", e.ParamName);
+
+
+            e = Assert.ThrowsAsync<ArgumentOutOfRangeException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    -1073741824,
+                    -2,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceShardGroup2HashRangeEnd' with value -2 contains a different hash range end value to the hash range end value -1 of the second shard group being merged."));
+            Assert.AreEqual("sourceShardGroup2HashRangeEnd", e.ParamName);
+        }
+
+        [Test]
+        public async Task MergeShardGroupsAsync_UserShardGroups()
+        {
+            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            instanceConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+            {
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    Int32.MinValue,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
+                ),
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    0,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
+                )
+            };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+            (
+                DataElement.User,
+                Int32.MinValue,
+                0,
+                Int32.MaxValue,
+                testSourceShardGroupEventReaderCreationFunction,
+                testTargetShardGroupEventPersisterCreationFunction,
+                testOperationRouterCreationFunction,
+                testSourceShardGroupWriterAdministratorCreationFunction,
+                1000,
+                5,
+                2000,
+                mockShardGroupMerger
+            );
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).End(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupsMerged>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Merging User shard group with hash range start value {Int32.MinValue} with shard group with hash range start value 0...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed merging shard groups.");
         }
 
         [Test]
@@ -7671,6 +8099,39 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     sourceWriterNodeOperationsCompleteCheckRetryAttempts,
                     sourceWriterNodeOperationsCompleteCheckRetryInterval,
                     shardGroupSplitter
+                );
+            }
+
+            public new async Task MergeShardGroupsAsync
+            (
+                DataElement dataElement,
+                Int32 sourceShardGroup1HashRangeStart,
+                Int32 sourceShardGroup2HashRangeStart,
+                Int32 sourceShardGroup2HashRangeEnd,
+                Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventBatchReader> sourceShardGroupEventReaderCreationFunction,
+                Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
+                Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
+                Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+                Int32 eventBatchSize,
+                Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval,
+                IDistributedAccessManagerShardGroupMerger shardGroupMerger
+            )
+            {
+                await base.MergeShardGroupsAsync
+                (
+                    dataElement,
+                    sourceShardGroup1HashRangeStart,
+                    sourceShardGroup2HashRangeStart,
+                    sourceShardGroup2HashRangeEnd,
+                    sourceShardGroupEventReaderCreationFunction,
+                    targetShardGroupEventPersisterCreationFunction,
+                    operationRouterCreationFunction,
+                    sourceShardGroupWriterAdministratorCreationFunction,
+                    eventBatchSize,
+                    sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                    sourceWriterNodeOperationsCompleteCheckRetryInterval,
+                    shardGroupMerger
                 );
             }
 

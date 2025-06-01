@@ -294,6 +294,21 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Count metric which records that shard groups in a distributed AccessManager instance were merged.
+    /// </summary>
+    public class ShardGroupsMerged : CountMetric
+    {
+        protected static String staticName = "ShardGroupsMerged";
+        protected static String staticDescription = "A shard groups in a distributed AccessManager instance were merged";
+
+        public ShardGroupsMerged()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records that an invalid 'add' event for a primary element was received when attempting to merge shard groups.
     /// </summary>
     public class InvalidAddPrimaryElementEventReceived : CountMetric
@@ -467,6 +482,21 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "The time taken to split a shard group in a distributed AccessManager instance";
 
         public ShardGroupSplitTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to merge shard groups in a distributed AccessManager instance.
+    /// </summary>
+    public class ShardGroupMergeTime : IntervalMetric
+    {
+        protected static String staticName = "ShardGroupMergeTime";
+        protected static String staticDescription = "The time taken to merge shard groups in a distributed AccessManager instance";
+
+        public ShardGroupMergeTime()
         {
             base.name = staticName;
             base.description = staticDescription;

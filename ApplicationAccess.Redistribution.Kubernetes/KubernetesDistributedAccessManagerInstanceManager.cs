@@ -731,7 +731,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <summary>
         /// Splits a shard group in the distributed AccessManager instance, by moving elements whose hash codes fall within a specified range to a new shard group.
         /// </summary>
-        /// <param name="dataElement">The data element of the shard group to split..</param>
+        /// <param name="dataElement">The data element of the shard group to split.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group to split.</param>
         /// <param name="splitHashRangeStart">The first (inclusive) in the range of hash codes to move to the new shard group.</param>
         /// <param name="splitHashRangeEnd">The last (inclusive) in the range of hash codes to move to the new shard group.</param>
@@ -739,7 +739,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="targetShardGroupEventPersisterCreationFunction">A function used to create a persister used to write events to the target shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerIdempotentTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
         /// <param name="sourceShardGroupEventDeleterCreationFunction">A function used to create a deleter used to delete events from the source shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventDeleter"/> instance.</param>
         /// <param name="operationRouterCreationFunction">A function used to create a client used control the router which directs operations between the source and target shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerOperationRouter"/> instance.</param>
-        /// <param name="sourceShardGroupWriterAdministratorCreationFunction">A function used to create a client used control the writer node in the target shard group.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
+        /// <param name="sourceShardGroupWriterAdministratorCreationFunction">A function used to create a client used control the writer node in the source shard group.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
         /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard group in each batch.</param>
         /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking that there are no active operations in the source shard group, before copying of the final batch of events (event copy will fail if all retries are exhausted before the number of active operations becomes 0).</param>
         /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
@@ -765,13 +765,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new InvalidOperationException($"A distributed AccessManager instance has not been created.");
             if (dataElement == DataElement.GroupToGroupMapping)
                 throw new ArgumentException($"Shard group splitting is not supported for '{typeof(DataElement).Name}' '{dataElement}'.", nameof(dataElement));
-            if (splitHashRangeEnd <= splitHashRangeStart)
-                throw new ArgumentOutOfRangeException(nameof(splitHashRangeEnd), $"Parameter '{nameof(splitHashRangeEnd)}' with value {splitHashRangeEnd} must be greater than parameter '{nameof(splitHashRangeStart)}' with value {splitHashRangeStart}.");
+            if (splitHashRangeEnd < splitHashRangeStart)
+                throw new ArgumentOutOfRangeException(nameof(splitHashRangeEnd), $"Parameter '{nameof(splitHashRangeEnd)}' with value {splitHashRangeEnd} must be greater than or equal to parameter '{nameof(splitHashRangeStart)}' with value {splitHashRangeStart}.");
             KubernetesShardGroupConfiguration<TPersistentStorageCredentials> shardGroupConfiguration = GetShardGroupConfiguration(GetShardGroupConfigurationList(dataElement), hashRangeStart);
             if (shardGroupConfiguration == null)
                 throw new ArgumentException($"Parameter '{nameof(hashRangeStart)}' with value {hashRangeStart} contains an invalid hash range start value for '{dataElement}' shard groups.", nameof(hashRangeStart));
             if (splitHashRangeStart <= hashRangeStart)
-                throw new ArgumentOutOfRangeException(nameof(splitHashRangeStart), $"Parameter '{nameof(splitHashRangeStart)}' with value {splitHashRangeStart} must be greater than parameter '{nameof(hashRangeStart)}' wth value {hashRangeStart}.");
+                throw new ArgumentOutOfRangeException(nameof(splitHashRangeStart), $"Parameter '{nameof(splitHashRangeStart)}' with value {splitHashRangeStart} must be greater than parameter '{nameof(hashRangeStart)}' with value {hashRangeStart}.");
             KubernetesShardGroupConfiguration<TPersistentStorageCredentials> nextShardGroupConfiguration = null;
             try
             {
@@ -790,7 +790,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw new ArgumentOutOfRangeException(nameof(splitHashRangeEnd), $"Parameter '{nameof(splitHashRangeEnd)}' with value {splitHashRangeEnd} contains a different hash range end value to the hash range end value {nextShardGroupConfiguration.HashRangeStart - 1} of the shard group being split.");
             }
 
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Splitting {dataElement} shard group with hash range start value {hashRangeStart} at new shard group with hash range start value {splitHashRangeStart}...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Splitting {dataElement} shard group with hash range start value {hashRangeStart} to new shard group at hash range start value {splitHashRangeStart}...");
             Guid beginId = metricLogger.Begin(new ShardGroupSplitTime());
 
             // Create the target persistent storage instance
@@ -1150,6 +1150,81 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             metricLogger.End(beginId, new ShardGroupSplitTime());
             metricLogger.Increment(new ShardGroupSplit());
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed splitting shard group.");
+        }
+
+        /// <summary>
+        /// Merges a two shard groups with consecutive hash code ranges in the distributed AccessManager instance.
+        /// </summary>
+        /// <param name="dataElement">The data element of the shard groups to merge.</param>
+        /// <param name="sourceShardGroup1HashRangeStart">The first (inclusive) in the range of hash codes managed by the first shard group to merge.</param>
+        /// <param name="sourceShardGroup2HashRangeStart">The first (inclusive) in the range of hash codes managed by the second shard group to merge.</param>
+        /// <param name="sourceShardGroup2HashRangeEnd">The last (inclusive) in the range of hash codes managed by the second shard group to merge.</param>
+        /// <param name="sourceShardGroupEventReaderCreationFunction">A function used to create a readers used to read events from the source shard group's persistent storage instances.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventBatchReader"/> instance.</param>
+        /// <param name="targetShardGroupEventPersisterCreationFunction">A function used to create a persister used to write events to the target shard group's persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerIdempotentTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
+        /// <param name="operationRouterCreationFunction">A function used to create a client used control the router which directs operations between the source shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerOperationRouter"/> instance.</param>
+        /// <param name="sourceShardGroupWriterAdministratorCreationFunction">A function used to create a clients used control the writer nodes in the source shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
+        /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard groups in each batch.</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking that there are no active operations in the source shard groups, before merging of the final batch of events (event merge will fail if all retries are exhausted before the number of active operations becomes 0).</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
+        /// <param name="shardGroupMerger">The <see cref="IDistributedAccessManagerShardGroupMerger"/> implementation used to perform the merging.</param>
+        protected async Task MergeShardGroupsAsync
+        (
+            DataElement dataElement,
+            Int32 sourceShardGroup1HashRangeStart,
+            Int32 sourceShardGroup2HashRangeStart,
+            Int32 sourceShardGroup2HashRangeEnd,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBatchReader> sourceShardGroupEventReaderCreationFunction,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
+            Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
+            Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+            Int32 eventBatchSize,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval,
+            IDistributedAccessManagerShardGroupMerger shardGroupMerger
+        )
+        {
+            if (userShardGroupConfigurationSet.Items.Count == 0)
+                throw new InvalidOperationException($"A distributed AccessManager instance has not been created.");
+            if (dataElement == DataElement.GroupToGroupMapping)
+                throw new ArgumentException($"Shard group merging is not supported for '{typeof(DataElement).Name}' '{dataElement}'.", nameof(dataElement));
+            if (sourceShardGroup2HashRangeEnd < sourceShardGroup2HashRangeStart)
+                throw new ArgumentOutOfRangeException(nameof(sourceShardGroup2HashRangeEnd), $"Parameter '{nameof(sourceShardGroup2HashRangeEnd)}' with value {sourceShardGroup2HashRangeEnd} must be greater than or equal to parameter '{nameof(sourceShardGroup2HashRangeStart)}' with value {sourceShardGroup2HashRangeStart}.");
+            KubernetesShardGroupConfiguration<TPersistentStorageCredentials> sourceShardGroup1Configuration = GetShardGroupConfiguration(GetShardGroupConfigurationList(dataElement), sourceShardGroup1HashRangeStart);
+            if (sourceShardGroup1Configuration == null)
+                throw new ArgumentException($"Parameter '{nameof(sourceShardGroup1HashRangeStart)}' with value {sourceShardGroup1HashRangeStart} contains an invalid hash range start value for '{dataElement}' shard groups.", nameof(sourceShardGroup1HashRangeStart));
+            if (sourceShardGroup2HashRangeStart <= sourceShardGroup1HashRangeStart)
+                throw new ArgumentOutOfRangeException(nameof(sourceShardGroup2HashRangeStart), $"Parameter '{nameof(sourceShardGroup2HashRangeStart)}' with value {sourceShardGroup2HashRangeStart} must be greater than parameter '{nameof(sourceShardGroup1HashRangeStart)}' with value {sourceShardGroup1HashRangeStart}.");
+            KubernetesShardGroupConfiguration<TPersistentStorageCredentials> sourceShardGroup2Configuration = GetShardGroupConfiguration(GetShardGroupConfigurationList(dataElement), sourceShardGroup2HashRangeStart); ;
+            if (sourceShardGroup2Configuration == null)
+                throw new ArgumentException($"Parameter '{nameof(sourceShardGroup2HashRangeStart)}' with value {sourceShardGroup2HashRangeStart} contains an invalid hash range start value for '{dataElement}' shard groups.", nameof(sourceShardGroup2HashRangeStart));
+            // This should always succeed since we know sourceShardGroup2Configuration exists, and that sourceShardGroup2HashRangeStart > sourceShardGroup1HashRangeStart
+            KubernetesShardGroupConfiguration<TPersistentStorageCredentials> nextShardGroupConfiguration = GetNextShardGroupConfiguration(GetShardGroupConfigurationList(dataElement), sourceShardGroup1HashRangeStart); ;
+            if (sourceShardGroup2Configuration.HashRangeStart != nextShardGroupConfiguration.HashRangeStart)
+                throw new ArgumentException($"The next consecutive shard group after shard group with hash range start value {sourceShardGroup1HashRangeStart} has hash range start value {nextShardGroupConfiguration.HashRangeStart}, whereas parameter '{nameof(sourceShardGroup2HashRangeStart)}' contained {sourceShardGroup2HashRangeStart}.  The shard groups specified by parameters '{nameof(sourceShardGroup1HashRangeStart)}' and '{nameof(sourceShardGroup2HashRangeStart)}' must be consecutive.", nameof(sourceShardGroup2HashRangeStart));
+            KubernetesShardGroupConfiguration<TPersistentStorageCredentials> nextNextShardGroupConfiguration = null;
+            try
+            {
+                nextNextShardGroupConfiguration = GetNextShardGroupConfiguration(GetShardGroupConfigurationList(dataElement), sourceShardGroup2HashRangeStart);
+            }
+            catch
+            {
+                if (sourceShardGroup2HashRangeEnd != Int32.MaxValue)
+                    throw new ArgumentOutOfRangeException(nameof(sourceShardGroup2HashRangeEnd), $"Parameter '{nameof(sourceShardGroup2HashRangeEnd)}' with value {sourceShardGroup2HashRangeEnd} contains a different hash range end value to the hash range end value {Int32.MaxValue} of the second source shard group being merged.");
+            }
+            if (nextNextShardGroupConfiguration != null)
+            {
+                if (sourceShardGroup2HashRangeEnd != nextNextShardGroupConfiguration.HashRangeStart - 1)
+                    throw new ArgumentOutOfRangeException(nameof(sourceShardGroup2HashRangeEnd), $"Parameter '{nameof(sourceShardGroup2HashRangeEnd)}' with value {sourceShardGroup2HashRangeEnd} contains a different hash range end value to the hash range end value {nextNextShardGroupConfiguration.HashRangeStart - 1} of the second shard group being merged.");
+            }
+
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Merging {dataElement} shard group with hash range start value {sourceShardGroup1HashRangeStart} with shard group with hash range start value {sourceShardGroup2HashRangeStart}...");
+            Guid beginId = metricLogger.Begin(new ShardGroupMergeTime());
+
+
+
+            metricLogger.End(beginId, new ShardGroupMergeTime());
+            metricLogger.Increment(new ShardGroupsMerged());
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed merging shard groups.");
         }
 
         /// <summary>
