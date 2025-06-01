@@ -58,11 +58,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         protected IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> mockPersistentStorageCreator;
         protected IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> mockAppSettingsConfigurer;
         protected IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> mockShardConfigurationSetPersister;
-        protected IAccessManagerTemporalEventBatchReader mockSourceShardGroupEventReader;
+        protected IAccessManagerTemporalEventBatchReader mockSourceShardGroup1EventReader;
+        protected IAccessManagerTemporalEventBatchReader mockSourceShardGroup2EventReader;
         protected IAccessManagerTemporalEventBulkPersister<String, String, String, String> mockTargetShardGroupEventPersister;
         protected IAccessManagerTemporalEventDeleter mocksourceShardGroupEventDeleter;
         protected IDistributedAccessManagerOperationRouter mockOperationRouter;
-        protected IDistributedAccessManagerWriterAdministrator mockSourceShardGroupWriterAdministrator;
+        protected IDistributedAccessManagerWriterAdministrator mockSourceShardGroup1WriterAdministrator;
         protected IDistributedAccessManagerShardGroupSplitter mockShardGroupSplitter;
         protected IDistributedAccessManagerShardGroupMerger mockShardGroupMerger;
         protected IKubernetesClientShim mockKubernetesClientShim;
@@ -84,22 +85,23 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockPersistentStorageCreator = Substitute.For<IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials>>();
             mockAppSettingsConfigurer = Substitute.For<IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials>>();
             mockShardConfigurationSetPersister = Substitute.For<IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>>();
-            mockSourceShardGroupEventReader = Substitute.For<IAccessManagerTemporalEventBatchReader>();
+            mockSourceShardGroup1EventReader = Substitute.For<IAccessManagerTemporalEventBatchReader>();
+            mockSourceShardGroup2EventReader = Substitute.For<IAccessManagerTemporalEventBatchReader>();
             mockTargetShardGroupEventPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, String, String>>();
             mocksourceShardGroupEventDeleter = Substitute.For<IAccessManagerTemporalEventDeleter>();
             mockOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter>();
-            mockSourceShardGroupWriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
+            mockSourceShardGroup1WriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
             mockShardGroupSplitter = Substitute.For<IDistributedAccessManagerShardGroupSplitter>();
             mockShardGroupMerger = Substitute.For<IDistributedAccessManagerShardGroupMerger>();
             mockKubernetesClientShim = Substitute.For<IKubernetesClientShim>();
             mockApplicationLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
             testShardConfigurationSetPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mockShardConfigurationSetPersister; };
-            testSourceShardGroupEventReaderCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mockSourceShardGroupEventReader; };
+            testSourceShardGroupEventReaderCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mockSourceShardGroup1EventReader; };
             testTargetShardGroupEventPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mockTargetShardGroupEventPersister; };
             testSourceShardGroupEventDeleterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mocksourceShardGroupEventDeleter; };
             testOperationRouterCreationFunction = (Uri baseUrl) => { return mockOperationRouter; };
-            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { return mockSourceShardGroupWriterAdministrator; };
+            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { return mockSourceShardGroup1WriterAdministrator; };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -2195,6 +2197,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void SplitShardGroupAsync_ExceptionCreatingSourceShardGroupEventReader()
         {
             var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testSourceShardGroupEventReaderCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { throw mockException; };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -2207,6 +2210,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockApplicationLogger,
                 mockMetricLogger
             );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(testBeginId1);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2228,6 +2232,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupSplitTime>());
             Assert.That(e.Message, Does.StartWith($"Failed to construct sourceShardGroupEventReader."));
             Assert.AreSame(mockException, e.InnerException);
         }
@@ -2236,6 +2242,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void SplitShardGroupAsync_ExceptionCreatingTargetShardGroupEventPersister()
         {
             var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testTargetShardGroupEventPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { throw mockException; };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -2248,6 +2255,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockApplicationLogger,
                 mockMetricLogger
             );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(testBeginId1);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2269,6 +2277,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupSplitTime>());
             Assert.That(e.Message, Does.StartWith($"Failed to construct targetShardGroupEventPersister."));
             Assert.AreSame(mockException, e.InnerException);
         }
@@ -2277,6 +2287,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void SplitShardGroupAsync_ExceptionCreatingSourceShardGroupEventDeleter()
         {
             var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testSourceShardGroupEventDeleterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { throw mockException; };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -2289,6 +2300,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockApplicationLogger,
                 mockMetricLogger
             );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(testBeginId1);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2310,6 +2322,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupSplitTime>());
             Assert.That(e.Message, Does.StartWith($"Failed to construct sourceShardGroupEventDeleter."));
             Assert.AreSame(mockException, e.InnerException);
         }
@@ -2318,6 +2332,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void SplitShardGroupAsync_ExceptionCreatingOperationRouter()
         {
             var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testOperationRouterCreationFunction = (Uri baseUrl) => { throw mockException; };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -2330,6 +2345,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockApplicationLogger,
                 mockMetricLogger
             );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(testBeginId1);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2351,6 +2367,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupSplitTime>());
             Assert.That(e.Message, Does.StartWith($"Failed to construct operationRouter."));
             Assert.AreSame(mockException, e.InnerException);
         }
@@ -2359,6 +2377,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void SplitShardGroupAsync_ExceptionCreatingSourceShardGroupWriterAdministrator()
         {
             var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { throw mockException; };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -2371,6 +2390,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockApplicationLogger,
                 mockMetricLogger
             );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(testBeginId1);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2392,6 +2412,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupSplitTime>());
             Assert.That(e.Message, Does.StartWith($"Failed to construct sourceShardGroupWriterAdministrator."));
             Assert.AreSame(mockException, e.InnerException);
         }
@@ -2605,10 +2627,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments)); 
             mockShardGroupSplitter.When((splitter) => splitter.CopyEventsToTargetShardGroup
             (
-                mockSourceShardGroupEventReader,
+                mockSourceShardGroup1EventReader,
                 mockTargetShardGroupEventPersister, 
                 mockOperationRouter, 
-                mockSourceShardGroupWriterAdministrator, 
+                mockSourceShardGroup1WriterAdministrator, 
                 0, 
                 Int32.MaxValue, 
                 false, 
@@ -2639,10 +2661,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             mockShardGroupSplitter.Received(1).CopyEventsToTargetShardGroup
             (
-                mockSourceShardGroupEventReader,
+                mockSourceShardGroup1EventReader,
                 mockTargetShardGroupEventPersister,
                 mockOperationRouter,
-                mockSourceShardGroupWriterAdministrator,
+                mockSourceShardGroup1WriterAdministrator,
                 0,
                 Int32.MaxValue,
                 false,
@@ -3501,7 +3523,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 new List<V1Pod>()
             );
-            // This is returned both whilst creating the target shard group and whilst restarting the source shard group
+            // This is returned whilst creating the router, creating the target shard group, and restarting the source shard group
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -3584,10 +3606,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockShardConfigurationSetPersister.Received(3).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
             mockShardGroupSplitter.Received(1).CopyEventsToTargetShardGroup
             (
-                mockSourceShardGroupEventReader,
+                mockSourceShardGroup1EventReader,
                 mockTargetShardGroupEventPersister,
                 mockOperationRouter,
-                mockSourceShardGroupWriterAdministrator,
+                mockSourceShardGroup1WriterAdministrator,
                 0,
                 Int32.MaxValue,
                 false,
@@ -3734,7 +3756,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 new List<V1Pod>()
             );
-            // This is returned both whilst creating the target shard group and whilst restarting the source shard group
+            // This is returned whilst creating the router, creating the target shard group, and restarting the source shard group
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -3838,10 +3860,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockShardConfigurationSetPersister.Received(3).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
             mockShardGroupSplitter.Received(1).CopyEventsToTargetShardGroup
             (
-                mockSourceShardGroupEventReader,
+                mockSourceShardGroup1EventReader,
                 mockTargetShardGroupEventPersister,
                 mockOperationRouter,
-                mockSourceShardGroupWriterAdministrator,
+                mockSourceShardGroup1WriterAdministrator,
                 -1073741824,
                 -1,
                 true,
@@ -4376,28 +4398,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task MergeShardGroupsAsync_UserShardGroups()
+        public void MergeShardGroupsAsync_ExceptionCreatingTemporaryPersistentStorageInstance()
         {
-            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
-            instanceConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
-            {
-                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
-                (
-                    Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
-                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
-                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
-                ),
-                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
-                (
-                    0,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
-                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
-                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
-                )
-            };
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid testBeginId2 = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4409,8 +4415,611 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockApplicationLogger,
                 mockMetricLogger
             );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(testBeginId1);
+            mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
+            mockPersistentStorageCreator.When((storageCreator) => storageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_merge_temp")).Do((callInfo) => throw mockException);
 
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_merge_temp");
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupMergeTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating temporary persistent storage instance."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ExceptionCreatingSourceShardGroup1EventReader()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testSourceShardGroupEventReaderCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { throw mockException; };
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(testBeginId1);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupMergeTime>());
+            Assert.That(e.Message, Does.StartWith($"Failed to construct sourceShardGroup1EventReader."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ExceptionCreatingSourceShardGroup2EventReader()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Boolean creationFunctionCalled = false;
+            testSourceShardGroupEventReaderCreationFunction = (TestPersistentStorageLoginCredentials credentials) => 
+            { 
+                if (creationFunctionCalled == false)
+                {
+                    creationFunctionCalled = true;
+                    return mockSourceShardGroup1EventReader;
+                }
+                else
+                {
+                    throw mockException;
+                }
+            };
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(testBeginId1);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupMergeTime>());
+            Assert.That(e.Message, Does.StartWith($"Failed to construct sourceShardGroup2EventReader."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ExceptionCreatingTargetShardGroupEventPersister()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testTargetShardGroupEventPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { throw mockException; };
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(testBeginId1);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupMergeTime>());
+            Assert.That(e.Message, Does.StartWith($"Failed to construct targetShardGroupEventPersister."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ExceptionCreatingOperationRouter()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testOperationRouterCreationFunction = (Uri baseUrl) => { throw mockException; };
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(testBeginId1);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupMergeTime>());
+            Assert.That(e.Message, Does.StartWith($"Failed to construct operationRouter."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ExceptionCreatingSourceShardGroup1WriterAdministrator()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { throw mockException; };
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(testBeginId1);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupMergeTime>());
+            Assert.That(e.Message, Does.StartWith($"Failed to construct sourceShardGroup1WriterAdministrator."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ExceptionCreatingSourceShardGroup2WriterAdministrator()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Boolean creationFunctionCalled = false;
+            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => 
+            {
+                if (creationFunctionCalled == false)
+                {
+                    creationFunctionCalled = true;
+                    return mockSourceShardGroup1WriterAdministrator;
+                }
+                else
+                {
+                    throw mockException;
+                }
+            };
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(testBeginId1);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupMergeTime>());
+            Assert.That(e.Message, Does.StartWith($"Failed to construct sourceShardGroup2WriterAdministrator."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task MergeShardGroupsAsync_ExceptionCreatingRouterNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid routerCreateBeginId = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
+            String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupSplitBeginId);
+            mockMetricLogger.Begin(Arg.Any<DistributedOperationRouterNodeCreateTime>()).Returns(routerCreateBeginId);
+            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<DistributedOperationRouterNodeCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(routerCreateBeginId, Arg.Any<DistributedOperationRouterNodeCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupMergeTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating distributed operation router deployment."));
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task MergeShardGroupsAsync_ExceptionUpdatingWriter1LoadBalancerService()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupSplitBeginId);
+            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace).Returns(Task.FromException<V1Service>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupMergeTime>());
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task MergeShardGroupsAsync_ExceptionUpdatingWriter2LoadBalancerService()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupSplitBeginId);
+            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer2-externalservice", testNameSpace).Returns(Task.FromException<V1Service>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer2-externalservice", testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupMergeTime>());
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ExceptionUpdatingShardGroupConfigurationToRedirectToRouter()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupSplitBeginId);
+            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockShardConfigurationSetPersister.When((persister) => persister.Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true)).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupMergeTime>());
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task MergeShardGroupsAsync_UserShardGroups()
+        {
+            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid persistentStorageCreateBeginId = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
+            String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
+            // This is returned whilst restarting the first source shard group
+            V1PodList returnPods = new
+            (
+                new List<V1Pod>()
+            );
+            // This is returned both whilst creating router and whilst restarting the first source shard group
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
+            staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                staticConfiguration,
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
             mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
+            mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(persistentStorageCreateBeginId);
+            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            List<ShardConfigurationSet<AccessManagerRestClientConfiguration>> capturedShardConfigurationSets = new();
+            mockShardConfigurationSetPersister.Write(Arg.Do<ShardConfigurationSet<AccessManagerRestClientConfiguration>>
+            (
+                (argumentValue) => { capturedShardConfigurationSets.Add(argumentValue); }
+            ), true);
 
             await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
             (
@@ -4428,11 +5037,45 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockShardGroupMerger
             );
 
+            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
+            // TODO:  ***UPDATE THIS COMMENT*** Of below 4 calls, first is for the router and next 3 are for the target shard group reader, event cache, and writer
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
+            // TODO:  ***UPDATE THIS COMMENT*** Of below 7 calls, first is for the router and next 3 are for the target shard group reader, event cache, and writer, and the next 3 are for the source shard group reader, event cache, and writer (as part of the source shard group restart)
+            await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, testNameSpace);
+            await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace);
+            await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer2-externalservice", testNameSpace);
+            mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).End(persistentStorageCreateBeginId, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<PersistentStorageInstanceCreated>());
             mockMetricLogger.Received(1).End(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupsMerged>());
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Merging User shard group with hash range start value {Int32.MinValue} with shard group with hash range start value 0...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Creating temporary persistent storage instance...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating temporary persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 1 load balancer service to target first source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating writer 1 load balancer service.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 2 load balancer service to target first source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating writer 2 load balancer service.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating shard group configuration.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed merging shard groups.");
+            Assert.AreEqual(1, capturedShardConfigurationSets.Count);
+            List<ShardConfiguration<AccessManagerRestClientConfiguration>> firstCapturedShardConfigurationList = new(capturedShardConfigurationSets[0].Items);
+            Assert.AreEqual(6, firstCapturedShardConfigurationList.Count);
+            Assert.AreEqual(DataElement.User, firstCapturedShardConfigurationList[0].DataElementType);
+            Assert.AreEqual(Operation.Query, firstCapturedShardConfigurationList[0].OperationType);
+            Assert.AreEqual(Int32.MinValue, firstCapturedShardConfigurationList[0].HashRangeStart);
+            Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[0].ClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(DataElement.User, firstCapturedShardConfigurationList[1].DataElementType);
+            Assert.AreEqual(Operation.Event, firstCapturedShardConfigurationList[1].OperationType);
+            Assert.AreEqual(Int32.MinValue, firstCapturedShardConfigurationList[1].HashRangeStart);
+            Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[1].ClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(DataElement.GroupToGroupMapping, firstCapturedShardConfigurationList[2].DataElementType);
+            Assert.AreEqual(Operation.Query, firstCapturedShardConfigurationList[2].OperationType);
+            Assert.AreEqual(Int32.MinValue, firstCapturedShardConfigurationList[2].HashRangeStart);
+            Assert.AreEqual("http://grouptogroup-reader-n2147483648-service:5000/", firstCapturedShardConfigurationList[2].ClientConfiguration.BaseUrl.ToString());
         }
 
         [Test]
@@ -4458,7 +5101,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 (
                     DataElement.User,
                     new List<HashRangeStartAndClientConfigurations>(),
-                    new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>()
+                    new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>(),
+                    new List<Int32>()
                 );
             });
 
@@ -4489,7 +5133,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 (
                     DataElement.User, 
                     new List<HashRangeStartAndClientConfigurations>(), 
-                    new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>()
+                    new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>(), 
+                    new List<Int32>()
                 );
             });
 
@@ -4517,6 +5162,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
+                ),
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    1_073_741_824,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-1073741824-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-1073741824-service:5000/"))
                 )
             };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -4559,6 +5211,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n1073741824-service:5000/"))
                 )
             };
+            List<Int32> testConfigurationDeletes = new() { 1_073_741_824 };
             ShardConfigurationSet<AccessManagerRestClientConfiguration> capturedShardConfigurationSet = null;
             mockShardConfigurationSetPersister.Write(Arg.Do<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(argumentValue => capturedShardConfigurationSet = argumentValue), true);
 
@@ -4566,7 +5219,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 DataElement.User, 
                 testConfigurationUpdates,
-                testConfigurationAdditions
+                testConfigurationAdditions,
+                testConfigurationDeletes
             );
 
             mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
@@ -7950,6 +8604,35 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         /// <summary>
+        /// Creates a test <see cref="KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration{TPersistentStorageCredentials}"/> instance with 2 user shard groups.
+        /// </summary>
+        /// <returns>The <see cref="KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration{TPersistentStorageCredentials}"/> instance.</returns>
+        /// <remarks>Used for testing method MergeShardGroupsAsync(), since multiple shard groups are required to merge.</remarks>
+        protected KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> CreateTwoUserShardGroupInstanceConfiguration()
+        {
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> returnConfiguration = CreateInstanceConfiguration();
+            returnConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+            {
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    Int32.MinValue,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
+                ),
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    0,
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
+                )
+            };
+
+            return returnConfiguration;
+        }
+
+        /// <summary>
         /// Returns an <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/> which checks whether a <see cref="V1Deployment"/> has a specified 'app' label name.
         /// </summary>
         /// <param name="expectedAppName">The expected 'app' label name.</param>
@@ -8139,10 +8822,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 DataElement dataElement,
                 IEnumerable<HashRangeStartAndClientConfigurations> configurationUpdates,
-                IEnumerable<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> configurationAdditions
+                IEnumerable<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> configurationAdditions,
+                IEnumerable<Int32> configurationDeletes
             )
             {
-                base.UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions);
+                base.UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, configurationDeletes);
             }
 
             public new Int32 GetDistributedOperationCoordinatorConfigurationRefreshInterval()
