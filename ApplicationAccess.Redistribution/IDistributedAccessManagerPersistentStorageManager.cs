@@ -20,10 +20,10 @@ using ApplicationAccess.Persistence.Models;
 namespace ApplicationAccess.Redistribution
 {
     /// <summary>
-    /// Defines methods for creating persistent storage instances for a distributed AccessManager implementation.
+    /// Defines methods for managing persistent storage instances in a distributed AccessManager implementation.
     /// </summary>
-    /// <typeparam name="TPersistentStorageCredentials">An implementation of <see cref="IPersistentStorageLoginCredentials"/> containing login credentials for the created persistent storage instances.</typeparam>
-    public interface IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> where TPersistentStorageCredentials : IPersistentStorageLoginCredentials
+    /// <typeparam name="TPersistentStorageCredentials">An implementation of <see cref="IPersistentStorageLoginCredentials"/> containing login credentials for created persistent storage instances.</typeparam>
+    public interface IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> where TPersistentStorageCredentials : IPersistentStorageLoginCredentials
     {
         /// <summary>
         /// Creates a new distributed AccessManager persistent storage instance.

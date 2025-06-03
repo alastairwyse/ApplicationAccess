@@ -80,7 +80,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected const String tcpProtocol = "TCP";
         protected const String distributedOperationCoordinatorObjectNamePrefix = "operation-coordinator";
         protected const String distributedOperationRouterObjectNamePrefix = "operation-router";
-        protected const String temporaryPersisentStorageInstanceNameSuffix = "merge_temp";
+        protected const String temporaryPersisentStorageInstanceName = "merge_temp";
+        protected const String supersededPersisentStorageInstanceNamePostfix = "_old";
         protected const String nodeModeEnvironmentVariableName = "MODE";
         protected const String nodeModeEnvironmentVariableValue = "Launch";
         protected const String nodeListenPortEnvironmentVariableName = "LISTEN_PORT";
@@ -130,8 +131,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected k8s.Kubernetes kubernetesClient;
         /// <summary>Acts as a <see href="https://en.wikipedia.org/wiki/Shim_(computing)">shim</see> to the Kubernetes client class.</summary>
         protected IKubernetesClientShim kubernetesClientShim;
-        /// <summary>Used to create new instances of persistent storage used by the distributed AccessManager implementation.</summary>
-        protected IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator;
+        /// <summary>Used to manage instances of persistent storage used by the distributed AccessManager implementation.</summary>
+        protected IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager;
         /// <summary>Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</summary>
         protected IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer;
         /// <summary>A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</summary>
@@ -217,7 +218,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.KubernetesDistributedAccessManagerInstanceManager class.
         /// </summary>
         /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
-        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
         /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
         /// <param name="logger">The logger for general logging.</param>
@@ -225,7 +226,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         public KubernetesDistributedAccessManagerInstanceManager
         (
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration, 
-            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager,
             IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
             Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction, 
             IApplicationLogger logger, 
@@ -234,7 +235,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile();
             kubernetesClient = new k8s.Kubernetes(clientConfiguration);
-            InitializeFields(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            InitializeFields(staticConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
         }
 
         /// <summary>
@@ -242,7 +243,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
         /// <param name="instanceConfiguration">Configuration for an existing distributed AccessManager instance.</param>
-        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
         /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
         /// <param name="logger">The logger for general logging.</param>
@@ -251,7 +252,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         (
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials> instanceConfiguration, 
-            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager,
             IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
             Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
             IApplicationLogger logger,
@@ -260,7 +261,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile();
             kubernetesClient = new k8s.Kubernetes(clientConfiguration);
-            InitializeFields(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            InitializeFields(staticConfiguration, instanceConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
         }
 
         /// <summary>
@@ -268,7 +269,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
         /// <param name="kubernetesConfigurationFilePath">The full path to the configuration file to use to connect to the Kubernetes cluster(s).</param>
-        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
         /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
         /// <param name="logger">The logger for general logging.</param>
@@ -277,7 +278,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         (
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration, 
             String kubernetesConfigurationFilePath, 
-            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager,
             IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
             Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
             IApplicationLogger logger, 
@@ -286,7 +287,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile(kubernetesConfigurationFilePath);
             kubernetesClient = new k8s.Kubernetes(clientConfiguration);
-            InitializeFields(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            InitializeFields(staticConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
         }
 
         /// <summary>
@@ -295,7 +296,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
         /// <param name="instanceConfiguration">Configuration for an existing distributed AccessManager instance.</param>
         /// <param name="kubernetesConfigurationFilePath">The full path to the configuration file to use to connect to the Kubernetes cluster(s).</param>
-        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
         /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
         /// <param name="logger">The logger for general logging.</param>
@@ -305,7 +306,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials> instanceConfiguration,
             String kubernetesConfigurationFilePath,
-            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager,
             IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
             Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
             IApplicationLogger logger,
@@ -314,7 +315,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile(kubernetesConfigurationFilePath);
             kubernetesClient = new k8s.Kubernetes(clientConfiguration);
-            InitializeFields(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            InitializeFields(staticConfiguration, instanceConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
         }
 
         /// <summary>
@@ -322,7 +323,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
         /// <param name="instanceConfiguration">Configuration for an existing distributed AccessManager instance.</param>
-        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
         /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
         /// <param name="kubernetesClientShim">A mock <see cref="IKubernetesClientShim"/>.</param>
@@ -333,7 +334,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         (
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials> instanceConfiguration,
-            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager,
             IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
             Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
             IKubernetesClientShim kubernetesClientShim, 
@@ -342,7 +343,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         )
         {
             kubernetesClient = null;
-            InitializeFields(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            InitializeFields(staticConfiguration, instanceConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
             this.kubernetesClientShim = kubernetesClientShim;
         }
 
@@ -502,7 +503,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 {
                     try
                     {
-                        TPersistentStorageCredentials credentials = persistentStorageCreator.CreateAccessManagerConfigurationPersistentStorage(persistentStorageInstanceName);
+                        TPersistentStorageCredentials credentials = persistentStorageManager.CreateAccessManagerConfigurationPersistentStorage(persistentStorageInstanceName);
                         instanceConfiguration.ShardConfigurationPersistentStorageCredentials = credentials;
                     }
                     catch (Exception e)
@@ -593,7 +594,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Initializes fields of the class.
         /// </summary>
         /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
-        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
         /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
         /// <param name="logger">The logger for general logging.</param>
@@ -601,7 +602,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected void InitializeFields
         (
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration, 
-            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager,
             IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
             Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
             IApplicationLogger logger, 
@@ -622,7 +623,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             userShardGroupConfigurationSet = new KubernetesShardGroupConfigurationSet<TPersistentStorageCredentials>();
             groupToGroupMappingShardGroupConfigurationSet = new KubernetesShardGroupConfigurationSet<TPersistentStorageCredentials>();
             groupShardGroupConfigurationSet = new KubernetesShardGroupConfigurationSet<TPersistentStorageCredentials>();
-            this.persistentStorageCreator = persistentStorageCreator;
+            this.persistentStorageManager = persistentStorageManager;
             this.credentialsAppSettingsConfigurer = credentialsAppSettingsConfigurer;
             this.shardConfigurationSetPersisterCreationFunction = shardConfigurationSetPersisterCreationFunction;
             this.shardConfigurationSetPersister = null;
@@ -636,7 +637,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
         /// <param name="instanceConfiguration">Configuration for an existing distributed AccessManager instance.</param>
-        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
         /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
         /// <param name="logger">The logger for general logging.</param>
@@ -645,14 +646,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         (
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials> instanceConfiguration,
-            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager,
             IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
             Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
             IApplicationLogger logger,
             IMetricLogger metricLogger
         )
         {
-            InitializeFields(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            InitializeFields(staticConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
             var instanceConfigurationValidator = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfigurationValidator<TPersistentStorageCredentials>();
             try
             {
@@ -801,7 +802,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             TPersistentStorageCredentials targetPersistentStorageCredentials;
             try
             {
-                targetPersistentStorageCredentials = persistentStorageCreator.CreateAccessManagerPersistentStorage(targetPersistentStorageInstanceName);
+                targetPersistentStorageCredentials = persistentStorageManager.CreateAccessManagerPersistentStorage(targetPersistentStorageInstanceName);
             }
             catch (Exception e)
             {
@@ -1232,19 +1233,19 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             // Create the target persistent storage instance
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating temporary persistent storage instance...");
             String temporaryPersistentStorageInstanceName = GenerateTemporaryPersistentStorageInstanceName();
-            Guid storageBeginId = metricLogger.Begin(new PersistentStorageInstanceCreateTime());
+            Guid storageCreateBeginId = metricLogger.Begin(new PersistentStorageInstanceCreateTime());
             TPersistentStorageCredentials targetPersistentStorageCredentials;
             try
             {
-                targetPersistentStorageCredentials = persistentStorageCreator.CreateAccessManagerPersistentStorage(temporaryPersistentStorageInstanceName);
+                targetPersistentStorageCredentials = persistentStorageManager.CreateAccessManagerPersistentStorage(temporaryPersistentStorageInstanceName);
             }
             catch (Exception e)
             {
-                metricLogger.CancelBegin(storageBeginId, new PersistentStorageInstanceCreateTime());
+                metricLogger.CancelBegin(storageCreateBeginId, new PersistentStorageInstanceCreateTime());
                 metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
                 throw new Exception($"Error creating temporary persistent storage instance.", e);
             }
-            metricLogger.End(storageBeginId, new PersistentStorageInstanceCreateTime());
+            metricLogger.End(storageCreateBeginId, new PersistentStorageInstanceCreateTime());
             metricLogger.Increment(new PersistentStorageInstanceCreated());
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed creating temporary persistent storage instance.");
 
@@ -1377,8 +1378,59 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Int32 configurationUpdateWait = GetDistributedOperationCoordinatorConfigurationRefreshInterval() + staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer;
             await Task.Delay(configurationUpdateWait);
 
+            // Merge events from the two source shard groups to the target shard group
+            Guid eventMergeBeginId = metricLogger.Begin(new EventMergeTime());
+            try
+            {
+                shardGroupMerger.MergeEventsToTargetShardGroup
+                (
+                    sourceShardGroup1EventReader,
+                    sourceShardGroup2EventReader,
+                    targetShardGroupEventPersister,
+                    operationRouter,
+                    sourceShardGroup1WriterAdministrator,
+                    sourceShardGroup2WriterAdministrator,
+                    eventBatchSize,
+                    sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                    sourceWriterNodeOperationsCompleteCheckRetryInterval
+                );
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(eventMergeBeginId, new EventMergeTime());
+                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                throw new Exception("Error merging events from source shard group to target shard group.", e);
+            }
+            metricLogger.End(eventMergeBeginId, new EventCopyTime());
 
+            // Shut down source shard group 1
+            try
+            {
+                await ScaleDownShardGroupAsync(dataElement, sourceShardGroup1HashRangeStart);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                throw new Exception($"Error scaling down source shard group 1 with data element '{dataElement}' and hash range start value {sourceShardGroup1HashRangeStart}.", e);
+            }
 
+            // Rename source shard group 1 persistent storage instance
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Renaming source shard group 1 persistent storage instance...");
+            String source1PersistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, sourceShardGroup1HashRangeStart);
+            Guid storageRenameBeginId = metricLogger.Begin(new PersistentStorageInstanceRenameTime());
+            try
+            {
+                persistentStorageManager.RenamePersistentStorage(source1PersistentStorageInstanceName, $"{source1PersistentStorageInstanceName}{supersededPersisentStorageInstanceNamePostfix}");
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
+                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                throw new Exception($"Error renaming source shard group 1 persistent storage instance.", e);
+            }
+            metricLogger.End(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
+            metricLogger.Increment(new PersistentStorageInstanceRenamed());
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed renaming source shard group 1 persistent storage instance.");
 
 
 
@@ -1763,11 +1815,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             if (staticConfiguration.PersistentStorageInstanceNamePrefix != "")
             {
-                return $"{staticConfiguration.PersistentStorageInstanceNamePrefix}_{temporaryPersisentStorageInstanceNameSuffix}";
+                return $"{staticConfiguration.PersistentStorageInstanceNamePrefix}_{temporaryPersisentStorageInstanceName}";
             }
             else
             {
-                return temporaryPersisentStorageInstanceNameSuffix;
+                return temporaryPersisentStorageInstanceName;
             }
         }
 
@@ -1860,7 +1912,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 Guid storageBeginId = metricLogger.Begin(new PersistentStorageInstanceCreateTime());
                 try
                 {
-                    persistentStorageCredentials = persistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
+                    persistentStorageCredentials = persistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
                 }
                 catch (Exception e)
                 {

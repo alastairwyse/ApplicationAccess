@@ -25,9 +25,9 @@ using ApplicationAccess.Redistribution;
 namespace ApplicationAccess.Redistribution.Persistence.SqlServer
 {
     /// <summary>
-    /// Creates SQL Server database instances for a distributed AccessManager implementation.
+    /// Manages SQL Server database instances for a distributed AccessManager implementation.
     /// </summary>
-    public class SqlServerDistributedAccessManagerPersistentStorageCreator : IDistributedAccessManagerPersistentStorageCreator<SqlServerLoginCredentials>
+    public class SqlServerDistributedAccessManagerPersistentStorageManager : IDistributedAccessManagerPersistentStorageManager<SqlServerLoginCredentials>
     {
         #pragma warning disable 1591
 
@@ -48,11 +48,11 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
         protected String connectionString;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Redistribution.Persistence.SqlServer.SqlServerDistributedAccessManagerPersistentStorageCreator class.
+        /// Initialises a new instance of the ApplicationAccess.Redistribution.Persistence.SqlServer.SqlServerDistributedAccessManagerPersistentStorageManager class.
         /// </summary>
         /// <param name="connectionString">The connection string to use to connect to SQL Server.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public SqlServerDistributedAccessManagerPersistentStorageCreator(String connectionString)
+        public SqlServerDistributedAccessManagerPersistentStorageManager(String connectionString)
         {
             if (String.IsNullOrWhiteSpace(connectionString) == true)
                 throw new ArgumentException($"Parameter '{nameof(connectionString)}' must contain a value.", nameof(connectionString));
@@ -63,12 +63,12 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Redistribution.Persistence.SqlServer.SqlServerDistributedAccessManagerPersistentStorageCreator class.
+        /// Initialises a new instance of the ApplicationAccess.Redistribution.Persistence.SqlServer.SqlServerDistributedAccessManagerPersistentStorageManager class.
         /// </summary>
         /// <param name="connectionString">The connection string to use to connect to SQL Server.</param>
         /// <param name="mockFileShim">A mock <see cref="IFileShim"/>.</param>
         /// <param name="mockScriptExecutor">A mock <see cref="ISqlServerScriptExecutor"/>.</param>
-        public SqlServerDistributedAccessManagerPersistentStorageCreator(String connectionString, IFileShim mockFileShim, ISqlServerScriptExecutor mockScriptExecutor)
+        public SqlServerDistributedAccessManagerPersistentStorageManager(String connectionString, IFileShim mockFileShim, ISqlServerScriptExecutor mockScriptExecutor)
             : this(connectionString)
         {
             this.fileShim = mockFileShim;

@@ -55,7 +55,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
     {
         protected String testNameSpace = "default";
         protected KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> emptyInstanceConfiguration;
-        protected IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> mockPersistentStorageCreator;
+        protected IDistributedAccessManagerPersistentStorageManager<TestPersistentStorageLoginCredentials> mockPersistentStorageManager;
         protected IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> mockAppSettingsConfigurer;
         protected IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> mockShardConfigurationSetPersister;
         protected IAccessManagerTemporalEventBatchReader mockSourceShardGroup1EventReader;
@@ -64,6 +64,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         protected IAccessManagerTemporalEventDeleter mocksourceShardGroupEventDeleter;
         protected IDistributedAccessManagerOperationRouter mockOperationRouter;
         protected IDistributedAccessManagerWriterAdministrator mockSourceShardGroup1WriterAdministrator;
+        protected IDistributedAccessManagerWriterAdministrator mockSourceShardGroup2WriterAdministrator;
         protected IDistributedAccessManagerShardGroupSplitter mockShardGroupSplitter;
         protected IDistributedAccessManagerShardGroupMerger mockShardGroupMerger;
         protected IKubernetesClientShim mockKubernetesClientShim;
@@ -82,7 +83,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             testNameSpace = "default";
             emptyInstanceConfiguration = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials>();
-            mockPersistentStorageCreator = Substitute.For<IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials>>();
+            mockPersistentStorageManager = Substitute.For<IDistributedAccessManagerPersistentStorageManager<TestPersistentStorageLoginCredentials>>();
             mockAppSettingsConfigurer = Substitute.For<IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials>>();
             mockShardConfigurationSetPersister = Substitute.For<IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>>();
             mockSourceShardGroup1EventReader = Substitute.For<IAccessManagerTemporalEventBatchReader>();
@@ -91,22 +92,47 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mocksourceShardGroupEventDeleter = Substitute.For<IAccessManagerTemporalEventDeleter>();
             mockOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter>();
             mockSourceShardGroup1WriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
+            mockSourceShardGroup2WriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
             mockShardGroupSplitter = Substitute.For<IDistributedAccessManagerShardGroupSplitter>();
             mockShardGroupMerger = Substitute.For<IDistributedAccessManagerShardGroupMerger>();
             mockKubernetesClientShim = Substitute.For<IKubernetesClientShim>();
             mockApplicationLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
             testShardConfigurationSetPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mockShardConfigurationSetPersister; };
-            testSourceShardGroupEventReaderCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mockSourceShardGroup1EventReader; };
+            Boolean readerCreationFunctionCalled = false;
+            testSourceShardGroupEventReaderCreationFunction = (TestPersistentStorageLoginCredentials credentials) => 
+            { 
+                if (readerCreationFunctionCalled == false)
+                {
+                    readerCreationFunctionCalled = true;
+                    return mockSourceShardGroup1EventReader;
+                }
+                else
+                {
+                    return mockSourceShardGroup2EventReader;
+                }
+            };
             testTargetShardGroupEventPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mockTargetShardGroupEventPersister; };
             testSourceShardGroupEventDeleterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mocksourceShardGroupEventDeleter; };
             testOperationRouterCreationFunction = (Uri baseUrl) => { return mockOperationRouter; };
-            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { return mockSourceShardGroup1WriterAdministrator; };
+            Boolean writerAdministratorCreationFunctionCalled = false;
+            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => 
+            {
+                if (writerAdministratorCreationFunctionCalled == false)
+                {
+                    writerAdministratorCreationFunctionCalled = true;
+                    return mockSourceShardGroup1WriterAdministrator;
+                }
+                else
+                {
+                    return mockSourceShardGroup2WriterAdministrator;
+                }
+            };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
                 emptyInstanceConfiguration, 
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction, 
                 mockKubernetesClientShim,
@@ -123,7 +149,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
                 (
                     CreateStaticConfiguration() with { NameSpace = null },
-                    mockPersistentStorageCreator,
+                    mockPersistentStorageManager,
                     mockAppSettingsConfigurer,
                     testShardConfigurationSetPersisterCreationFunction,
                     mockApplicationLogger,
@@ -159,7 +185,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 (
                     CreateStaticConfiguration(),
                     instanceConfiguration,
-                    mockPersistentStorageCreator,
+                    mockPersistentStorageManager,
                     mockAppSettingsConfigurer,
                     testShardConfigurationSetPersisterCreationFunction,
                     mockApplicationLogger,
@@ -232,7 +258,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 testInstanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -305,7 +331,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 testInstanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -340,7 +366,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -370,7 +396,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -400,7 +426,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -430,7 +456,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -453,7 +479,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -615,7 +641,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -679,7 +705,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -759,7 +785,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -792,7 +818,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -858,7 +884,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -917,7 +943,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult(new V1Deployment()));
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult(new V1Service()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
-            mockPersistentStorageCreator.When((storageCreator) => storageCreator.CreateAccessManagerConfigurationPersistentStorage(persistentStorageInstanceName)).Do((callInfo) => throw mockException);
+            mockPersistentStorageManager.When((storageManager) => storageManager.CreateAccessManagerConfigurationPersistentStorage(persistentStorageInstanceName)).Do((callInfo) => throw mockException);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -929,7 +955,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerConfigurationPersistentStorage(persistentStorageInstanceName);
+            mockPersistentStorageManager.Received(1).CreateAccessManagerConfigurationPersistentStorage(persistentStorageInstanceName);
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             Assert.That(e.Message, Does.StartWith($"Error creating persistent storage instance for shard configuration."));
@@ -1067,16 +1093,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             TestPersistentStorageLoginCredentials configurationCredentials = new("testConnectionString");
             testKubernetesDistributedAccessManagerInstanceManager = CreateInstanceManagerWithLoadBalancerServices();
             mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>()).Returns(testBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_user_n2147483648").Returns(userN2147483648Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_user_0").Returns(user0Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_n2147483648").Returns(groupToGroupN2147483648Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n2147483648").Returns(groupN2147483648Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n715827882").Returns(groupN715827882Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_group_715827884").Returns(group715827884Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_user_n2147483648").Returns(userN2147483648Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_user_0").Returns(user0Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_n2147483648").Returns(groupToGroupN2147483648Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n2147483648").Returns(groupN2147483648Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n715827882").Returns(groupN715827882Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_group_715827884").Returns(group715827884Credentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult(new V1Deployment()));
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult(new V1Service()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
-            mockPersistentStorageCreator.CreateAccessManagerConfigurationPersistentStorage(configurationPersistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(configurationCredentials);
+            mockPersistentStorageManager.CreateAccessManagerConfigurationPersistentStorage(configurationPersistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(configurationCredentials);
             ShardConfigurationSet<AccessManagerRestClientConfiguration> capturedShardConfigurationSet = null;
             mockShardConfigurationSetPersister.Write(Arg.Do<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(argumentValue => capturedShardConfigurationSet = argumentValue), true);
             mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromResult<V1ServiceList>(returnServices));
@@ -1089,7 +1115,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             );
 
             await mockKubernetesClientShim.Received().CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerConfigurationPersistentStorage(configurationPersistentStorageInstanceName);
+            mockPersistentStorageManager.Received(1).CreateAccessManagerConfigurationPersistentStorage(configurationPersistentStorageInstanceName);
             mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedAccessManagerInstanceCreateTime>());
@@ -1293,7 +1319,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 testInstanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -1301,12 +1327,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>()).Returns(testBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_user_n2147483648").Returns(userN2147483648Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_user_0").Returns(user0Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_n2147483648").Returns(groupToGroupN2147483648Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n2147483648").Returns(groupN2147483648Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n715827882").Returns(groupN715827882Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_group_715827884").Returns(group715827884Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_user_n2147483648").Returns(userN2147483648Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_user_0").Returns(user0Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_n2147483648").Returns(groupToGroupN2147483648Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n2147483648").Returns(groupN2147483648Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n715827882").Returns(groupN715827882Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_group_715827884").Returns(group715827884Credentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult(new V1Deployment()));
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult(new V1Service()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
@@ -1322,7 +1348,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             );
 
             await mockKubernetesClientShim.Received().CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
-            mockPersistentStorageCreator.DidNotReceive().CreateAccessManagerConfigurationPersistentStorage(Arg.Any<String>());
+            mockPersistentStorageManager.DidNotReceive().CreateAccessManagerConfigurationPersistentStorage(Arg.Any<String>());
             mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedAccessManagerInstanceCreateTime>());
@@ -1526,7 +1552,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration() with { PersistentStorageInstanceNamePrefix = "" },
                 testInstanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -1534,12 +1560,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>()).Returns(testBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("user_n2147483648").Returns(userN2147483648Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("user_0").Returns(user0Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("grouptogroupmapping_n2147483648").Returns(groupToGroupN2147483648Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("group_n2147483648").Returns(groupN2147483648Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("group_n715827882").Returns(groupN715827882Credentials);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage("group_715827884").Returns(group715827884Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("user_n2147483648").Returns(userN2147483648Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("user_0").Returns(user0Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("grouptogroupmapping_n2147483648").Returns(groupToGroupN2147483648Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("group_n2147483648").Returns(groupN2147483648Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("group_n715827882").Returns(groupN715827882Credentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage("group_715827884").Returns(group715827884Credentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult(new V1Deployment()));
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult(new V1Service()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
@@ -1555,7 +1581,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             );
 
             await mockKubernetesClientShim.Received().CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
-            mockPersistentStorageCreator.DidNotReceive().CreateAccessManagerConfigurationPersistentStorage(Arg.Any<String>());
+            mockPersistentStorageManager.DidNotReceive().CreateAccessManagerConfigurationPersistentStorage(Arg.Any<String>());
             mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedAccessManagerInstanceCreateTime>());
@@ -1847,7 +1873,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -1886,7 +1912,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -1925,7 +1951,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -1965,7 +1991,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2018,7 +2044,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2058,7 +2084,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2111,7 +2137,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2153,7 +2179,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2162,7 +2188,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(testBeginId1);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
-            mockPersistentStorageCreator.When((storageCreator) => storageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_user_0")).Do((callInfo) => throw mockException);
+            mockPersistentStorageManager.When((storageManager) => storageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_user_0")).Do((callInfo) => throw mockException);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2184,7 +2210,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_user_0");
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_user_0");
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
@@ -2203,7 +2229,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2248,7 +2274,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2293,7 +2319,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2338,7 +2364,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2383,7 +2409,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2438,7 +2464,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2448,7 +2474,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(persistentStorageCreateBeginId);
             mockMetricLogger.Begin(Arg.Any<DistributedOperationRouterNodeCreateTime>()).Returns(routerCreateBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException)); 
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
 
@@ -2499,7 +2525,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2507,7 +2533,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace).Returns(Task.FromException<V1Service>(mockException));
 
@@ -2555,7 +2581,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2563,7 +2589,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockShardConfigurationSetPersister.When((persister) => persister.Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true)).Do((callInfo) => throw mockException);
 
@@ -2614,7 +2640,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2623,7 +2649,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
             mockMetricLogger.Begin(Arg.Any<EventCopyTime>()).Returns(eventCopyBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments)); 
             mockShardGroupSplitter.When((splitter) => splitter.CopyEventsToTargetShardGroup
             (
@@ -2702,7 +2728,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2710,7 +2736,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns
             (
@@ -2768,7 +2794,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2776,7 +2802,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockOperationRouter.RoutingOn = Arg.Do<Boolean>((Boolean value) => { throw mockException; });
 
@@ -2830,7 +2856,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2838,7 +2864,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockOperationRouter.When((router) => router.ResumeOperations()).Do((callInfo) => throw mockException);
 
@@ -2892,7 +2918,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2900,7 +2926,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             Boolean configurationSetPersisterWriteCalled = false;
             mockShardConfigurationSetPersister.When((persister) => persister.Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true)).Do
@@ -2967,7 +2993,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -2975,7 +3001,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockShardGroupSplitter.When((splitter) => splitter.DeleteEventsFromSourceShardGroup
             (
@@ -3035,7 +3061,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -3043,7 +3069,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockOperationRouter.When((router) => router.PauseOperations()).Do((callInfo) => throw mockException);
 
@@ -3097,7 +3123,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -3105,7 +3131,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-eventcache-n2147483648", testNameSpace).Returns(Task.FromException<V1Scale>(mockException));
             mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n2147483648", testNameSpace).Returns(Task.FromException<V1Scale>(mockException));
@@ -3167,7 +3193,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -3175,7 +3201,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             Boolean receivedRouterResumeCall = false;
             mockOperationRouter.When((router) => router.ResumeOperations()).Do
@@ -3251,7 +3277,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -3259,7 +3285,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
             Int32 configurationSetPersisterWriteCallCount = 0;
@@ -3331,7 +3357,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -3339,7 +3365,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
             mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace).Returns
@@ -3404,7 +3430,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -3412,7 +3438,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
             mockKubernetesClientShim.DeleteNamespacedServiceAsync(null, "operation-router-service", testNameSpace).Returns(Task.FromException<V1Service>(mockException));
@@ -3473,7 +3499,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -3481,7 +3507,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
             mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "operation-router", testNameSpace).Returns(Task.FromException<V1Scale>(mockException));
@@ -3545,7 +3571,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -3555,7 +3581,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(persistentStorageCreateBeginId);
             mockMetricLogger.Begin(Arg.Any<EventCopyTime>()).Returns(eventCopyBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             ShardConfigurationSet<AccessManagerRestClientConfiguration> firstCapturedShardConfigurationSet = null, secondCapturedShardConfigurationSet = null, thirdCapturedShardConfigurationSet = null;
@@ -3598,7 +3624,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockShardGroupSplitter
             );
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
             // Of below 4 calls, first is for the router and next 3 are for the target shard group reader, event cache, and writer
             await mockKubernetesClientShim.Received(4).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             // Of below 7 calls, first is for the router and next 3 are for the target shard group reader, event cache, and writer, and the next 3 are for the source shard group reader, event cache, and writer (as part of the source shard group restart)
@@ -3799,7 +3825,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -3809,7 +3835,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(persistentStorageCreateBeginId);
             mockMetricLogger.Begin(Arg.Any<EventCopyTime>()).Returns(eventCopyBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             ShardConfigurationSet<AccessManagerRestClientConfiguration> firstCapturedShardConfigurationSet = null, secondCapturedShardConfigurationSet = null, thirdCapturedShardConfigurationSet = null;
@@ -3852,7 +3878,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockShardGroupSplitter
             );
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
             // Of below 4 calls, first is for the router and next 3 are for the target shard group reader, event cache, and writer
             await mockKubernetesClientShim.Received(4).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             // Of below 7 calls, first is for the router and next 3 are for the target shard group reader, event cache, and writer, and the next 3 are for the source shard group reader, event cache, and writer (as part of the source shard group restart)
@@ -4063,7 +4089,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4101,7 +4127,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4139,7 +4165,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4178,7 +4204,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4217,7 +4243,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4280,7 +4306,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4343,7 +4369,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4408,7 +4434,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4417,7 +4443,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(testBeginId1);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
-            mockPersistentStorageCreator.When((storageCreator) => storageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_merge_temp")).Do((callInfo) => throw mockException);
+            mockPersistentStorageManager.When((storageManager) => storageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_merge_temp")).Do((callInfo) => throw mockException);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -4438,7 +4464,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_merge_temp");
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_merge_temp");
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
@@ -4458,7 +4484,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4515,7 +4541,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4560,7 +4586,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4605,7 +4631,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4650,7 +4676,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4707,7 +4733,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -4745,7 +4771,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task MergeShardGroupsAsync_ExceptionCreatingRouterNode()
         {
             var mockException = new Exception("Mock exception");
-            Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Guid routerCreateBeginId = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
             TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
@@ -4761,16 +4787,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
             );
-            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupSplitBeginId);
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
             mockMetricLogger.Begin(Arg.Any<DistributedOperationRouterNodeCreateTime>()).Returns(routerCreateBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
 
@@ -4797,7 +4823,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedOperationRouterNodeCreateTime>());
             mockMetricLogger.Received(1).CancelBegin(routerCreateBeginId, Arg.Any<DistributedOperationRouterNodeCreateTime>());
-            mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
             Assert.That(e.Message, Does.StartWith($"Error creating distributed operation router deployment."));
             Assert.AreSame(mockException, e.InnerException.InnerException);
         }
@@ -4806,7 +4832,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task MergeShardGroupsAsync_ExceptionUpdatingWriter1LoadBalancerService()
         {
             var mockException = new Exception("Mock exception");
-            Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
             TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
             V1DeploymentList returnDeployments = new
@@ -4821,15 +4847,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
             );
-            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace).Returns(Task.FromException<V1Service>(mockException));
 
@@ -4854,7 +4880,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
-            mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -4862,7 +4888,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task MergeShardGroupsAsync_ExceptionUpdatingWriter2LoadBalancerService()
         {
             var mockException = new Exception("Mock exception");
-            Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
             TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
             V1DeploymentList returnDeployments = new
@@ -4877,15 +4903,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
             );
-            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer2-externalservice", testNameSpace).Returns(Task.FromException<V1Service>(mockException));
 
@@ -4910,7 +4936,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer2-externalservice", testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
-            mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -4918,7 +4944,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void MergeShardGroupsAsync_ExceptionUpdatingShardGroupConfigurationToRedirectToRouter()
         {
             var mockException = new Exception("Mock exception");
-            Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
             TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
             V1DeploymentList returnDeployments = new
@@ -4933,15 +4959,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
             );
-            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupSplitBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockShardConfigurationSetPersister.When((persister) => persister.Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true)).Do((callInfo) => throw mockException);
 
@@ -4966,8 +4992,140 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
-            mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
             Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeShardGroupsAsync_ExceptionMergingEvents()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid eventMergeBeginId = Guid.Parse("22908a07-eaac-42e4-ad1d-6794a835e3bd");
+            String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
+            staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                staticConfiguration,
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
+            mockMetricLogger.Begin(Arg.Any<EventMergeTime>()).Returns(eventMergeBeginId);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockShardGroupMerger.When((merger) => merger.MergeEventsToTargetShardGroup
+            (
+                mockSourceShardGroup1EventReader,
+                mockSourceShardGroup2EventReader,
+                mockTargetShardGroupEventPersister, 
+                mockOperationRouter, 
+                mockSourceShardGroup1WriterAdministrator,
+                mockSourceShardGroup2WriterAdministrator,
+                1000,
+                5,
+                2000
+            )).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<EventMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(eventMergeBeginId, Arg.Any<EventMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>()); 
+            Assert.That(e.Message, Does.StartWith($"Error merging events from source shard group to target shard group."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+
+        [Test]
+        public void MergeShardGroupsAsync_ExceptionScalingDownSourceShardGroup1()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
+            staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                staticConfiguration,
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromException<V1PodList>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
+            Assert.That(e.Message, Does.StartWith($"Error scaling down source shard group 1 with data element 'User' and hash range start value {Int32.MinValue}."));
+            Assert.AreSame(mockException, e.InnerException.InnerException);
         }
 
         [Test]
@@ -4976,7 +5134,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Guid persistentStorageCreateBeginId = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            // This is returned whilst restarting the first source shard group
+            // This is returned whilst shutting down the first source shard group
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -5003,7 +5161,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -5012,7 +5170,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             );
             mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(persistentStorageCreateBeginId);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             List<ShardConfigurationSet<AccessManagerRestClientConfiguration>> capturedShardConfigurationSets = new();
@@ -5020,6 +5178,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 (argumentValue) => { capturedShardConfigurationSets.Add(argumentValue); }
             ), true);
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
 
             await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
             (
@@ -5037,14 +5196,28 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockShardGroupMerger
             );
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
             // TODO:  ***UPDATE THIS COMMENT*** Of below 4 calls, first is for the router and next 3 are for the target shard group reader, event cache, and writer
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             // TODO:  ***UPDATE THIS COMMENT*** Of below 7 calls, first is for the router and next 3 are for the target shard group reader, event cache, and writer, and the next 3 are for the source shard group reader, event cache, and writer (as part of the source shard group restart)
             await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, testNameSpace);
             await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace);
             await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer2-externalservice", testNameSpace);
+            // TODO:  ***UPDATE THIS COMMENT*** First 3 calls are made as part of the first source shard group shut down, the other 1 is made as part of scaling down and deleting the operation router
+            await mockKubernetesClientShim.Received(3).ListNamespacedPodAsync(null, testNameSpace);
             mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
+            mockShardGroupMerger.Received(1).MergeEventsToTargetShardGroup
+            (
+                mockSourceShardGroup1EventReader,
+                mockSourceShardGroup2EventReader,
+                mockTargetShardGroupEventPersister,
+                mockOperationRouter,
+                mockSourceShardGroup1WriterAdministrator,
+                mockSourceShardGroup2WriterAdministrator,
+                1000,
+                5,
+                2000
+            );
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
             mockMetricLogger.Received(1).End(persistentStorageCreateBeginId, Arg.Any<PersistentStorageInstanceCreateTime>());
@@ -5087,7 +5260,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -5118,7 +5291,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(),
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -5175,7 +5348,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -5297,7 +5470,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 emptyInstanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -5323,7 +5496,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 staticConfiguration,
                 emptyInstanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
@@ -5346,14 +5519,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Int32 hashRangeStart = -10_000;
             mockMetricLogger.Begin(Arg.Any<ShardGroupCreateTime>()).Returns(testBeginId1);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
-            mockPersistentStorageCreator.When((storageCreator) => storageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n10000")).Do((callInfo) => throw mockException);
+            mockPersistentStorageManager.When((storageManager) => storageManager.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n10000")).Do((callInfo) => throw mockException);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
                 await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart);
             });
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_group_n10000");
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_group_n10000");
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
@@ -5380,7 +5553,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<ShardGroupCreateTime>()).Returns(testBeginId1);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
             mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult(new V1Service()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
@@ -5390,7 +5563,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart);
             });
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_20000");
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_20000");
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
@@ -5428,7 +5601,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
             mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId4);
             mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId5);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("grouptogroupmapping-eventcache-20000")), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("grouptogroupmapping-reader-20000")), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("grouptogroupmapping-writer-20000")), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
@@ -5440,7 +5613,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart);
             });
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_20000");
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_20000");
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("grouptogroupmapping-eventcache-20000")), testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
@@ -5478,7 +5651,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
             mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId4);
             mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId5);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-eventcache-n400000")), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-reader-n400000")), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-writer-n400000")), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
@@ -5490,7 +5663,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart);
             });
 
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-eventcache-n400000")), testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
@@ -5527,7 +5700,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
             mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId4);
             mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId5);
-            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult(new V1Deployment()));
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult(new V1Service()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
@@ -5535,7 +5708,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             TestPersistentStorageLoginCredentials result = await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart);
 
             Assert.AreEqual(storageCredentials, result);
-            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
+            mockPersistentStorageManager.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-eventcache-n400000")), testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
@@ -5583,7 +5756,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             TestPersistentStorageLoginCredentials result = await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart, storageCredentials);
 
             Assert.AreEqual(storageCredentials, result);
-            mockPersistentStorageCreator.DidNotReceive().CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
+            mockPersistentStorageManager.DidNotReceive().CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-eventcache-n400000")), testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
             mockMetricLogger.DidNotReceive().Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
@@ -7096,7 +7269,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventCacheConnection");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -7109,7 +7282,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateStaticConfiguration();
             config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -7197,7 +7370,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             String name = "user-eventcache-n2147483648";
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.EventCacheNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -7272,7 +7445,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventPersistence");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -7285,7 +7458,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateStaticConfiguration();
             config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventCacheConnection");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -7298,7 +7471,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateStaticConfiguration();
             config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -7388,7 +7561,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -7469,7 +7642,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.DistributedOperationRouterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("ShardRouting");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -7495,7 +7668,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateStaticConfiguration();
             config.DistributedOperationRouterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -8171,7 +8344,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 CreateStaticConfiguration(),
                 instanceConfiguration,
-                mockPersistentStorageCreator,
+                mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction, 
                 mockKubernetesClientShim,
@@ -8669,27 +8842,27 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 get { return groupShardGroupConfigurationSet; }
             }
 
-            #pragma warning restore 1591
+#pragma warning restore 1591
 
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.UnitTests.KubernetesDistributedAccessManagerInstanceManagerTests+KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers class.
             /// </summary>
             /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
-            /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+            /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
             /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
-            /// <param name="shardConfigurationSetPersister">Used to write shard configuration to persistent storage.</param>
+            /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
             /// <param name="logger">The logger for general logging.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
             public KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
-                IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
+                IDistributedAccessManagerPersistentStorageManager<TestPersistentStorageLoginCredentials> persistentStorageManager,
                 IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
                 Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
                 IApplicationLogger logger,
                 IMetricLogger metricLogger
             )
-                : base(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
+                : base(staticConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
             {
             }
 
@@ -8698,22 +8871,22 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             /// </summary>
             /// <param name="staticConfiguration">Configuration for the instance manager.</param>
             /// <param name="instanceConfiguration">Configuration for an existing distributed AccessManager instance.</param>
-            /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+            /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
             /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
-            /// <param name="shardConfigurationSetPersister">Used to write shard configuration to persistent storage.</param>
+            /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
             /// <param name="logger">The logger for general logging.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
             public KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
                 KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration,
-                IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
+                IDistributedAccessManagerPersistentStorageManager<TestPersistentStorageLoginCredentials> persistentStorageManager,
                 IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
                 Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
                 IApplicationLogger logger,
                 IMetricLogger metricLogger
             )
-                : base(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
+                : base(staticConfiguration, instanceConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
             {
             }
 
@@ -8722,9 +8895,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             /// </summary>
             /// <param name="staticConfiguration">Configuration for the instance manager.</param>
             /// <param name="instanceConfiguration">Configuration for an existing distributed AccessManager instance.</param>
-            /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+            /// <param name="persistentStorageManager">Used to manage instances of persistent storage used by the distributed AccessManager implementation.</param>
             /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
-            /// <param name="shardConfigurationSetPersister">Used to write shard configuration to persistent storage.</param>
+            /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
             /// <param name="kubernetesClientShim">A mock <see cref="IKubernetesClientShim"/>.</param>
             /// <param name="logger">The logger for general logging.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
@@ -8732,14 +8905,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
                 KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration,
-                IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
+                IDistributedAccessManagerPersistentStorageManager<TestPersistentStorageLoginCredentials> persistentStorageManager,
                 IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
                 Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
                 IKubernetesClientShim kubernetesClientShim,
                 IApplicationLogger logger,
                 IMetricLogger metricLogger
             )
-                : base(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, kubernetesClientShim, logger, metricLogger)
+                : base(staticConfiguration, instanceConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, kubernetesClientShim, logger, metricLogger)
             {
             }
 

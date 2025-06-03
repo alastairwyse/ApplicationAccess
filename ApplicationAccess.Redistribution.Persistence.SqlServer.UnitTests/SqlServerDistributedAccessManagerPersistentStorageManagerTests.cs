@@ -26,9 +26,9 @@ using NUnit.Framework;
 namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Redistribution.Persistence.SqlServer.SqlServerDistributedAccessManagerPersistentStorageCreator class.
+    /// Unit tests for the ApplicationAccess.Redistribution.Persistence.SqlServer.SqlServerDistributedAccessManagerPersistentStorageManager class.
     /// </summary>
-    public class SqlServerDistributedAccessManagerPersistentStorageCreatorTests
+    public class SqlServerDistributedAccessManagerPersistentStorageManagerTests
     {
         protected const String accessManagerDatabaseCreateScriptPath = "./Resources/CreateDatabase.sql";
         protected const String accessManagerDatabaseUpdateScriptPath = "./Resources/ApplicationAccess/UpdateDatabase.sql";
@@ -38,7 +38,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         protected String testConnectionString;
         protected IFileShim mockFileShim;
         protected ISqlServerScriptExecutor mockSqlServerScriptExecutor;
-        protected SqlServerDistributedAccessManagerPersistentStorageCreator testSqlServerDistributedAccessManagerPersistentStorageCreator;
+        protected SqlServerDistributedAccessManagerPersistentStorageManager testSqlServerDistributedAccessManagerPersistentStorageManager;
 
         [SetUp]
         protected void SetUp()
@@ -46,7 +46,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             testConnectionString = "Server=127.0.0.1;User Id=sa;Password=password;Encrypt=false;Authentication=SqlPassword";
             mockFileShim = Substitute.For<IFileShim>();
             mockSqlServerScriptExecutor = Substitute.For<ISqlServerScriptExecutor>();
-            testSqlServerDistributedAccessManagerPersistentStorageCreator = new SqlServerDistributedAccessManagerPersistentStorageCreator(testConnectionString, mockFileShim, mockSqlServerScriptExecutor);
+            testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(testConnectionString, mockFileShim, mockSqlServerScriptExecutor);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator = new SqlServerDistributedAccessManagerPersistentStorageCreator(null, mockFileShim, mockSqlServerScriptExecutor);
+                testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(null, mockFileShim, mockSqlServerScriptExecutor);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'connectionString' must contain a value."));
@@ -66,7 +66,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator = new SqlServerDistributedAccessManagerPersistentStorageCreator(" ", mockFileShim, mockSqlServerScriptExecutor);
+                testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(" ", mockFileShim, mockSqlServerScriptExecutor);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'connectionString' must contain a value."));
@@ -82,7 +82,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseCreateScriptPath);
@@ -99,7 +99,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseUpdateScriptPath);
@@ -116,7 +116,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseUpdateScriptPath);
@@ -136,7 +136,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseUpdateScriptPath);
@@ -158,7 +158,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseUpdateScriptPath);
@@ -185,7 +185,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseUpdateScriptPath);
@@ -214,7 +214,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseUpdateScriptPath);
@@ -241,7 +241,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             mockFileShim.ReadAllText(accessManagerDatabaseCreateScriptPath).Returns(testCreateDatabaseScript);
             mockFileShim.ReadAllText(accessManagerDatabaseUpdateScriptPath).Returns(testUpdateDatabaseScript);
 
-            SqlServerLoginCredentials result = testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
+            SqlServerLoginCredentials result = testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerPersistentStorage(testPersistentStorageInstanceName);
 
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseUpdateScriptPath);
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseUpdateScriptPath);
@@ -254,7 +254,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.RenamePersistentStorage(" ", "user_n2147483648");
+                testSqlServerDistributedAccessManagerPersistentStorageManager.RenamePersistentStorage(" ", "user_n2147483648");
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'currentPersistentStorageInstanceName' must contain a value."));
@@ -266,7 +266,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.RenamePersistentStorage("merge_temp", " ");
+                testSqlServerDistributedAccessManagerPersistentStorageManager.RenamePersistentStorage("merge_temp", " ");
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'newPersistentStorageInstanceName' must contain a value."));
@@ -283,7 +283,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.RenamePersistentStorage(testCurrentPersistentStorageInstanceName, testNewPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.RenamePersistentStorage(testCurrentPersistentStorageInstanceName, testNewPersistentStorageInstanceName);
             });
 
             mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
@@ -306,7 +306,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             List<Tuple<String, String>> capturedScriptsAndContents = null;
             mockSqlServerScriptExecutor.ExecuteScripts(Arg.Do<List<Tuple<String, String>>>(argumentValue => capturedScriptsAndContents = argumentValue));
 
-            testSqlServerDistributedAccessManagerPersistentStorageCreator.RenamePersistentStorage(testCurrentPersistentStorageInstanceName, testNewPersistentStorageInstanceName);
+            testSqlServerDistributedAccessManagerPersistentStorageManager.RenamePersistentStorage(testCurrentPersistentStorageInstanceName, testNewPersistentStorageInstanceName);
 
             mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
             Assert.AreEqual(testRenameScriptBuider.ToString(), capturedScriptsAndContents[0].Item1);
@@ -317,7 +317,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.DeletePersistentStorage(" ");
+                testSqlServerDistributedAccessManagerPersistentStorageManager.DeletePersistentStorage(" ");
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'persistentStorageInstanceName' must contain a value."));
@@ -333,7 +333,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.DeletePersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.DeletePersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
@@ -351,7 +351,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             List<Tuple<String, String>> capturedScriptsAndContents = null;
             mockSqlServerScriptExecutor.ExecuteScripts(Arg.Do<List<Tuple<String, String>>>(argumentValue => capturedScriptsAndContents = argumentValue));
 
-            testSqlServerDistributedAccessManagerPersistentStorageCreator.DeletePersistentStorage(testPersistentStorageInstanceName);
+            testSqlServerDistributedAccessManagerPersistentStorageManager.DeletePersistentStorage(testPersistentStorageInstanceName);
 
             mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
             Assert.AreEqual(testRenameScriptBuider.ToString(), capturedScriptsAndContents[0].Item1);
@@ -366,7 +366,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerConfigurationDatabaseCreateScriptPath);
@@ -383,7 +383,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerConfigurationDatabaseCreateScriptPath);
@@ -403,7 +403,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerConfigurationDatabaseCreateScriptPath);
@@ -425,7 +425,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
+                testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
             });
 
             mockFileShim.Received(1).ReadAllText(accessManagerConfigurationDatabaseCreateScriptPath);
@@ -445,7 +445,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             GO";
             mockFileShim.ReadAllText(accessManagerConfigurationDatabaseCreateScriptPath).Returns(testCreateDatabaseScript);
 
-            SqlServerLoginCredentials result = testSqlServerDistributedAccessManagerPersistentStorageCreator.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
+            SqlServerLoginCredentials result = testSqlServerDistributedAccessManagerPersistentStorageManager.CreateAccessManagerConfigurationPersistentStorage(testPersistentStorageInstanceName);
 
             mockFileShim.Received(1).ReadAllText(accessManagerConfigurationDatabaseCreateScriptPath);
             mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());

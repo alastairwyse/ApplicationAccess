@@ -99,6 +99,21 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Interval metric which records the time taken to merge events from two source shard groups to a target shard group as part of a shard group merge operation.
+    /// </summary>
+    public class EventMergeTime : IntervalMetric
+    {
+        protected static String staticName = "EventMergeTime";
+        protected static String staticDescription = "The time taken to merge events from two source shard groups to a target shard group as part of a shard group merge operation";
+
+        public EventMergeTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Interval metric which records the time taken to delete events from a source shard group as part of a shard group split operation.
     /// </summary>
     public class EventDeleteTime : IntervalMetric
@@ -227,6 +242,36 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "A persistent storage instance was created for a distributed AccessManager implementation";
 
         public PersistentStorageInstanceCreated()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that a persistent storage instance was renamed in a distributed AccessManager implementation.
+    /// </summary>
+    public class PersistentStorageInstanceRenamed : CountMetric
+    {
+        protected static String staticName = "PersistentStorageInstanceRenamed";
+        protected static String staticDescription = "A persistent storage instance was renamed in a distributed AccessManager implementation";
+
+        public PersistentStorageInstanceRenamed()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that a persistent storage instance was deleted from a distributed AccessManager implementation.
+    /// </summary>
+    public class PersistentStorageInstanceDeleted : CountMetric
+    {
+        protected static String staticName = "PersistentStorageInstanceDeleted";
+        protected static String staticDescription = "A persistent storage instance was deleted from a distributed AccessManager implementation";
+
+        public PersistentStorageInstanceDeleted()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -422,6 +467,36 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "The time taken to create a persistent storage instance for a distributed AccessManager implementation";
 
         public PersistentStorageInstanceCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to rename a persistent storage instance in a distributed AccessManager implementation.
+    /// </summary>
+    public class PersistentStorageInstanceRenameTime : IntervalMetric
+    {
+        protected static String staticName = "PersistentStorageInstanceRenameTime";
+        protected static String staticDescription = "The time taken to rename a persistent storage instance in a distributed AccessManager implementation";
+
+        public PersistentStorageInstanceRenameTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to delete a persistent storage instance from a distributed AccessManager implementation.
+    /// </summary>
+    public class PersistentStorageInstanceDeleteTime : IntervalMetric
+    {
+        protected static String staticName = "PersistentStorageInstanceDeleteTime";
+        protected static String staticDescription = "The time taken to delete a persistent storage instance from a distributed AccessManager implementation";
+
+        public PersistentStorageInstanceDeleteTime()
         {
             base.name = staticName;
             base.description = staticDescription;
