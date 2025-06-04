@@ -1228,7 +1228,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
 
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Merging {dataElement} shard group with hash range start value {sourceShardGroup1HashRangeStart} with shard group with hash range start value {sourceShardGroup2HashRangeStart}...");
-            Guid beginId = metricLogger.Begin(new ShardGroupMergeTime());
+            Guid mergeBeginId = metricLogger.Begin(new ShardGroupMergeTime());
 
             // Create the target persistent storage instance
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating temporary persistent storage instance...");
@@ -1242,7 +1242,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             catch (Exception e)
             {
                 metricLogger.CancelBegin(storageCreateBeginId, new PersistentStorageInstanceCreateTime());
-                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                 throw new Exception($"Error creating temporary persistent storage instance.", e);
             }
             metricLogger.End(storageCreateBeginId, new PersistentStorageInstanceCreateTime());
@@ -1291,7 +1291,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch
             {
-                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                 throw;
             }
 
@@ -1314,7 +1314,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch
             {
-                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                 throw;
             }
 
@@ -1328,7 +1328,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch
             {
-                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                 throw;
             }
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer 1 load balancer service.");
@@ -1343,7 +1343,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch
             {
-                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                 throw;
             }
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer 2 load balancer service.");
@@ -1369,7 +1369,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch
             {
-                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                 throw;
             }
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
@@ -1398,7 +1398,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             catch (Exception e)
             {
                 metricLogger.CancelBegin(eventMergeBeginId, new EventMergeTime());
-                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                 throw new Exception("Error merging events from source shard group to target shard group.", e);
             }
             metricLogger.End(eventMergeBeginId, new EventCopyTime());
@@ -1410,7 +1410,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch (Exception e)
             {
-                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                 throw new Exception($"Error scaling down source shard group 1 with data element '{dataElement}' and hash range start value {sourceShardGroup1HashRangeStart}.", e);
             }
 
@@ -1425,16 +1425,70 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             catch (Exception e)
             {
                 metricLogger.CancelBegin(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
-                metricLogger.CancelBegin(beginId, new ShardGroupMergeTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                 throw new Exception($"Error renaming source shard group 1 persistent storage instance.", e);
             }
             metricLogger.End(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
             metricLogger.Increment(new PersistentStorageInstanceRenamed());
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed renaming source shard group 1 persistent storage instance.");
 
+            // Rename target/temporary persistent storage instance to become source shard group 1 persistent storage
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Renaming temporary persistent storage instance...");
+            storageRenameBeginId = metricLogger.Begin(new PersistentStorageInstanceRenameTime());
+            try
+            {
+                persistentStorageManager.RenamePersistentStorage(temporaryPersistentStorageInstanceName, source1PersistentStorageInstanceName);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                throw new Exception($"Error renaming temporary persistent storage instance.", e);
+            }
+            metricLogger.End(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
+            metricLogger.Increment(new PersistentStorageInstanceRenamed());
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed renaming temporary persistent storage instance.");
+
+            // Restart source shard group 1
+            try
+            {
+                await ScaleUpShardGroupAsync(dataElement, sourceShardGroup1HashRangeStart);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                throw new Exception($"Error scaling up source shard group 1 with data element '{dataElement}' and hash range start value {sourceShardGroup1HashRangeStart}.", e);
+            }
+
+            // Turn off the router
+            try
+            {
+                operationRouter.RoutingOn = false;
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                throw new Exception("Failed to switch routing off.", e);
+            }
+
+            // Release all paused/held operation requests
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
+            try
+            {
+                operationRouter.ResumeOperations();
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                throw new Exception("Failed to resume incoming operations in the source and target shard groups.", e);
+            }
+
+            // Update the shard group configuration to redirect to the source and target shard groups
+            //   URLs updated to remove router 
+            //   sourceShardGroup2HashRangeStart shard group needs to be removed
 
 
-            metricLogger.End(beginId, new ShardGroupMergeTime());
+            metricLogger.End(mergeBeginId, new ShardGroupMergeTime());
             metricLogger.Increment(new ShardGroupsMerged());
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed merging shard groups.");
         }
@@ -2844,7 +2898,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to scale Kubernetes deployment '{name}' to {replicaCount} replicas.", e);
+                throw new Exception($"Failed to scale Kubernetes deployment '{name}' to {replicaCount} replica(s).", e);
             }
         }
 
