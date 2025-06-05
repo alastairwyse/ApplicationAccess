@@ -1483,10 +1483,41 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new Exception("Failed to resume incoming operations in the source and target shard groups.", e);
             }
 
-            // Update the shard group configuration to redirect to the source and target shard groups
-            //   URLs updated to remove router 
-            //   sourceShardGroup2HashRangeStart shard group needs to be removed
+            // Update the shard group configuration to redirect to source shard group 1
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to source shard group 1...");
+            routerClientConfiguration = new(routerInternalUrl);
+            configurationUpdates = new()
+            {
+                new HashRangeStartAndClientConfigurations
+                {
+                    HashRangeStart = sourceShardGroup1HashRangeStart,
+                    ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Reader, sourceShardGroup1HashRangeStart)),
+                    WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, sourceShardGroup1HashRangeStart))
+                }
+            };
+            configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
+            configurationDeletes = new List<Int32>();
+            try
+            {
+                UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, configurationDeletes);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                throw;
+            }
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
 
+            // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
+            await Task.Delay(configurationUpdateWait);
+
+            // Copy the contents of the *ShardGroupConfigurationSet fields to the instance configuration
+            CopyShardConfigurationSetsToInstanceConfiguration();
+
+
+
+
+            // TODO: Do all cleanup stuff in Split() like removing router and renaming cluster IP services
 
             metricLogger.End(mergeBeginId, new ShardGroupMergeTime());
             metricLogger.Increment(new ShardGroupsMerged());
@@ -1943,7 +1974,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
         #endregion
 
-        #region ApplicationAccess Node and Shard Group Creation Methods
+        #region ApplicationAccess Node and Shard Group Create/Delete Methods
 
         /// <summary>
         /// Creates a shard group in a distributed AccessManager implementation.
@@ -2159,6 +2190,27 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             metricLogger.End(beginId, new ShardGroupScaleUpTime());
             metricLogger.Increment(new ShardGroupScaledUp());
             logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed scaling up shard group.");
+        }
+
+        /// <summary>
+        /// Deletes a shard group from the distributed AccessManager implementation.
+        /// </summary>
+        /// <param name="dataElement">The data element to delete the shard group for.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group.</param>
+        /// <param name="deletePersistentStorageInstance">Whether to additionally delete the persistent storage instance used by the shard group.</param>
+        protected async Task DeleteShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, Boolean deletePersistentStorageInstance)
+        {
+            String nameSpace = staticConfiguration.NameSpace;
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+
+            // DeleteDeploymentAsync
+            // TODO: Need metrics
+
+
+
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed deleting shard group.");
+
+            throw new NotImplementedException();
         }
 
         /// <summary>

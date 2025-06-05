@@ -365,7 +365,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -395,7 +395,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -425,7 +425,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -455,7 +455,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -1872,7 +1872,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -1911,7 +1911,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -1950,7 +1950,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -1986,7 +1986,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [Test]
         public void SplitShardGroupAsync_SplitHashRangeStartParameterInvalid()
         {
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -2079,7 +2079,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [Test]
         public void SplitShardGroupAsync_SplitHashRangeEndParameterInvalid()
         {
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -2178,7 +2178,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2228,7 +2228,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2273,7 +2273,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2318,7 +2318,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2363,7 +2363,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2408,7 +2408,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2452,7 +2452,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid persistentStorageCreateBeginId = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
             Guid routerCreateBeginId = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -2463,7 +2463,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2513,7 +2513,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -2524,7 +2524,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2569,7 +2569,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -2580,7 +2580,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2626,7 +2626,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Guid eventCopyBeginId = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -2639,7 +2639,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2711,7 +2711,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -2727,7 +2727,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2777,7 +2777,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -2793,7 +2793,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2839,7 +2839,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -2855,7 +2855,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2901,7 +2901,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -2917,7 +2917,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -2976,7 +2976,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -2992,7 +2992,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -3044,7 +3044,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -3060,7 +3060,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -3106,7 +3106,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -3122,7 +3122,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -3169,7 +3169,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -3192,7 +3192,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -3253,7 +3253,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -3276,7 +3276,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -3333,7 +3333,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -3356,7 +3356,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -3406,7 +3406,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -3429,7 +3429,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -3475,7 +3475,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -3498,7 +3498,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -3564,13 +3564,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 }
             );
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration("applicationaccesstest"),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -3747,11 +3747,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(1, instanceConfiguration.GroupShardGroupConfiguration.Count);
             IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfiguration = instanceConfiguration.UserShardGroupConfiguration;
             Assert.AreEqual(Int32.MinValue, userShardGroupConfiguration[0].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648", userShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_n2147483648", userShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(0, userShardGroupConfiguration[1].HashRangeStart);
-            Assert.AreEqual(persistentStorageInstanceName, userShardGroupConfiguration[1].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual(storageCredentials.ConnectionString, userShardGroupConfiguration[1].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://user-reader-0-service:5000/", userShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-0-service:5000/", userShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
             // Assertions on the *ShardGroupConfigurationSet fields
@@ -3762,11 +3762,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(1, groupToGroupMappingShardGroupConfigurationSet.Count);
             Assert.AreEqual(1, groupShardGroupConfigurationSet.Count);
             Assert.AreEqual(Int32.MinValue, userShardGroupConfigurationSet[0].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648", userShardGroupConfigurationSet[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_n2147483648", userShardGroupConfigurationSet[0].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(0, userShardGroupConfigurationSet[1].HashRangeStart);
-            Assert.AreEqual(persistentStorageInstanceName, userShardGroupConfigurationSet[1].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual(storageCredentials.ConnectionString, userShardGroupConfigurationSet[1].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://user-reader-0-service:5000/", userShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-0-service:5000/", userShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
         }
@@ -3799,11 +3799,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "group-writer-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            String persistentStorageInstanceName = "applicationaccesstest_group_n1073741824";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
-            KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
+            String persistentStorageInstanceName = "group_n1073741824";
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
+            KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with 
+            {
+                DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50,
+                PersistentStorageInstanceNamePrefix = ""
+            };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("");
             instanceConfiguration.GroupShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
@@ -4029,7 +4033,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", groupShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", groupShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(-1073741824, groupShardGroupConfiguration[1].HashRangeStart);
-            Assert.AreEqual(persistentStorageInstanceName, groupShardGroupConfiguration[1].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual(storageCredentials.ConnectionString, groupShardGroupConfiguration[1].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-n1073741824-service:5000/", groupShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n1073741824-service:5000/", groupShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(0, groupShardGroupConfiguration[2].HashRangeStart);
@@ -4048,7 +4052,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(-1073741824, groupShardGroupConfigurationSet[1].HashRangeStart);
-            Assert.AreEqual(persistentStorageInstanceName, groupShardGroupConfigurationSet[1].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual(storageCredentials.ConnectionString, groupShardGroupConfigurationSet[1].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-n1073741824-service:5000/", groupShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n1073741824-service:5000/", groupShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(0, groupShardGroupConfigurationSet[2].HashRangeStart);
@@ -4088,7 +4092,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -4126,7 +4130,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -4164,7 +4168,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -4199,7 +4203,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [Test]
         public void MergeShardGroupsAsync_SourceShardGroup2HashRangeStartParameterEqualToSourceShardGroup1HashRangeStartParameter()
         {
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4238,7 +4242,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [Test]
         public void MergeShardGroupsAsync_SourceShardGroup2HashRangeStartParameterInvalid()
         {
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4277,27 +4281,27 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [Test]
         public void MergeShardGroupsAsync_ParameterSourceShardGroup1HashRangeStartAndSourceShardGroup2HashRangeStartDoNotContainConsecutiveShardGroups()
         {
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("applicationaccesstest");
             instanceConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     -1073741824,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n1073741824-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n1073741824-service:5000/"))
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     0,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
                 )
@@ -4340,27 +4344,27 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [Test]
         public void MergeShardGroupsAsync_SourceShardGroup2HashRangeEndParameterInvalid()
         {
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("applicationaccesstest");
             instanceConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     -1073741824,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n1073741824-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n1073741824-service:5000/"))
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     0,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
                 )
@@ -4429,7 +4433,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Guid testBeginId2 = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4479,7 +4483,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testSourceShardGroupEventReaderCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { throw mockException; };
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4536,7 +4540,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     throw mockException;
                 }
             };
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4581,7 +4585,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testTargetShardGroupEventPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { throw mockException; };
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4626,7 +4630,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testOperationRouterCreationFunction = (Uri baseUrl) => { throw mockException; };
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4671,7 +4675,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { throw mockException; };
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4728,7 +4732,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     throw mockException;
                 }
             };
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4774,7 +4778,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Guid routerCreateBeginId = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -4782,7 +4786,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4834,7 +4838,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -4842,7 +4846,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4890,7 +4894,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -4898,7 +4902,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -4946,7 +4950,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -4954,7 +4958,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -5003,7 +5007,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Guid eventMergeBeginId = Guid.Parse("22908a07-eaac-42e4-ad1d-6794a835e3bd");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -5011,7 +5015,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -5076,7 +5080,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -5084,7 +5088,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -5135,7 +5139,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Guid persistentStorageInstanceRenameBeginId = Guid.Parse("22908a07-eaac-42e4-ad1d-6794a835e3bd");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -5147,7 +5151,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -5203,7 +5207,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid persistentStorageInstanceRenameBeginId1 = Guid.Parse("22908a07-eaac-42e4-ad1d-6794a835e3bd");
             Guid persistentStorageInstanceRenameBeginId2 = Guid.Parse("044c68d4-990d-4d53-939f-a0d7d7456eea");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -5215,7 +5219,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -5269,7 +5273,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -5281,7 +5285,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -5335,7 +5339,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -5353,7 +5357,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -5404,7 +5408,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1PodList returnPods = new
             (
                 new List<V1Pod>()
@@ -5422,7 +5426,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -5468,6 +5472,86 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public void MergeShardGroupsAsync_ExceptionUpdatingShardGroupConfigurationToRedirectToSourceShardGroup1()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
+            V1PodList returnPods = new
+            (
+                new List<V1Pod>()
+            );
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-router" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
+            KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
+            staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                staticConfiguration,
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
+            mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
+            Int32 configurationSetPersisterWriteCallCount = 0;
+            mockShardConfigurationSetPersister.When((persister) => persister.Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true)).Do
+            (
+                (callInfo) =>
+                {
+                    if (configurationSetPersisterWriteCallCount == 1)
+                    {
+                        throw mockException;
+                    }
+                    configurationSetPersisterWriteCallCount++;
+                }
+            );
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.MergeShardGroupsAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupMerger
+                );
+            });
+
+            mockShardConfigurationSetPersister.Received(2).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).CancelBegin(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
         public async Task MergeShardGroupsAsync_UserShardGroups()
         {
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -5494,10 +5578,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = CreateStaticConfiguration() with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 50 };
             staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 100;
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 staticConfiguration,
@@ -5547,7 +5631,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer2-externalservice", testNameSpace);
             // TODO:  ***UPDATE THIS COMMENT*** First 3 calls are made as part of the first source shard group shut down, the other 1 is made as part of scaling down and deleting the operation router
             await mockKubernetesClientShim.Received(3).ListNamespacedPodAsync(null, testNameSpace);
-            mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
+            mockShardConfigurationSetPersister.Received(2).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
             mockShardGroupMerger.Received(1).MergeEventsToTargetShardGroup
             (
                 mockSourceShardGroup1EventReader,
@@ -5585,14 +5669,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 2 load balancer service to target first source shard group writer node...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating writer 2 load balancer service.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating shard group configuration.");
+            mockApplicationLogger.Received(2).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating shard group configuration.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Renaming source shard group 1 persistent storage instance...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed renaming source shard group 1 persistent storage instance.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Renaming temporary persistent storage instance...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed renaming temporary persistent storage instance.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to source shard group 1...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed merging shard groups.");
-            Assert.AreEqual(1, capturedShardConfigurationSets.Count);
+            Assert.AreEqual(2, capturedShardConfigurationSets.Count);
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> firstCapturedShardConfigurationList = new(capturedShardConfigurationSets[0].Items);
             Assert.AreEqual(6, firstCapturedShardConfigurationList.Count);
             Assert.AreEqual(DataElement.User, firstCapturedShardConfigurationList[0].DataElementType);
@@ -5607,6 +5692,37 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(Operation.Query, firstCapturedShardConfigurationList[2].OperationType);
             Assert.AreEqual(Int32.MinValue, firstCapturedShardConfigurationList[2].HashRangeStart);
             Assert.AreEqual("http://grouptogroup-reader-n2147483648-service:5000/", firstCapturedShardConfigurationList[2].ClientConfiguration.BaseUrl.ToString());
+            List<ShardConfiguration<AccessManagerRestClientConfiguration>> secondCapturedShardConfigurationList = new(capturedShardConfigurationSets[1].Items);
+            Assert.AreEqual(6, secondCapturedShardConfigurationList.Count);
+            Assert.AreEqual(DataElement.User, secondCapturedShardConfigurationList[0].DataElementType);
+            Assert.AreEqual(Operation.Query, secondCapturedShardConfigurationList[0].OperationType);
+            Assert.AreEqual(Int32.MinValue, secondCapturedShardConfigurationList[0].HashRangeStart);
+            Assert.AreEqual("http://user-reader-n2147483648-service:5000/", secondCapturedShardConfigurationList[0].ClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(DataElement.User, secondCapturedShardConfigurationList[1].DataElementType);
+            Assert.AreEqual(Operation.Event, secondCapturedShardConfigurationList[1].OperationType);
+            Assert.AreEqual(Int32.MinValue, secondCapturedShardConfigurationList[1].HashRangeStart);
+            Assert.AreEqual("http://user-writer-n2147483648-service:5000/", secondCapturedShardConfigurationList[1].ClientConfiguration.BaseUrl.ToString());
+            // Assert that the instance configuration was updated correctly (including sorting)
+            instanceConfiguration = testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration;
+            Assert.AreEqual(1, instanceConfiguration.UserShardGroupConfiguration.Count);
+            Assert.AreEqual(1, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Count);
+            Assert.AreEqual(1, instanceConfiguration.GroupShardGroupConfiguration.Count);
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfiguration = instanceConfiguration.UserShardGroupConfiguration;
+            Assert.AreEqual(Int32.MinValue, userShardGroupConfiguration[0].HashRangeStart);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_n2147483648", userShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            // Assertions on the *ShardGroupConfigurationSet fields
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupToGroupMappingShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Items;
+            Assert.AreEqual(1, userShardGroupConfigurationSet.Count);
+            Assert.AreEqual(1, groupToGroupMappingShardGroupConfigurationSet.Count);
+            Assert.AreEqual(1, groupShardGroupConfigurationSet.Count);
+            Assert.AreEqual(Int32.MinValue, userShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccesstest_user_n2147483648", userShardGroupConfigurationSet[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
         }
 
         [Test]
@@ -5617,7 +5733,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -5648,7 +5764,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
-                CreateInstanceConfiguration(),
+                CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
@@ -5677,7 +5793,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [Test]
         public void UpdateAndPersistShardConfigurationSets()
         {
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("");
             instanceConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
@@ -5903,7 +6019,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             DataElement dataElement = DataElement.GroupToGroupMapping;
             Int32 hashRangeStart = 20_000;
             String persistentStorageInstanceName = "applicationaccesstest_grouptogroupmapping_20000";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>{ new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-eventcache-20000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 }  } }
@@ -5943,7 +6059,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             DataElement dataElement = DataElement.GroupToGroupMapping;
             Int32 hashRangeStart = 20_000;
             String persistentStorageInstanceName = "applicationaccesstest_grouptogroupmapping_20000";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>
@@ -5993,7 +6109,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -400_000;
             String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>
@@ -6042,7 +6158,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -400_000;
             String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>
@@ -6091,7 +6207,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -400_000;
             String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
-            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>
@@ -6658,11 +6774,17 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public async Task DeleteShardGroupAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test]
         public async Task CreateReaderNodeAsync_ExceptionCreatingNode()
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             V1DeploymentList returnDeployments = new
             (
@@ -6694,7 +6816,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateReaderNodeAsync()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            TestPersistentStorageLoginCredentials storageCredentials = new("grouptogroupmapping_n2147483648");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=grouptogroupmapping_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             V1DeploymentList returnDeployments = new
             (
@@ -6784,7 +6906,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            TestPersistentStorageLoginCredentials storageCredentials = new("user_n1");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n1");
             Uri eventCacheServiceUrl = new("http://user-writer-n1-service:5000");
             V1DeploymentList returnDeployments = new
             (
@@ -6816,7 +6938,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateWriterNodeAsync()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            TestPersistentStorageLoginCredentials storageCredentials = new("group_0");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_0");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             V1DeploymentList returnDeployments = new
             (
@@ -6847,7 +6969,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            TestPersistentStorageLoginCredentials storageCredentials = new("applicationaccess_shard_configuration");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccess_shard_configuration");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -6875,7 +6997,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            TestPersistentStorageLoginCredentials storageCredentials = new("applicationaccess_shard_configuration");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccess_shard_configuration");
             mockMetricLogger.Begin(Arg.Any<DistributedOperationCoordinatorNodeCreateTime>()).Returns(testBeginId);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromException<V1DeploymentList>(mockException));
@@ -6896,7 +7018,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateDistributedOperationCoordinatorNodeAsync()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            TestPersistentStorageLoginCredentials storageCredentials = new("applicationaccess_shard_configuration");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccess_shard_configuration");
             V1DeploymentList returnDeployments = new
             (
                 new List<V1Deployment>()
@@ -7622,7 +7744,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void CreateReaderNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
         {
             String name = "user-reader-n2147483648";
-            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
@@ -7655,7 +7777,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String name = "user-reader-n2147483648";
-            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
 
@@ -7673,7 +7795,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateReaderNodeDeploymentAsync()
         {
             String name = "user-reader-n2147483648";
-            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             V1Deployment capturedDeploymentDefinition = null;
             JObject expectedJsonConfiguration = CreateReaderNodeAppSettingsConfigurationTemplate();
@@ -7798,7 +7920,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void CreateWriterNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
         {
             String name = "user-writer-n2147483648";
-            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
@@ -7844,7 +7966,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String name = "user-writer-n2147483648";
-            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
 
@@ -7862,7 +7984,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateWriterNodeDeploymentAsync()
         {
             String name = "user-writer-n2147483648";
-            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             V1Deployment capturedDeploymentDefinition = null;
             JObject expectedJsonConfiguration = CreateWriterNodeAppSettingsConfigurationTemplate();
@@ -7915,7 +8037,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void CreateDistributedOperationCoordinatorNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
         {
             String name = "operation-coordinator";
-            TestPersistentStorageLoginCredentials storageCredentials = new("AccessManagerConfiguration");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=AccessManagerConfiguration");
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
@@ -7934,7 +8056,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String name = "operation-coordinator";
-            TestPersistentStorageLoginCredentials storageCredentials = new("AccessManagerConfiguration");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=AccessManagerConfiguration");
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
@@ -7951,7 +8073,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync()
         {
             String name = "operation-coordinator";
-            TestPersistentStorageLoginCredentials storageCredentials = new("AccessManagerConfiguration");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=AccessManagerConfiguration");
             V1Deployment capturedDeploymentDefinition = null;
             JObject expectedJsonConfiguration = CreateDistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate();
             expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
@@ -9091,21 +9213,27 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         /// <summary>
         /// Creates a test <see cref="KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration{TPersistentStorageCredentials}"/> instance.
         /// </summary>
+        /// <param name="persistentStorageInstanceNamePrefix">Prefix in names for persistent instances.</param>
         /// <returns>The <see cref="KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration{TPersistentStorageCredentials}"/> instance.</returns>
-        protected KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> CreateInstanceConfiguration()
+        protected KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> CreateInstanceConfiguration(String persistentStorageInstanceNamePrefix)
         {
+            if (persistentStorageInstanceNamePrefix != "")
+            {
+                persistentStorageInstanceNamePrefix = $"{persistentStorageInstanceNamePrefix}_";
+            }
+
             return new()
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
                 Writer1Url = new Uri("http://10.104.198.19:7001/"),
                 Writer2Url = new Uri("http://10.104.198.20:7001/"),
-                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=ApplicationAccessConfig"),
+                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=Dummy"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
+                        new TestPersistentStorageLoginCredentials($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceNamePrefix}user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                     )
@@ -9115,7 +9243,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=grouptogroup_n2147483648"),
+                        new TestPersistentStorageLoginCredentials($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceNamePrefix}grouptogroup_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-writer-n2147483648-service:5000/"))
                     )
@@ -9125,7 +9253,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648"),
+                        new TestPersistentStorageLoginCredentials($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceNamePrefix}group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
                     )
@@ -9135,28 +9263,53 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         /// <summary>
-        /// Creates a test <see cref="KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration{TPersistentStorageCredentials}"/> instance with 2 user shard groups.
+        /// Creates a test <see cref="KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration{TPersistentStorageCredentials}"/> instance with 2 user shard groups (and a persistent storage instance name prefix 'applicationaccesstest').
         /// </summary>
+        /// <param name="persistentStorageInstanceNamePrefix">Prefix in names for persistent instances.</param>
         /// <returns>The <see cref="KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration{TPersistentStorageCredentials}"/> instance.</returns>
         /// <remarks>Used for testing method MergeShardGroupsAsync(), since multiple shard groups are required to merge.</remarks>
-        protected KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> CreateTwoUserShardGroupInstanceConfiguration()
+        protected KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> CreateTwoUserShardGroupInstanceConfiguration(String persistentStorageInstanceNamePrefix)
         {
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> returnConfiguration = CreateInstanceConfiguration();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> returnConfiguration = CreateInstanceConfiguration(persistentStorageInstanceNamePrefix);
+            if (persistentStorageInstanceNamePrefix != "")
+            {
+                persistentStorageInstanceNamePrefix = $"{persistentStorageInstanceNamePrefix}_";
+            }
             returnConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
+                    new TestPersistentStorageLoginCredentials($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceNamePrefix}user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     0,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
+                    new TestPersistentStorageLoginCredentials($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceNamePrefix}user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
+                )
+            };
+            returnConfiguration.GroupToGroupMappingShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+            {
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    Int32.MinValue,
+                    new TestPersistentStorageLoginCredentials($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceNamePrefix}grouptogroup_n2147483648"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-writer-n2147483648-service:5000/"))
+                )
+            };
+            returnConfiguration.GroupShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+            {
+                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                (
+                    Int32.MinValue,
+                    new TestPersistentStorageLoginCredentials($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceNamePrefix}_group_n2147483648"),
+                    new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
+                    new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
                 )
             };
 
@@ -9200,7 +9353,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 get { return groupShardGroupConfigurationSet; }
             }
 
-#pragma warning restore 1591
+            #pragma warning restore 1591
 
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.UnitTests.KubernetesDistributedAccessManagerInstanceManagerTests+KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers class.
