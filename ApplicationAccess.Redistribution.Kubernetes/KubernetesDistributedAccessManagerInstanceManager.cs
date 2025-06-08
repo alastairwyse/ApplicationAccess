@@ -588,6 +588,39 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             );
         }
 
+        /// <inheritdoc/>>
+        public async Task MergeShardGroupsAsync
+        (
+            DataElement dataElement,
+            Int32 sourceShardGroup1HashRangeStart,
+            Int32 sourceShardGroup2HashRangeStart,
+            Int32 sourceShardGroup2HashRangeEnd,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBatchReader> sourceShardGroupEventReaderCreationFunction,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
+            Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
+            Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+            Int32 eventBatchSize,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
+        )
+        {
+            await MergeShardGroupsAsync
+            (
+                dataElement,
+                sourceShardGroup1HashRangeStart,
+                sourceShardGroup2HashRangeStart,
+                sourceShardGroup2HashRangeEnd,
+                sourceShardGroupEventReaderCreationFunction,
+                targetShardGroupEventPersisterCreationFunction,
+                operationRouterCreationFunction,
+                sourceShardGroupWriterAdministratorCreationFunction,
+                eventBatchSize,
+                sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                sourceWriterNodeOperationsCompleteCheckRetryInterval, 
+                new DistributedAccessManagerShardGroupMerger(logger, metricLogger)
+            );
+        }
+
         #region Private/Protected Methods
 
         /// <summary>
@@ -854,237 +887,239 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw;
             }
 
-            // Create new/target shard group configuration
-            Uri targetReaderNodeServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.Reader, splitHashRangeStart);
-            Uri targetWriterNodeServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.Writer, splitHashRangeStart);
-
-            // Create distributed operation router
             try
             {
-                await CreateDistributedOperationRouterNodeAsync
-                (
-                    dataElement,
-                    shardGroupConfiguration.ReaderNodeClientConfiguration.BaseUrl,
-                    shardGroupConfiguration.WriterNodeClientConfiguration.BaseUrl,
-                    hashRangeStart,
-                    splitHashRangeStart - 1,
-                    targetReaderNodeServiceUrl,
-                    targetWriterNodeServiceUrl,
-                    splitHashRangeStart,
-                    splitHashRangeEnd,
-                    false
-                );
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
-            }
+                // Create new/target shard group configuration
+                Uri targetReaderNodeServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.Reader, splitHashRangeStart);
+                Uri targetWriterNodeServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.Writer, splitHashRangeStart);
 
-            // Update writer load balancer service to target source shard group writer node
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to target source shard group writer node...");
-            String writerLoadBalancerServiceName = $"{GenerateWriter1LoadBalancerServiceName()}{externalServiceNamePostfix}";
-            String sourceWriterNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
-            try
-            {
-                await UpdateServiceAsync(writerLoadBalancerServiceName, sourceWriterNodeIdentifier);
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
-            }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer load balancer service.");
-
-            // Update the shard group configuration to redirect to the router
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to router...");
-            Uri routerInternalUrl = new($"http://{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}:{staticConfiguration.PodPort}");
-            AccessManagerRestClientConfiguration routerClientConfiguration = new(routerInternalUrl);
-            List<HashRangeStartAndClientConfigurations> configurationUpdates = new()
-            {
-                new HashRangeStartAndClientConfigurations
+                // Create distributed operation router
+                try
                 {
-                    HashRangeStart = hashRangeStart,
-                    ReaderNodeClientConfiguration = routerClientConfiguration,
-                    WriterNodeClientConfiguration = routerClientConfiguration
+                    await CreateDistributedOperationRouterNodeAsync
+                    (
+                        dataElement,
+                        shardGroupConfiguration.ReaderNodeClientConfiguration.BaseUrl,
+                        shardGroupConfiguration.WriterNodeClientConfiguration.BaseUrl,
+                        hashRangeStart,
+                        splitHashRangeStart - 1,
+                        targetReaderNodeServiceUrl,
+                        targetWriterNodeServiceUrl,
+                        splitHashRangeStart,
+                        splitHashRangeEnd,
+                        false
+                    );
                 }
-            }; 
-            List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> configurationAdditions = new()
-            {
-                new KubernetesShardGroupConfiguration<TPersistentStorageCredentials>
-                (
-                    splitHashRangeStart,
-                    targetPersistentStorageCredentials,
-                    routerClientConfiguration,
-                    routerClientConfiguration
-                )
-            };
-            try
-            {
-                UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, new List<Int32>());
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
-            }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
-
-            // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
-            Int32 configurationUpdateWait = GetDistributedOperationCoordinatorConfigurationRefreshInterval() + staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer;
-            await Task.Delay(configurationUpdateWait);
-
-            // Copy events from the source to target shard group
-            Boolean filterGroupEventsByHashRange = false;
-            if (dataElement == DataElement.Group)
-            {
-                filterGroupEventsByHashRange = true;
-            }
-            Guid copyBeginId = metricLogger.Begin(new EventCopyTime());
-            try
-            {
-                shardGroupSplitter.CopyEventsToTargetShardGroup
-                (
-                    sourceShardGroupEventReader, 
-                    targetShardGroupEventPersister, 
-                    operationRouter, 
-                    sourceShardGroupWriterAdministrator,
-                    splitHashRangeStart, 
-                    splitHashRangeEnd,
-                    filterGroupEventsByHashRange,
-                    eventBatchSize, 
-                    sourceWriterNodeOperationsCompleteCheckRetryAttempts, 
-                    sourceWriterNodeOperationsCompleteCheckRetryInterval
-                );
-            }
-            catch(Exception e)
-            {
-                metricLogger.CancelBegin(copyBeginId, new EventCopyTime());
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw new Exception("Error copying events from source shard group to target shard group.", e);
-            }
-            metricLogger.End(copyBeginId, new EventCopyTime());
-
-            // Create the new shard group
-            try
-            {
-                await CreateShardGroupAsync(dataElement, splitHashRangeStart, targetPersistentStorageCredentials);
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
-            }
-
-            // Turn on the router
-            try
-            {
-                operationRouter.RoutingOn = true;
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw new Exception("Failed to switch routing on.", e);
-            }
-
-            // Release all paused/held operation requests
-            logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
-            try
-            {
-                operationRouter.ResumeOperations();
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw new Exception("Failed to resume incoming operations in the source and target shard groups.", e);
-            }
-
-            // Update the shard group configuration to redirect to target shard group
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to target shard group...");
-            configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
-            {
-                new HashRangeStartAndClientConfigurations
+                catch
                 {
-                    HashRangeStart = splitHashRangeStart,
-                    ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Reader, splitHashRangeStart)),
-                    WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, splitHashRangeStart))
-                },
-            };
-            configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
-            try
-            {
-                UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, new List<Int32>());
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
-            }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
 
-            // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
-            await Task.Delay(configurationUpdateWait);
+                // Update writer load balancer service to target source shard group writer node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to target source shard group writer node...");
+                String writerLoadBalancerServiceName = $"{GenerateWriter1LoadBalancerServiceName()}{externalServiceNamePostfix}";
+                String sourceWriterNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
+                try
+                {
+                    await UpdateServiceAsync(writerLoadBalancerServiceName, sourceWriterNodeIdentifier);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer load balancer service.");
 
-            // Delete events from the source shard group
-            Boolean includeGroupEvents = false;
-            if (dataElement == DataElement.Group)
-            {
-                includeGroupEvents = true;
-            }
-            try
-            {
-                shardGroupSplitter.DeleteEventsFromSourceShardGroup
-                (
-                    sourceShardGroupEventDeleter,
-                    splitHashRangeStart, 
-                    splitHashRangeEnd,
-                    includeGroupEvents
-                );
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw new Exception("Error deleting events from source shard group.", e);
-            }
+                // Update the shard group configuration to redirect to the router
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to router...");
+                Uri routerInternalUrl = new($"http://{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}:{staticConfiguration.PodPort}");
+                AccessManagerRestClientConfiguration routerClientConfiguration = new(routerInternalUrl);
+                List<HashRangeStartAndClientConfigurations> configurationUpdates = new()
+                {
+                    new HashRangeStartAndClientConfigurations
+                    {
+                        HashRangeStart = hashRangeStart,
+                        ReaderNodeClientConfiguration = routerClientConfiguration,
+                        WriterNodeClientConfiguration = routerClientConfiguration
+                    }
+                };
+                List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> configurationAdditions = new()
+                {
+                    new KubernetesShardGroupConfiguration<TPersistentStorageCredentials>
+                    (
+                        splitHashRangeStart,
+                        targetPersistentStorageCredentials,
+                        routerClientConfiguration,
+                        routerClientConfiguration
+                    )
+                };
+                try
+                {
+                    UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, new List<Int32>());
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
 
-            // Pause/hold any incoming operation requests
-            logger.Log(this, ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
-            try
-            {
-                operationRouter.PauseOperations();
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw new Exception("Failed to hold/pause incoming operations in the source shard group.", e);
-            }
+                // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
+                Int32 configurationUpdateWait = GetDistributedOperationCoordinatorConfigurationRefreshInterval() + staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer;
+                await Task.Delay(configurationUpdateWait);
 
-            // Restart the source shard group
-            try
-            {
-                await RestartShardGroupAsync(dataElement, hashRangeStart);
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
-            }
+                // Copy events from the source to target shard group
+                Boolean filterGroupEventsByHashRange = false;
+                if (dataElement == DataElement.Group)
+                {
+                    filterGroupEventsByHashRange = true;
+                }
+                Guid copyBeginId = metricLogger.Begin(new EventCopyTime());
+                try
+                {
+                    shardGroupSplitter.CopyEventsToTargetShardGroup
+                    (
+                        sourceShardGroupEventReader,
+                        targetShardGroupEventPersister,
+                        operationRouter,
+                        sourceShardGroupWriterAdministrator,
+                        splitHashRangeStart,
+                        splitHashRangeEnd,
+                        filterGroupEventsByHashRange,
+                        eventBatchSize,
+                        sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                        sourceWriterNodeOperationsCompleteCheckRetryInterval
+                    );
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(copyBeginId, new EventCopyTime());
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw new Exception("Error copying events from source shard group to target shard group.", e);
+                }
+                metricLogger.End(copyBeginId, new EventCopyTime());
 
-            // Release all paused/held operation requests
-            logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
-            try
-            {
-                operationRouter.ResumeOperations();
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw new Exception("Failed to resume incoming operations in the source shard group.", e);
-            }
+                // Create the new shard group
+                try
+                {
+                    await CreateShardGroupAsync(dataElement, splitHashRangeStart, targetPersistentStorageCredentials);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
 
-            // Update the shard group configuration to redirect to source shard group
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to source shard group...");
-            configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
+                // Turn on the router
+                try
+                {
+                    operationRouter.RoutingOn = true;
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw new Exception("Failed to switch routing on.", e);
+                }
+
+                // Release all paused/held operation requests
+                logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
+                try
+                {
+                    operationRouter.ResumeOperations();
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw new Exception("Failed to resume incoming operations in the source and target shard groups.", e);
+                }
+
+                // Update the shard group configuration to redirect to target shard group
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to target shard group...");
+                configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
+                {
+                    new HashRangeStartAndClientConfigurations
+                    {
+                        HashRangeStart = splitHashRangeStart,
+                        ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Reader, splitHashRangeStart)),
+                        WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, splitHashRangeStart))
+                    },
+                };
+                configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
+                try
+                {
+                    UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, new List<Int32>());
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+
+                // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
+                await Task.Delay(configurationUpdateWait);
+
+                // Delete events from the source shard group
+                Boolean includeGroupEvents = false;
+                if (dataElement == DataElement.Group)
+                {
+                    includeGroupEvents = true;
+                }
+                try
+                {
+                    shardGroupSplitter.DeleteEventsFromSourceShardGroup
+                    (
+                        sourceShardGroupEventDeleter,
+                        splitHashRangeStart,
+                        splitHashRangeEnd,
+                        includeGroupEvents
+                    );
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw new Exception("Error deleting events from source shard group.", e);
+                }
+
+                // Pause/hold any incoming operation requests
+                logger.Log(this, ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
+                try
+                {
+                    operationRouter.PauseOperations();
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw new Exception("Failed to hold/pause incoming operations in the source shard group.", e);
+                }
+
+                // Restart the source shard group
+                try
+                {
+                    await RestartShardGroupAsync(dataElement, hashRangeStart);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+
+                // Release all paused/held operation requests
+                logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
+                try
+                {
+                    operationRouter.ResumeOperations();
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw new Exception("Failed to resume incoming operations in the source shard group.", e);
+                }
+
+                // Update the shard group configuration to redirect to source shard group
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to source shard group...");
+                configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
             {
                 new HashRangeStartAndClientConfigurations
                 {
@@ -1093,69 +1128,72 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, hashRangeStart))
                 },
             };
-            configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
-            try
-            {
-                UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, new List<Int32>());
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
-            }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+                configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
+                try
+                {
+                    UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, new List<Int32>());
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
 
-            // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
-            await Task.Delay(configurationUpdateWait);
+                // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
+                await Task.Delay(configurationUpdateWait);
 
-            // Copy the contents of the *ShardGroupConfigurationSet fields to the instance configuration
-            CopyShardConfigurationSetsToInstanceConfiguration();
+                // Copy the contents of the *ShardGroupConfigurationSet fields to the instance configuration
+                CopyShardConfigurationSetsToInstanceConfiguration();
 
-            // Undo update to writer load balancer service 
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reversing update to writer load balancer service...");
-            try
-            {
-                await UpdateServiceAsync(writerLoadBalancerServiceName, GenerateWriter1LoadBalancerServiceName());
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
-            }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed reversing update to writer load balancer service.");
+                // Undo update to writer load balancer service 
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reversing update to writer load balancer service...");
+                try
+                {
+                    await UpdateServiceAsync(writerLoadBalancerServiceName, GenerateWriter1LoadBalancerServiceName());
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed reversing update to writer load balancer service.");
 
-            // Delete the router Cluster IP service
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node cluster ip service...");
-            try
-            {
-                await DeleteServiceAsync($"{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}");
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
-            }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node cluster ip service.");
+                // Delete the router Cluster IP service
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node cluster ip service...");
+                try
+                {
+                    await DeleteServiceAsync($"{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}");
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node cluster ip service.");
 
-            // Delete distributed operation router
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node...");
-            try
-            {
-                await ScaleDownAndDeleteDeploymentAsync(distributedOperationRouterObjectNamePrefix, staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
+                // Delete distributed operation router
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node...");
+                try
+                {
+                    await ScaleDownAndDeleteDeploymentAsync(distributedOperationRouterObjectNamePrefix, staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node.");
             }
-            catch
+            finally
             {
-                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw;
+                // Dispose persisters and clients
+                DisposeObject(sourceShardGroupWriterAdministrator);
+                DisposeObject(operationRouter);
+                DisposeObject(sourceShardGroupEventDeleter);
+                DisposeObject(targetShardGroupEventPersister);
+                DisposeObject(sourceShardGroupEventReader);
             }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node.");
-
-            // Dispose persisters and clients
-            DisposeObject(sourceShardGroupWriterAdministrator);
-            DisposeObject(operationRouter);
-            DisposeObject(sourceShardGroupEventDeleter);
-            DisposeObject(targetShardGroupEventPersister);
-            DisposeObject(sourceShardGroupEventReader);
 
             metricLogger.End(beginId, new ShardGroupSplitTime());
             metricLogger.Increment(new ShardGroupSplit());
@@ -1295,229 +1333,301 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw;
             }
 
-            // Create distributed operation router
             try
             {
-                await CreateDistributedOperationRouterNodeAsync
-                (
-                    dataElement,
-                    sourceShardGroup1Configuration.ReaderNodeClientConfiguration.BaseUrl,
-                    sourceShardGroup1Configuration.WriterNodeClientConfiguration.BaseUrl,
-                    sourceShardGroup1HashRangeStart,
-                    sourceShardGroup2HashRangeStart - 1,
-                    sourceShardGroup2Configuration.ReaderNodeClientConfiguration.BaseUrl,
-                    sourceShardGroup2Configuration.WriterNodeClientConfiguration.BaseUrl,
-                    sourceShardGroup2HashRangeStart,
-                    sourceShardGroup2HashRangeEnd,
-                    true
-                );
-            }
-            catch
-            {
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw;
-            }
-
-            // Update writer 1 load balancer service to target source shard group 1 writer node
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer 1 load balancer service to target first source shard group writer node...");
-            String writer1LoadBalancerServiceName = $"{GenerateWriter1LoadBalancerServiceName()}{externalServiceNamePostfix}";
-            String sourceWriter1NodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, sourceShardGroup1HashRangeStart);
-            try
-            {
-                await UpdateServiceAsync(writer1LoadBalancerServiceName, sourceWriter1NodeIdentifier);
-            }
-            catch
-            {
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw;
-            }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer 1 load balancer service.");
-
-            // Update writer 2 load balancer service to target source shard group 2 writer node
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer 2 load balancer service to target first source shard group writer node...");
-            String writer2LoadBalancerServiceName = $"{GenerateWriter2LoadBalancerServiceName()}{externalServiceNamePostfix}";
-            String sourceWriter2NodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, sourceShardGroup2HashRangeStart);
-            try
-            {
-                await UpdateServiceAsync(writer2LoadBalancerServiceName, sourceWriter1NodeIdentifier);
-            }
-            catch
-            {
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw;
-            }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer 2 load balancer service.");
-
-            // Update the shard group configuration to redirect to the router
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to router...");
-            Uri routerInternalUrl = new($"http://{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}:{staticConfiguration.PodPort}");
-            AccessManagerRestClientConfiguration routerClientConfiguration = new(routerInternalUrl);
-            List<HashRangeStartAndClientConfigurations> configurationUpdates = new()
-            {
-                new HashRangeStartAndClientConfigurations
+                // Create distributed operation router
+                try
                 {
-                    HashRangeStart = sourceShardGroup1HashRangeStart,
-                    ReaderNodeClientConfiguration = routerClientConfiguration,
-                    WriterNodeClientConfiguration = routerClientConfiguration
+                    await CreateDistributedOperationRouterNodeAsync
+                    (
+                        dataElement,
+                        sourceShardGroup1Configuration.ReaderNodeClientConfiguration.BaseUrl,
+                        sourceShardGroup1Configuration.WriterNodeClientConfiguration.BaseUrl,
+                        sourceShardGroup1HashRangeStart,
+                        sourceShardGroup2HashRangeStart - 1,
+                        sourceShardGroup2Configuration.ReaderNodeClientConfiguration.BaseUrl,
+                        sourceShardGroup2Configuration.WriterNodeClientConfiguration.BaseUrl,
+                        sourceShardGroup2HashRangeStart,
+                        sourceShardGroup2HashRangeEnd,
+                        true
+                    );
                 }
-            };
-            List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> configurationAdditions = new();
-            List<Int32> configurationDeletes = new() { sourceShardGroup2HashRangeStart };
-            try
-            {
-                UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, configurationDeletes);
-            }
-            catch
-            {
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw;
-            }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
-
-            // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
-            Int32 configurationUpdateWait = GetDistributedOperationCoordinatorConfigurationRefreshInterval() + staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer;
-            await Task.Delay(configurationUpdateWait);
-
-            // Merge events from the two source shard groups to the target shard group
-            Guid eventMergeBeginId = metricLogger.Begin(new EventMergeTime());
-            try
-            {
-                shardGroupMerger.MergeEventsToTargetShardGroup
-                (
-                    sourceShardGroup1EventReader,
-                    sourceShardGroup2EventReader,
-                    targetShardGroupEventPersister,
-                    operationRouter,
-                    sourceShardGroup1WriterAdministrator,
-                    sourceShardGroup2WriterAdministrator,
-                    eventBatchSize,
-                    sourceWriterNodeOperationsCompleteCheckRetryAttempts,
-                    sourceWriterNodeOperationsCompleteCheckRetryInterval
-                );
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(eventMergeBeginId, new EventMergeTime());
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw new Exception("Error merging events from source shard group to target shard group.", e);
-            }
-            metricLogger.End(eventMergeBeginId, new EventCopyTime());
-
-            // Shut down source shard group 1
-            try
-            {
-                await ScaleDownShardGroupAsync(dataElement, sourceShardGroup1HashRangeStart);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw new Exception($"Error scaling down source shard group 1 with data element '{dataElement}' and hash range start value {sourceShardGroup1HashRangeStart}.", e);
-            }
-
-            // Rename source shard group 1 persistent storage instance
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Renaming source shard group 1 persistent storage instance...");
-            String source1PersistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, sourceShardGroup1HashRangeStart);
-            Guid storageRenameBeginId = metricLogger.Begin(new PersistentStorageInstanceRenameTime());
-            try
-            {
-                persistentStorageManager.RenamePersistentStorage(source1PersistentStorageInstanceName, $"{source1PersistentStorageInstanceName}{supersededPersisentStorageInstanceNamePostfix}");
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw new Exception($"Error renaming source shard group 1 persistent storage instance.", e);
-            }
-            metricLogger.End(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
-            metricLogger.Increment(new PersistentStorageInstanceRenamed());
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed renaming source shard group 1 persistent storage instance.");
-
-            // Rename target/temporary persistent storage instance to become source shard group 1 persistent storage
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Renaming temporary persistent storage instance...");
-            storageRenameBeginId = metricLogger.Begin(new PersistentStorageInstanceRenameTime());
-            try
-            {
-                persistentStorageManager.RenamePersistentStorage(temporaryPersistentStorageInstanceName, source1PersistentStorageInstanceName);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw new Exception($"Error renaming temporary persistent storage instance.", e);
-            }
-            metricLogger.End(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
-            metricLogger.Increment(new PersistentStorageInstanceRenamed());
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed renaming temporary persistent storage instance.");
-
-            // Restart source shard group 1
-            try
-            {
-                await ScaleUpShardGroupAsync(dataElement, sourceShardGroup1HashRangeStart);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw new Exception($"Error scaling up source shard group 1 with data element '{dataElement}' and hash range start value {sourceShardGroup1HashRangeStart}.", e);
-            }
-
-            // Turn off the router
-            try
-            {
-                operationRouter.RoutingOn = false;
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw new Exception("Failed to switch routing off.", e);
-            }
-
-            // Release all paused/held operation requests
-            logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
-            try
-            {
-                operationRouter.ResumeOperations();
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw new Exception("Failed to resume incoming operations in the source and target shard groups.", e);
-            }
-
-            // Update the shard group configuration to redirect to source shard group 1
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to source shard group 1...");
-            routerClientConfiguration = new(routerInternalUrl);
-            configurationUpdates = new()
-            {
-                new HashRangeStartAndClientConfigurations
+                catch
                 {
-                    HashRangeStart = sourceShardGroup1HashRangeStart,
-                    ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Reader, sourceShardGroup1HashRangeStart)),
-                    WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, sourceShardGroup1HashRangeStart))
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw;
                 }
-            };
-            configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
-            configurationDeletes = new List<Int32>();
-            try
-            {
-                UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, configurationDeletes);
+
+                // Update writer 1 load balancer service to target source shard group 1 writer node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer 1 load balancer service to target first source shard group writer node...");
+                String writer1LoadBalancerServiceName = $"{GenerateWriter1LoadBalancerServiceName()}{externalServiceNamePostfix}";
+                String sourceWriter1NodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, sourceShardGroup1HashRangeStart);
+                try
+                {
+                    await UpdateServiceAsync(writer1LoadBalancerServiceName, sourceWriter1NodeIdentifier);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer 1 load balancer service.");
+
+                // Update writer 2 load balancer service to target source shard group 2 writer node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer 2 load balancer service to target first source shard group writer node...");
+                String writer2LoadBalancerServiceName = $"{GenerateWriter2LoadBalancerServiceName()}{externalServiceNamePostfix}";
+                String sourceWriter2NodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, sourceShardGroup2HashRangeStart);
+                try
+                {
+                    await UpdateServiceAsync(writer2LoadBalancerServiceName, sourceWriter1NodeIdentifier);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer 2 load balancer service.");
+
+                // Update the shard group configuration to redirect to the router
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to router...");
+                Uri routerInternalUrl = new($"http://{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}:{staticConfiguration.PodPort}");
+                AccessManagerRestClientConfiguration routerClientConfiguration = new(routerInternalUrl);
+                List<HashRangeStartAndClientConfigurations> configurationUpdates = new()
+                {
+                    new HashRangeStartAndClientConfigurations
+                    {
+                        HashRangeStart = sourceShardGroup1HashRangeStart,
+                        ReaderNodeClientConfiguration = routerClientConfiguration,
+                        WriterNodeClientConfiguration = routerClientConfiguration
+                    }
+                };
+                List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> configurationAdditions = new();
+                List<Int32> configurationDeletes = new() { sourceShardGroup2HashRangeStart };
+                try
+                {
+                    UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, configurationDeletes);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+
+                // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
+                Int32 configurationUpdateWait = GetDistributedOperationCoordinatorConfigurationRefreshInterval() + staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer;
+                await Task.Delay(configurationUpdateWait);
+
+                // Merge events from the two source shard groups to the target shard group
+                Guid eventMergeBeginId = metricLogger.Begin(new EventMergeTime());
+                try
+                {
+                    shardGroupMerger.MergeEventsToTargetShardGroup
+                    (
+                        sourceShardGroup1EventReader,
+                        sourceShardGroup2EventReader,
+                        targetShardGroupEventPersister,
+                        operationRouter,
+                        sourceShardGroup1WriterAdministrator,
+                        sourceShardGroup2WriterAdministrator,
+                        eventBatchSize,
+                        sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                        sourceWriterNodeOperationsCompleteCheckRetryInterval
+                    );
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(eventMergeBeginId, new EventMergeTime());
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw new Exception("Error merging events from source shard group to target shard group.", e);
+                }
+                metricLogger.End(eventMergeBeginId, new EventCopyTime());
+
+                // Shut down source shard group 1
+                try
+                {
+                    await ScaleDownShardGroupAsync(dataElement, sourceShardGroup1HashRangeStart);
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw new Exception($"Error scaling down source shard group 1 with data element '{dataElement}' and hash range start value {sourceShardGroup1HashRangeStart}.", e);
+                }
+
+                // Rename source shard group 1 persistent storage instance
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Renaming source shard group 1 persistent storage instance...");
+                String source1PersistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, sourceShardGroup1HashRangeStart);
+                Guid storageRenameBeginId = metricLogger.Begin(new PersistentStorageInstanceRenameTime());
+                try
+                {
+                    persistentStorageManager.RenamePersistentStorage(source1PersistentStorageInstanceName, $"{source1PersistentStorageInstanceName}{supersededPersisentStorageInstanceNamePostfix}");
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw new Exception($"Error renaming source shard group 1 persistent storage instance.", e);
+                }
+                metricLogger.End(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
+                metricLogger.Increment(new PersistentStorageInstanceRenamed());
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed renaming source shard group 1 persistent storage instance.");
+
+                // Rename target/temporary persistent storage instance to become source shard group 1 persistent storage
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Renaming temporary persistent storage instance...");
+                storageRenameBeginId = metricLogger.Begin(new PersistentStorageInstanceRenameTime());
+                try
+                {
+                    persistentStorageManager.RenamePersistentStorage(temporaryPersistentStorageInstanceName, source1PersistentStorageInstanceName);
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw new Exception($"Error renaming temporary persistent storage instance.", e);
+                }
+                metricLogger.End(storageRenameBeginId, new PersistentStorageInstanceRenameTime());
+                metricLogger.Increment(new PersistentStorageInstanceRenamed());
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed renaming temporary persistent storage instance.");
+
+                // Restart source shard group 1
+                try
+                {
+                    await ScaleUpShardGroupAsync(dataElement, sourceShardGroup1HashRangeStart);
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw new Exception($"Error scaling up source shard group 1 with data element '{dataElement}' and hash range start value {sourceShardGroup1HashRangeStart}.", e);
+                }
+
+                // Turn off the router
+                try
+                {
+                    operationRouter.RoutingOn = false;
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw new Exception("Failed to switch routing off.", e);
+                }
+
+                // Release all paused/held operation requests
+                logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
+                try
+                {
+                    operationRouter.ResumeOperations();
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw new Exception("Failed to resume incoming operations in the source and target shard groups.", e);
+                }
+
+                // Update the shard group configuration to redirect to source shard group 1
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to source shard group 1...");
+                routerClientConfiguration = new(routerInternalUrl);
+                configurationUpdates = new()
+                {
+                    new HashRangeStartAndClientConfigurations
+                    {
+                        HashRangeStart = sourceShardGroup1HashRangeStart,
+                        ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Reader, sourceShardGroup1HashRangeStart)),
+                        WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, sourceShardGroup1HashRangeStart))
+                    }
+                };
+                configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
+                configurationDeletes = new List<Int32>();
+                try
+                {
+                    UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions, configurationDeletes);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+
+                // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
+                await Task.Delay(configurationUpdateWait);
+
+                // Copy the contents of the *ShardGroupConfigurationSet fields to the instance configuration
+                CopyShardConfigurationSetsToInstanceConfiguration();
+
+                // Delete source shard group 2
+                try
+                {
+                    await DeleteShardGroupAsync(dataElement, sourceShardGroup2HashRangeStart, true);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw;
+                }
+
+                // Delete the original source shard group 1 persistent storage instance
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting original source shard group 1 persistent storage instance...");
+                try
+                {
+                    persistentStorageManager.DeletePersistentStorage($"{source1PersistentStorageInstanceName}{supersededPersisentStorageInstanceNamePostfix}");
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw new Exception($"Error deleting persistent storage instance '{source1PersistentStorageInstanceName}{supersededPersisentStorageInstanceNamePostfix}'.", e);
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting persistent storage instance.");
+
+                // Undo updates to writer load balancer services
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reversing updates to writer load balancer services...");
+                try
+                {
+                    await UpdateServiceAsync(writer1LoadBalancerServiceName, GenerateWriter1LoadBalancerServiceName());
+                    await UpdateServiceAsync(writer2LoadBalancerServiceName, GenerateWriter2LoadBalancerServiceName());
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed reversing updates to writer load balancer services.");
+
+                // Delete the router Cluster IP service
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node cluster ip service...");
+                try
+                {
+                    await DeleteServiceAsync($"{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}");
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node cluster ip service.");
+
+                // Delete distributed operation router
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node...");
+                try
+                {
+                    await ScaleDownAndDeleteDeploymentAsync(distributedOperationRouterObjectNamePrefix, staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node.");
             }
-            catch
+            finally
             {
-                metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
-                throw;
+                // Dispose persisters and clients
+                DisposeObject(sourceShardGroup2WriterAdministrator);
+                DisposeObject(sourceShardGroup1WriterAdministrator);
+                DisposeObject(operationRouter);
+                DisposeObject(targetShardGroupEventPersister);
+                DisposeObject(sourceShardGroup2EventReader);
+                DisposeObject(sourceShardGroup1EventReader);
             }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
-
-            // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
-            await Task.Delay(configurationUpdateWait);
-
-            // Copy the contents of the *ShardGroupConfigurationSet fields to the instance configuration
-            CopyShardConfigurationSetsToInstanceConfiguration();
-
-
-
-
-            // TODO: Do all cleanup stuff in Split() like removing router and renaming cluster IP services
 
             metricLogger.End(mergeBeginId, new ShardGroupMergeTime());
             metricLogger.Increment(new ShardGroupsMerged());

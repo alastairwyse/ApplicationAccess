@@ -78,5 +78,34 @@ namespace ApplicationAccess.Redistribution
             Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
             Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
         );
+
+        /// <summary>
+        /// Merges a two shard groups with consecutive hash code ranges in the distributed AccessManager instance.
+        /// </summary>
+        /// <param name="dataElement">The data element of the shard groups to merge.</param>
+        /// <param name="sourceShardGroup1HashRangeStart">The first (inclusive) in the range of hash codes managed by the first shard group to merge.</param>
+        /// <param name="sourceShardGroup2HashRangeStart">The first (inclusive) in the range of hash codes managed by the second shard group to merge.</param>
+        /// <param name="sourceShardGroup2HashRangeEnd">The last (inclusive) in the range of hash codes managed by the second shard group to merge.</param>
+        /// <param name="sourceShardGroupEventReaderCreationFunction">A function used to create a readers used to read events from the source shard group's persistent storage instances.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventBatchReader"/> instance.</param>
+        /// <param name="targetShardGroupEventPersisterCreationFunction">A function used to create a persister used to write events to the target shard group's persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerIdempotentTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
+        /// <param name="operationRouterCreationFunction">A function used to create a client used control the router which directs operations between the source shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerOperationRouter"/> instance.</param>
+        /// <param name="sourceShardGroupWriterAdministratorCreationFunction">A function used to create a clients used control the writer nodes in the source shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
+        /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard groups in each batch.</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking that there are no active operations in the source shard groups, before merging of the final batch of events (event merge will fail if all retries are exhausted before the number of active operations becomes 0).</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
+        Task MergeShardGroupsAsync
+        (
+            DataElement dataElement,
+            Int32 sourceShardGroup1HashRangeStart,
+            Int32 sourceShardGroup2HashRangeStart,
+            Int32 sourceShardGroup2HashRangeEnd,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBatchReader> sourceShardGroupEventReaderCreationFunction,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
+            Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
+            Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+            Int32 eventBatchSize,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
+        );
     }
 }
