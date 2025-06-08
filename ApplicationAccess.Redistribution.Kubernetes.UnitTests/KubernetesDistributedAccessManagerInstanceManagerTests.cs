@@ -6774,9 +6774,98 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public void DeleteShardGroupAsync_ExceptionDeletingReaderNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            mockMetricLogger.Begin(Arg.Any<ShardGroupDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.DeleteNamespacedDeploymentAsync(null, "user-reader-n100", "default").Returns(Task.FromException<V1Status>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteShardGroupAsync(DataElement.User, -100, false);
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupDeleteTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ShardGroupDeleteTime>());
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public void DeleteShardGroupAsync_ExceptionDeletingWriterNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            mockMetricLogger.Begin(Arg.Any<ShardGroupDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.DeleteNamespacedDeploymentAsync(null, "user-writer-n100", "default").Returns(Task.FromException<V1Status>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteShardGroupAsync(DataElement.User, -100, false);
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupDeleteTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ShardGroupDeleteTime>());
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public void DeleteShardGroupAsync_ExceptionDeletingEventCacheNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            mockMetricLogger.Begin(Arg.Any<ShardGroupDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.DeleteNamespacedDeploymentAsync(null, "group-eventcache-n100", "default").Returns(Task.FromException<V1Status>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteShardGroupAsync(DataElement.Group, -100, false);
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupDeleteTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ShardGroupDeleteTime>());
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public void DeleteShardGroupAsync_ExceptionDeletingPersistentStorageInstance()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String persistentStorageInstanceName = "applicationaccesstest_user_n100";
+            mockMetricLogger.Begin(Arg.Any<ShardGroupDeleteTime>()).Returns(testBeginId);
+            mockPersistentStorageManager.When((storageManager) => storageManager.DeletePersistentStorage(persistentStorageInstanceName)).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteShardGroupAsync(DataElement.User, -100, true);
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupDeleteTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ShardGroupDeleteTime>());
+            Assert.That(e.Message, Does.StartWith($"Error deleting persistent storage instance '{persistentStorageInstanceName}'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
         public async Task DeleteShardGroupAsync()
         {
-            throw new NotImplementedException();
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String persistentStorageInstanceName = "applicationaccesstest_group_120";
+            mockMetricLogger.Begin(Arg.Any<ShardGroupDeleteTime>()).Returns(testBeginId);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.DeleteShardGroupAsync(DataElement.Group, 120, true);
+
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "group-reader-120", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "group-writer-120", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "group-eventcache-120", "default");
+            mockPersistentStorageManager.Received(1).DeletePersistentStorage(persistentStorageInstanceName);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupDeleteTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ShardGroupDeleteTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupDeleted>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleting shard group for data element 'Group' and hash range start value 120...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed deleting shard group.");
         }
 
         [Test]
@@ -7211,7 +7300,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, -2_147_483_648, createDeploymentFunction, "reader", 10_000);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, createDeploymentFunction, "reader", 10_000);
             });
 
             Assert.That(e.Message, Does.StartWith($"Error creating reader deployment 'user-reader-n2147483648' in namespace 'default'."));
@@ -7236,7 +7325,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, -2_147_483_648, createDeploymentFunction, "reader", 10_000);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, createDeploymentFunction, "reader", 10_000);
             });
 
             Assert.That(e.Message, Does.StartWith($"Error creating reader service 'user-reader-n2147483648-service' in namespace 'default'."));
@@ -7253,7 +7342,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, 2_147_483_647, createDeploymentFunction, "writer", 10_000);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, createDeploymentFunction, "writer", 10_000);
             });
 
             Assert.That(e.Message, Does.StartWith($"Error waiting for writer deployment 'user-writer-2147483647' in namespace 'default' to become available."));
@@ -7274,10 +7363,57 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult(new V1Service()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, -2_147_483_648, createDeploymentFunction, "event cache", 10_000);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, createDeploymentFunction, "event cache", 10_000);
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
             await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, testNameSpace);
+        }
+
+        [Test]
+        public void DeleteApplicationAccessNodeAsync_ExceptionDeletingService()
+        {
+            var mockException = new Exception("Mock exception");
+            String deploymentName = "user-writer-2147483647";
+            mockKubernetesClientShim.DeleteNamespacedServiceAsync(null, $"{deploymentName}-service", "default").Returns(Task.FromException<V1Service>(mockException)); ;
+            mockKubernetesClientShim.DeleteNamespacedDeploymentAsync(null, deploymentName, "default").Returns(Task.FromResult(new V1Status()));
+            
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteApplicationAccessNodeAsync(deploymentName, "writer");
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error deleting writer service 'user-writer-2147483647-service'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public void DeleteApplicationAccessNodeAsync_ExceptionDeletingDeployment()
+        {
+            var mockException = new Exception("Mock exception");
+            String deploymentName = "user-writer-2147483647";
+            mockKubernetesClientShim.DeleteNamespacedServiceAsync(null, $"{deploymentName}-service", "default").Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.DeleteNamespacedDeploymentAsync(null, deploymentName, "default").Returns(Task.FromException<V1Status>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteApplicationAccessNodeAsync(deploymentName, "writer");
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error deleting writer deployment 'user-writer-2147483647'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task DeleteApplicationAccessNodeAsync()
+        {
+            String deploymentName = "user-writer-2147483647";
+            mockKubernetesClientShim.DeleteNamespacedServiceAsync(null, $"{deploymentName}-service", "default").Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.DeleteNamespacedDeploymentAsync(null, deploymentName, "default").Returns(Task.FromResult(new V1Status()));
+
+            await testKubernetesDistributedAccessManagerInstanceManager.DeleteApplicationAccessNodeAsync(deploymentName, "writer");
+
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, $"{deploymentName}-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, deploymentName, "default");
         }
 
         [Test]
@@ -9553,6 +9689,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await base.ScaleUpShardGroupAsync(dataElement, hashRangeStart);
             }
 
+            public new async Task DeleteShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, Boolean deletePersistentStorageInstance)
+            {
+                await base.DeleteShardGroupAsync(dataElement, hashRangeStart, deletePersistentStorageInstance);
+            }
+
             public new async Task CreateReaderNodeAsync(DataElement dataElement, Int32 hashRangeStart, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
             {
                 await base.CreateReaderNodeAsync(dataElement, hashRangeStart, persistentStorageCredentials, eventCacheServiceUrl);
@@ -9602,9 +9743,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             }
 
-            public new async Task CreateApplicationAccessNodeAsync(String deploymentName, Int32 hashRangeStart, Func<Task> createDeploymentFunction, String nodeTypeName, Int32 abortTimeout)
+            public new async Task CreateApplicationAccessNodeAsync(String deploymentName, Func<Task> createDeploymentFunction, String nodeTypeName, Int32 abortTimeout)
             {
-                await base.CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, nodeTypeName, abortTimeout);
+                await base.CreateApplicationAccessNodeAsync(deploymentName, createDeploymentFunction, nodeTypeName, abortTimeout);
+            }
+
+            public new async Task DeleteApplicationAccessNodeAsync(String deploymentName, String nodeTypeName)
+            {
+                await base.DeleteApplicationAccessNodeAsync(deploymentName, nodeTypeName);
             }
 
             public new async Task CreateClusterIpServiceAsync(String appLabelValue, String serviceNamePostfix, UInt16 port)

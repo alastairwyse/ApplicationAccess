@@ -1987,7 +1987,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             String nameSpace = staticConfiguration.NameSpace;
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
-            Guid shardGroupBeginId = metricLogger.Begin(new ShardGroupCreateTime());
+            Guid shardGroupCreateBeginId = metricLogger.Begin(new ShardGroupCreateTime());
 
             if (persistentStorageCredentials == null)
             {
@@ -2002,7 +2002,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 catch (Exception e)
                 {
                     metricLogger.CancelBegin(storageBeginId, new PersistentStorageInstanceCreateTime());
-                    metricLogger.CancelBegin(shardGroupBeginId, new ShardGroupCreateTime());
+                    metricLogger.CancelBegin(shardGroupCreateBeginId, new ShardGroupCreateTime());
                     throw new Exception($"Error creating persistent storage instance for data element type '{dataElement}' and hash range start value {hashRangeStart}.", e);
                 }
                 metricLogger.End(storageBeginId, new PersistentStorageInstanceCreateTime());
@@ -2017,7 +2017,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch
             {
-                metricLogger.CancelBegin(shardGroupBeginId, new ShardGroupCreateTime());
+                metricLogger.CancelBegin(shardGroupCreateBeginId, new ShardGroupCreateTime());
                 throw;
             }
             Uri eventCacheServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.EventCache, hashRangeStart);
@@ -2031,11 +2031,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch
             {
-                metricLogger.CancelBegin(shardGroupBeginId, new ShardGroupCreateTime());
+                metricLogger.CancelBegin(shardGroupCreateBeginId, new ShardGroupCreateTime());
                 throw;
             }
 
-            metricLogger.End(shardGroupBeginId, new ShardGroupCreateTime());
+            metricLogger.End(shardGroupCreateBeginId, new ShardGroupCreateTime());
             metricLogger.Increment(new ShardGroupCreated());
             logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
 
@@ -2200,17 +2200,55 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="deletePersistentStorageInstance">Whether to additionally delete the persistent storage instance used by the shard group.</param>
         protected async Task DeleteShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, Boolean deletePersistentStorageInstance)
         {
-            String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart}...");
+            Guid shardGroupDeleteBeginId = metricLogger.Begin(new ShardGroupDeleteTime());
 
-            // DeleteDeploymentAsync
-            // TODO: Need metrics
+            String readerDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
+            String writerDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
+            String eventCacheDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.EventCache, hashRangeStart);
 
+            // Delete reader and writer nodes
+            Task deleteReaderNodeTask = Task.Run(async () => await DeleteApplicationAccessNodeAsync(readerDeploymentName, "reader"));
+            Task deleteWriterNodeTask = Task.Run(async () => await DeleteApplicationAccessNodeAsync(writerDeploymentName, "writer"));
+            try
+            {
+                await Task.WhenAll(deleteReaderNodeTask, deleteWriterNodeTask);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(shardGroupDeleteBeginId, new ShardGroupDeleteTime());
+                throw;
+            }
 
+            // Delete event cache node
+            try
+            {
+                await DeleteApplicationAccessNodeAsync(eventCacheDeploymentName, "event cache");
+            }
+            catch
+            {
+                metricLogger.CancelBegin(shardGroupDeleteBeginId, new ShardGroupDeleteTime());
+                throw;
+            }
 
+            // Delete persistent storage instance
+            if (deletePersistentStorageInstance == true)
+            {
+                String persistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, hashRangeStart);
+                try
+                {
+                    persistentStorageManager.DeletePersistentStorage(persistentStorageInstanceName);
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(shardGroupDeleteBeginId, new ShardGroupDeleteTime());
+                    throw new Exception($"Error deleting persistent storage instance '{persistentStorageInstanceName}'.", e);
+                }
+            }
+
+            metricLogger.End(shardGroupDeleteBeginId, new ShardGroupDeleteTime());
+            metricLogger.Increment(new ShardGroupDeleted());
             logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed deleting shard group.");
-
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -2231,7 +2269,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Guid beginId = metricLogger.Begin(new ReaderNodeCreateTime());
             try
             {
-                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "reader", availabilityWaitAbortTimeout);
+                await CreateApplicationAccessNodeAsync(deploymentName, createDeploymentFunction, "reader", availabilityWaitAbortTimeout);
             }
             catch (Exception e)
             {
@@ -2258,7 +2296,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Guid beginId = metricLogger.Begin(new EventCacheNodeCreateTime());
             try
             {
-                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "event cache", availabilityWaitAbortTimeout);
+                await CreateApplicationAccessNodeAsync(deploymentName, createDeploymentFunction, "event cache", availabilityWaitAbortTimeout);
             }
             catch (Exception e)
             {
@@ -2288,7 +2326,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Guid beginId = metricLogger.Begin(new WriterNodeCreateTime());
             try
             {
-                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "writer", availabilityWaitAbortTimeout);
+                await CreateApplicationAccessNodeAsync(deploymentName, createDeploymentFunction, "writer", availabilityWaitAbortTimeout);
             }
             catch (Exception e)
             {
@@ -2442,14 +2480,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Creates an ApplicationAccess 'node' as part of a shard group in a distributed AccessManager implementation.
         /// </summary>
         /// <param name="deploymentName">The name of the Kubernetes deployment to create to host the node.</param>
-        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group the node is a member of.</param>
         /// <param name="createDeploymentFunction">An async <see cref="Func{TResult}"/> which creates the Kubernetes deployment for the node.</param>
         /// <param name="nodeTypeName">The name of the type of the node (to use in exception messages, e.g. 'event cache', 'reader', etc...).</param>
         /// <param name="abortTimeout">The number of milliseconds to wait before throwing an exception if the node hasn't become available.</param>
         protected async Task CreateApplicationAccessNodeAsync
         (
             String deploymentName,
-            Int32 hashRangeStart,
             Func<Task> createDeploymentFunction,
             String nodeTypeName,
             Int32 abortTimeout
@@ -2490,6 +2526,38 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 }
             });
             await Task.WhenAll(createDeploymentTask, createServiceTask, waitForDeploymentTask);
+        }
+
+        /// <summary>
+        /// Deletes an ApplicationAccess 'node' in a distributed AccessManager implementation.
+        /// </summary>
+        /// <param name="deploymentName">The name of the Kubernetes deployment which hosts the node.</param>
+        /// <param name="nodeTypeName">The name of the type of the node (to use in exception messages, e.g. 'event cache', 'reader', etc...).</param>
+        protected async Task DeleteApplicationAccessNodeAsync(String deploymentName, String nodeTypeName)
+        {
+            Task deleteServiceTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await DeleteServiceAsync($"{deploymentName}{serviceNamePostfix}");
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error deleting {nodeTypeName} service '{deploymentName}{serviceNamePostfix}'.", e);
+                }
+            });
+            Task deleteDeploymentTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await DeleteDeploymentAsync(deploymentName);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error deleting {nodeTypeName} deployment '{deploymentName}'.", e);
+                }
+            });
+            await Task.WhenAll(deleteServiceTask, deleteDeploymentTask);
         }
 
         /// <summary>
