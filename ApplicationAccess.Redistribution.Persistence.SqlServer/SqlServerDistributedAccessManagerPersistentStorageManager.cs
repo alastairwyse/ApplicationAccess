@@ -156,7 +156,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
             renameScriptBuider.AppendLine("GO ");
             renameScriptBuider.AppendLine($"ALTER DATABASE {currentPersistentStorageInstanceName} MODIFY NAME = {newPersistentStorageInstanceName};");
             renameScriptBuider.AppendLine("GO ");
-            renameScriptBuider.AppendLine($"ALTER DATABASE Test2 SET {newPersistentStorageInstanceName};");
+            renameScriptBuider.AppendLine($"ALTER DATABASE {newPersistentStorageInstanceName} SET MULTI_USER;");
             renameScriptBuider.AppendLine("GO ");
 
             // Rename the database

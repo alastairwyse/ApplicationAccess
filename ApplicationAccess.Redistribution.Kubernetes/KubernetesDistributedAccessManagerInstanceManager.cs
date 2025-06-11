@@ -554,6 +554,22 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <inheritdoc/>>
+        public async Task DeleteDistributedAccessManagerInstanceAsync()
+        {
+            // Check userShardGroupConfigurationSet.Items.Count > 0
+
+            // Iterate userShardGroupConfiguration (+ group + group2group) and call DeleteShardGroupAsync() (including DBs)
+
+            // Delete distributed operation coordinator 
+
+            // Delete shard config database
+
+            // Delete config from userShardGroupConfiguration etc members and instanceConfig
+
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>>
         public async Task SplitShardGroupAsync
         (
             DataElement dataElement,
@@ -1242,7 +1258,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new ArgumentException($"Parameter '{nameof(sourceShardGroup1HashRangeStart)}' with value {sourceShardGroup1HashRangeStart} contains an invalid hash range start value for '{dataElement}' shard groups.", nameof(sourceShardGroup1HashRangeStart));
             if (sourceShardGroup2HashRangeStart <= sourceShardGroup1HashRangeStart)
                 throw new ArgumentOutOfRangeException(nameof(sourceShardGroup2HashRangeStart), $"Parameter '{nameof(sourceShardGroup2HashRangeStart)}' with value {sourceShardGroup2HashRangeStart} must be greater than parameter '{nameof(sourceShardGroup1HashRangeStart)}' with value {sourceShardGroup1HashRangeStart}.");
-            KubernetesShardGroupConfiguration<TPersistentStorageCredentials> sourceShardGroup2Configuration = GetShardGroupConfiguration(GetShardGroupConfigurationList(dataElement), sourceShardGroup2HashRangeStart); ;
+            KubernetesShardGroupConfiguration<TPersistentStorageCredentials> sourceShardGroup2Configuration = GetShardGroupConfiguration(GetShardGroupConfigurationList(dataElement), sourceShardGroup2HashRangeStart); 
             if (sourceShardGroup2Configuration == null)
                 throw new ArgumentException($"Parameter '{nameof(sourceShardGroup2HashRangeStart)}' with value {sourceShardGroup2HashRangeStart} contains an invalid hash range start value for '{dataElement}' shard groups.", nameof(sourceShardGroup2HashRangeStart));
             // This should always succeed since we know sourceShardGroup2Configuration exists, and that sourceShardGroup2HashRangeStart > sourceShardGroup1HashRangeStart
@@ -1441,7 +1457,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     metricLogger.CancelBegin(mergeBeginId, new ShardGroupMergeTime());
                     throw new Exception("Error merging events from source shard group to target shard group.", e);
                 }
-                metricLogger.End(eventMergeBeginId, new EventCopyTime());
+                metricLogger.End(eventMergeBeginId, new EventMergeTime());
 
                 // Shut down source shard group 1
                 try

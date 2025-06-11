@@ -49,6 +49,11 @@ namespace ApplicationAccess.Redistribution
         );
 
         /// <summary>
+        /// Deletes the distributed AccessManager instance.
+        /// </summary>
+        Task DeleteDistributedAccessManagerInstanceAsync();
+
+        /// <summary>
         /// Splits a shard group in the distributed AccessManager instance, by moving elements whose hash codes fall within a specified range to a new shard group.
         /// </summary>
         /// <param name="dataElement">The data element of the shard group to split.</param>

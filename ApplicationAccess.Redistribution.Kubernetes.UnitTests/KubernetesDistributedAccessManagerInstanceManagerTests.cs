@@ -5907,6 +5907,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid persistentStorageCreateBeginId = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
             Guid persistentStorageInstanceRenameBeginId1 = Guid.Parse("22908a07-eaac-42e4-ad1d-6794a835e3bd");
             Guid persistentStorageInstanceRenameBeginId2 = Guid.Parse("044c68d4-990d-4d53-939f-a0d7d7456eea");
+            Guid eventMergeBeginId = Guid.Parse("c220cc98-3f1d-4c36-8051-cd540c41b7d7");
             String persistentStorageInstanceName = "applicationaccesstest_merge_temp";
             // This is returned whilst shutting down the first source shard group
             V1PodList returnPods = new
@@ -5945,6 +5946,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(persistentStorageCreateBeginId);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceRenameTime>()).Returns(persistentStorageInstanceRenameBeginId1, persistentStorageInstanceRenameBeginId2);
+            mockMetricLogger.Begin(Arg.Any<EventMergeTime>()).Returns(eventMergeBeginId);
             mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
@@ -6009,11 +6011,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(2).Begin(Arg.Any<PersistentStorageInstanceRenameTime>());
             mockMetricLogger.Received(1).End(persistentStorageCreateBeginId, Arg.Any<PersistentStorageInstanceCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<PersistentStorageInstanceCreated>());
-            mockMetricLogger.Received(1).End(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
-            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupsMerged>());
             mockMetricLogger.Received(1).End(persistentStorageInstanceRenameBeginId1, Arg.Any<PersistentStorageInstanceRenameTime>());
             mockMetricLogger.Received(2).Increment(Arg.Any<PersistentStorageInstanceRenamed>());
             mockMetricLogger.Received(1).End(persistentStorageInstanceRenameBeginId2, Arg.Any<PersistentStorageInstanceRenameTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<EventMergeTime>());
+            mockMetricLogger.Received(1).End(eventMergeBeginId, Arg.Any<EventMergeTime>());
+            mockMetricLogger.Received(1).End(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupsMerged>());
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Merging User shard group with hash range start value {Int32.MinValue} with shard group with hash range start value 0...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Creating temporary persistent storage instance...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating temporary persistent storage instance.");
@@ -6095,6 +6099,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid persistentStorageCreateBeginId = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
             Guid persistentStorageInstanceRenameBeginId1 = Guid.Parse("22908a07-eaac-42e4-ad1d-6794a835e3bd");
             Guid persistentStorageInstanceRenameBeginId2 = Guid.Parse("044c68d4-990d-4d53-939f-a0d7d7456eea");
+            Guid eventMergeBeginId = Guid.Parse("c220cc98-3f1d-4c36-8051-cd540c41b7d7");
             String persistentStorageInstanceName = "merge_temp";
             // This is returned whilst shutting down the first source shard group
             V1PodList returnPods = new
@@ -6154,6 +6159,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<ShardGroupMergeTime>()).Returns(shardGroupMergeBeginId);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(persistentStorageCreateBeginId);
             mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceRenameTime>()).Returns(persistentStorageInstanceRenameBeginId1, persistentStorageInstanceRenameBeginId2);
+            mockMetricLogger.Begin(Arg.Any<EventMergeTime>()).Returns(eventMergeBeginId);
             mockPersistentStorageManager.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
@@ -6217,12 +6223,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
             mockMetricLogger.Received(2).Begin(Arg.Any<PersistentStorageInstanceRenameTime>());
             mockMetricLogger.Received(1).End(persistentStorageCreateBeginId, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<EventMergeTime>());
+            mockMetricLogger.Received(1).End(eventMergeBeginId, Arg.Any<EventMergeTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<PersistentStorageInstanceCreated>());
-            mockMetricLogger.Received(1).End(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
-            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupsMerged>());
             mockMetricLogger.Received(1).End(persistentStorageInstanceRenameBeginId1, Arg.Any<PersistentStorageInstanceRenameTime>());
             mockMetricLogger.Received(2).Increment(Arg.Any<PersistentStorageInstanceRenamed>());
             mockMetricLogger.Received(1).End(persistentStorageInstanceRenameBeginId2, Arg.Any<PersistentStorageInstanceRenameTime>());
+            mockMetricLogger.Received(1).End(shardGroupMergeBeginId, Arg.Any<ShardGroupMergeTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupsMerged>());
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Merging Group shard group with hash range start value {Int32.MinValue} with shard group with hash range start value -100...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Creating temporary persistent storage instance...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating temporary persistent storage instance.");
@@ -9504,7 +9512,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        [Ignore("Integration test")]
+        //[Ignore("Integration test")]
         public async Task IntegrationTests_REMOVETHIS()
         {
         }

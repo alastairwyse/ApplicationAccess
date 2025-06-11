@@ -301,7 +301,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             testRenameScriptBuider.AppendLine("GO ");
             testRenameScriptBuider.AppendLine("ALTER DATABASE merge_temp MODIFY NAME = user_n2147483648;");
             testRenameScriptBuider.AppendLine("GO ");
-            testRenameScriptBuider.AppendLine("ALTER DATABASE Test2 SET user_n2147483648;");
+            testRenameScriptBuider.AppendLine("ALTER DATABASE user_n2147483648 SET MULTI_USER;");
             testRenameScriptBuider.AppendLine("GO ");
             List<Tuple<String, String>> capturedScriptsAndContents = null;
             mockSqlServerScriptExecutor.ExecuteScripts(Arg.Do<List<Tuple<String, String>>>(argumentValue => capturedScriptsAndContents = argumentValue));
