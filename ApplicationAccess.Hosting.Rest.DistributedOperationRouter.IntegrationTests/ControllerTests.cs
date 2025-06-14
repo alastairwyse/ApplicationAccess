@@ -500,7 +500,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationT
 
 
             mockDistributedAccessManagerOperationRouter.ClearReceivedCalls();
-            mockDistributedAccessManagerOperationRouter.ContainsEntityAsync(testEntityType, urlReservedCharcters).Returns(false); ;
+            mockDistributedAccessManagerOperationRouter.ContainsEntityAsync(testEntityType, urlReservedCharcters).Returns(false);
 
             result = await client.ContainsEntityAsync(testEntityType, urlReservedCharcters);
 

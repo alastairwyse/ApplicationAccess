@@ -186,7 +186,7 @@ namespace ApplicationAccess.TestHarness
                             persisterLogger.Log(ApplicationLogging.LogLevel.Critical, "Tripswitch has been actuated due to an unrecoverable error whilst flushing the event buffer.");
                         }, 
                         metricLogger
-                    ); ;
+                    );
                     try
                     {
                         var hashCodeGenerator = new DefaultStringHashCodeGenerator();

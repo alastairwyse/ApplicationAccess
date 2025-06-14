@@ -496,7 +496,7 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.EventId,
                         eventBufferItem.OccurredTime,
                         eventBufferItem.HashCode
-                    ); ;
+                    );
                 };
             }
             String persistenceExceptionMessage = GeneratePersistenceExceptionMessage(eventBufferItem.EventAction, "group to entity mapping");

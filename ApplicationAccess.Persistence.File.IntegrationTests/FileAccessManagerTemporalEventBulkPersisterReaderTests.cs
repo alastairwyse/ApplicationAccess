@@ -273,7 +273,7 @@ namespace ApplicationAccess.Persistence.File.IntegrationTests
             mockLogger.Received(1).Log(testFileAccessManagerTemporalEventBulkPersisterReader, LogLevel.Warning, $"Wrote 3 events to file '{testEventFilePath}'.");
             mockMetricLogger.Received(1).Add(Arg.Any<EventsReadFromFile>(), 3);
             mockLogger.Received(1).Log(testFileAccessManagerTemporalEventBulkPersisterReader, LogLevel.Information, $"Read 3 events from file '{testEventFilePath}'.");
-            mockMetricLogger.Received(1).Add(Arg.Any<EventsWrittenToFile>(), 5); ;
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsWrittenToFile>(), 5);
             mockLogger.Received(1).Log(testFileAccessManagerTemporalEventBulkPersisterReader, LogLevel.Warning, $"Wrote 5 events to file '{testEventFilePath}'.");
             mockMetricLogger.Received(1).Add(Arg.Any<EventsReadFromFile>(), 5);
             mockLogger.Received(1).Log(testFileAccessManagerTemporalEventBulkPersisterReader, LogLevel.Information, $"Read 5 events from file '{testEventFilePath}'.");

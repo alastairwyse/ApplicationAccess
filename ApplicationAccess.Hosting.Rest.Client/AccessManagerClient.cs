@@ -194,7 +194,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         {
             get
             {
-                return base.EntityTypesBase; ;
+                return base.EntityTypesBase;
             }
         }
 

@@ -46,7 +46,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             testConnectionString = "Server=127.0.0.1;User Id=sa;Password=password;Encrypt=false;Authentication=SqlPassword";
             mockFileShim = Substitute.For<IFileShim>();
             mockSqlServerScriptExecutor = Substitute.For<ISqlServerScriptExecutor>();
-            testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(testConnectionString, mockFileShim, mockSqlServerScriptExecutor);
+            testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(testConnectionString, true, mockFileShim, mockSqlServerScriptExecutor);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(null, mockFileShim, mockSqlServerScriptExecutor);
+                testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(null, true, mockFileShim, mockSqlServerScriptExecutor);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'connectionString' must contain a value."));
@@ -66,7 +66,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(" ", mockFileShim, mockSqlServerScriptExecutor);
+                testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(" ", true, mockFileShim, mockSqlServerScriptExecutor);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'connectionString' must contain a value."));
@@ -294,12 +294,38 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         [Test]
         public void RenamePersistentStorage()
         {
-            String testCurrentPersistentStorageInstanceName = "merge_temp";
+            String testCurrentPersistentStorageInstanceName = "fgdjbvzbjz";
             String testNewPersistentStorageInstanceName = "user_n2147483648";
             StringBuilder testRenameScriptBuider = new();
-            testRenameScriptBuider.AppendLine("ALTER DATABASE merge_temp SET SINGLE_USER WITH ROLLBACK IMMEDIATE;");
+            testRenameScriptBuider.AppendLine("ALTER DATABASE fgdjbvzbjz SET SINGLE_USER WITH ROLLBACK IMMEDIATE;");
             testRenameScriptBuider.AppendLine("GO ");
-            testRenameScriptBuider.AppendLine("ALTER DATABASE merge_temp MODIFY NAME = user_n2147483648;");
+            testRenameScriptBuider.AppendLine("ALTER DATABASE fgdjbvzbjz MODIFY NAME = user_n2147483648;");
+            testRenameScriptBuider.AppendLine("GO ");
+            testRenameScriptBuider.AppendLine("ALTER DATABASE user_n2147483648 MODIFY FILE (NAME = fgdjbvzbjz_Log, NEWNAME = user_n2147483648_Log);");
+            testRenameScriptBuider.AppendLine("GO ");
+            testRenameScriptBuider.AppendLine("ALTER DATABASE user_n2147483648 MODIFY FILE (NAME = fgdjbvzbjz, NEWNAME = user_n2147483648);");
+            testRenameScriptBuider.AppendLine("GO ");
+            testRenameScriptBuider.AppendLine("ALTER DATABASE user_n2147483648 SET MULTI_USER;");
+            testRenameScriptBuider.AppendLine("GO ");
+            List<Tuple<String, String>> capturedScriptsAndContents = null;
+            mockSqlServerScriptExecutor.ExecuteScripts(Arg.Do<List<Tuple<String, String>>>(argumentValue => capturedScriptsAndContents = argumentValue));
+
+            testSqlServerDistributedAccessManagerPersistentStorageManager.RenamePersistentStorage(testCurrentPersistentStorageInstanceName, testNewPersistentStorageInstanceName);
+
+            mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
+            Assert.AreEqual(testRenameScriptBuider.ToString(), capturedScriptsAndContents[0].Item1);
+        }
+
+        [Test]
+        public void RenamePersistentStorage_RenameLogicalFilesOnRenameParameterFalse()
+        {
+            testSqlServerDistributedAccessManagerPersistentStorageManager = new SqlServerDistributedAccessManagerPersistentStorageManager(testConnectionString, false, mockFileShim, mockSqlServerScriptExecutor);
+            String testCurrentPersistentStorageInstanceName = "fgdjbvzbjz";
+            String testNewPersistentStorageInstanceName = "user_n2147483648";
+            StringBuilder testRenameScriptBuider = new();
+            testRenameScriptBuider.AppendLine("ALTER DATABASE fgdjbvzbjz SET SINGLE_USER WITH ROLLBACK IMMEDIATE;");
+            testRenameScriptBuider.AppendLine("GO ");
+            testRenameScriptBuider.AppendLine("ALTER DATABASE fgdjbvzbjz MODIFY NAME = user_n2147483648;");
             testRenameScriptBuider.AppendLine("GO ");
             testRenameScriptBuider.AppendLine("ALTER DATABASE user_n2147483648 SET MULTI_USER;");
             testRenameScriptBuider.AppendLine("GO ");
@@ -346,6 +372,8 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         {
             String testPersistentStorageInstanceName = "user_0";
             StringBuilder testRenameScriptBuider = new();
+            testRenameScriptBuider.AppendLine("ALTER DATABASE user_0 SET SINGLE_USER WITH ROLLBACK IMMEDIATE;");
+            testRenameScriptBuider.AppendLine("GO ");
             testRenameScriptBuider.AppendLine("DROP DATABASE user_0;");
             testRenameScriptBuider.AppendLine("GO ");
             List<Tuple<String, String>> capturedScriptsAndContents = null;

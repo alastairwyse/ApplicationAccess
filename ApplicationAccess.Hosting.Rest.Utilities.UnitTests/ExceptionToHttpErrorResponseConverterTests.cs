@@ -260,12 +260,12 @@ namespace ApplicationAccess.Hosting.Rest.Utilities.UnitTests
                     }
                     catch (Exception e)
                     {
-                        throw new ArgumentException("Test argument exception message.", "testParameterName", e); ;
+                        throw new ArgumentException("Test argument exception message.", "testParameterName", e);
                     }
                 }
                 catch (Exception e)
                 {
-                    throw new Exception("Outermost exception.", e); ;
+                    throw new Exception("Outermost exception.", e);
                 }
             }
             catch (Exception e)
@@ -535,12 +535,12 @@ namespace ApplicationAccess.Hosting.Rest.Utilities.UnitTests
                     }
                     catch (Exception e)
                     {
-                        throw new ArgumentException("Test argument exception message.", "testParameterName", e); ;
+                        throw new ArgumentException("Test argument exception message.", "testParameterName", e);
                     }
                 }
                 catch (Exception e)
                 {
-                    throw new Exception("Outermost exception.", e); ;
+                    throw new Exception("Outermost exception.", e);
                 }
             }
             catch (Exception e)

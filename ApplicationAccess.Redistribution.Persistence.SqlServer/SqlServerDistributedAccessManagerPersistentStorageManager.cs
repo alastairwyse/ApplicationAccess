@@ -46,13 +46,16 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
         protected ISqlServerScriptExecutor scriptExecutor;
         /// <summary>The connection string to use to connect to SQL Server.</summary>
         protected String connectionString;
+        /// <summary>Whether to rename the database's logical files to match the new name when the <see cref="SqlServerDistributedAccessManagerPersistentStorageManager.RenamePersistentStorage(String, String)">RenamePersistentStorage()</see> method is called.</summary>
+        protected Boolean renameLogicalFilesOnRename;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Redistribution.Persistence.SqlServer.SqlServerDistributedAccessManagerPersistentStorageManager class.
         /// </summary>
         /// <param name="connectionString">The connection string to use to connect to SQL Server.</param>
-        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public SqlServerDistributedAccessManagerPersistentStorageManager(String connectionString)
+        /// <param name="renameLogicalFilesOnRename">Whether to rename the database's logical files to match the new name when the <see cref="SqlServerDistributedAccessManagerPersistentStorageManager.RenamePersistentStorage(String, String)">RenamePersistentStorage()</see> method is called.</param>
+        /// <remarks>When <paramref name="renameLogicalFilesOnRename"/> is set true, it's assumed a only a single logical data file (named [old database name].mdf), and a single logical log file (named [old database name]_log.ldf) exist.  The feature does not support databases with multiple logical data or log files.</remarks>
+        public SqlServerDistributedAccessManagerPersistentStorageManager(String connectionString, Boolean renameLogicalFilesOnRename)
         {
             if (String.IsNullOrWhiteSpace(connectionString) == true)
                 throw new ArgumentException($"Parameter '{nameof(connectionString)}' must contain a value.", nameof(connectionString));
@@ -60,16 +63,19 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
             fileShim = new DefaultFileShim();
             scriptExecutor = new SqlServerScriptExecutor(connectionString);
             this.connectionString = connectionString;
+            this.renameLogicalFilesOnRename = renameLogicalFilesOnRename;
         }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Redistribution.Persistence.SqlServer.SqlServerDistributedAccessManagerPersistentStorageManager class.
         /// </summary>
         /// <param name="connectionString">The connection string to use to connect to SQL Server.</param>
+        /// <param name="renameLogicalFilesOnRename">Whether to rename the database's logical files to match the new name when the <see cref="SqlServerDistributedAccessManagerPersistentStorageManager.RenamePersistentStorage(String, String)">RenamePersistentStorage()</see> method is called.</param>
         /// <param name="mockFileShim">A mock <see cref="IFileShim"/>.</param>
         /// <param name="mockScriptExecutor">A mock <see cref="ISqlServerScriptExecutor"/>.</param>
-        public SqlServerDistributedAccessManagerPersistentStorageManager(String connectionString, IFileShim mockFileShim, ISqlServerScriptExecutor mockScriptExecutor)
-            : this(connectionString)
+        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
+        public SqlServerDistributedAccessManagerPersistentStorageManager(String connectionString, Boolean renameLogicalFilesOnRename, IFileShim mockFileShim, ISqlServerScriptExecutor mockScriptExecutor)
+            : this(connectionString, renameLogicalFilesOnRename)
         {
             this.fileShim = mockFileShim;
             this.scriptExecutor = mockScriptExecutor;
@@ -156,6 +162,13 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
             renameScriptBuider.AppendLine("GO ");
             renameScriptBuider.AppendLine($"ALTER DATABASE {currentPersistentStorageInstanceName} MODIFY NAME = {newPersistentStorageInstanceName};");
             renameScriptBuider.AppendLine("GO ");
+            if (renameLogicalFilesOnRename == true)
+            {
+                renameScriptBuider.AppendLine($"ALTER DATABASE {newPersistentStorageInstanceName} MODIFY FILE (NAME = {currentPersistentStorageInstanceName}_Log, NEWNAME = {newPersistentStorageInstanceName}_Log);");
+                renameScriptBuider.AppendLine("GO ");
+                renameScriptBuider.AppendLine($"ALTER DATABASE {newPersistentStorageInstanceName} MODIFY FILE (NAME = {currentPersistentStorageInstanceName}, NEWNAME = {newPersistentStorageInstanceName});");
+                renameScriptBuider.AppendLine("GO ");
+            }
             renameScriptBuider.AppendLine($"ALTER DATABASE {newPersistentStorageInstanceName} SET MULTI_USER;");
             renameScriptBuider.AppendLine("GO ");
 
@@ -183,6 +196,8 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
             ThrowExceptionIfStringParameterNullOrWhiteSpace(persistentStorageInstanceName, nameof(persistentStorageInstanceName));
 
             StringBuilder deleteScriptBuider = new();
+            deleteScriptBuider.AppendLine($"ALTER DATABASE {persistentStorageInstanceName} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;");
+            deleteScriptBuider.AppendLine("GO ");
             deleteScriptBuider.AppendLine($"DROP DATABASE {persistentStorageInstanceName};");
             deleteScriptBuider.AppendLine("GO ");
 
