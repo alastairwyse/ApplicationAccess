@@ -51,7 +51,8 @@ namespace ApplicationAccess.Redistribution
         /// <summary>
         /// Deletes the distributed AccessManager instance.
         /// </summary>
-        Task DeleteDistributedAccessManagerInstanceAsync();
+        /// <param name="deletePersistentStorageInstances">Whether to delete the persistent storage instances in the access manager instance.</param>
+        Task DeleteDistributedAccessManagerInstanceAsync(Boolean deletePersistentStorageInstances);
 
         /// <summary>
         /// Splits a shard group in the distributed AccessManager instance, by moving elements whose hash codes fall within a specified range to a new shard group.

@@ -80,6 +80,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected const String tcpProtocol = "TCP";
         protected const String distributedOperationCoordinatorObjectNamePrefix = "operation-coordinator";
         protected const String distributedOperationRouterObjectNamePrefix = "operation-router";
+        protected const String shardConfigurationPersistentStorageInstanceName = "shard_configuration";
         protected const String supersededPersisentStorageInstanceNamePostfix = "_old";
         protected const String nodeModeEnvironmentVariableName = "MODE";
         protected const String nodeModeEnvironmentVariableValue = "Launch";
@@ -505,7 +506,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 );
 
                 // Create persistent storage for the shard configuration
-                String persistentStorageInstanceName = "shard_configuration";
+                String persistentStorageInstanceName = shardConfigurationPersistentStorageInstanceName;
                 if (staticConfiguration.PersistentStorageInstanceNamePrefix != "")
                 {
                     persistentStorageInstanceName = $"{staticConfiguration.PersistentStorageInstanceNamePrefix}_{persistentStorageInstanceName}";
@@ -565,19 +566,102 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <inheritdoc/>>
-        public async Task DeleteDistributedAccessManagerInstanceAsync()
+        public async Task DeleteDistributedAccessManagerInstanceAsync(Boolean deletePersistentStorageInstances)
         {
-            // Check userShardGroupConfigurationSet.Items.Count > 0
+            if (userShardGroupConfigurationSet.Items.Count == 0)
+                throw new InvalidOperationException($"A distributed AccessManager instance has not been created.");
 
-            // Iterate userShardGroupConfiguration (+ group + group2group) and call DeleteShardGroupAsync() (including DBs)
+            String nameSpace = staticConfiguration.NameSpace;
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed AccessManager instance in namespace '{nameSpace}'...");
+            Guid beginId = metricLogger.Begin(new DistributedAccessManagerInstanceDeleteTime());
+
+            // Scale down and delete the shard groups
+            async void ScaleDownAndDeleteShardGroup(DataElement dataElement, IEnumerable<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> shardGroupConfigurationItems)
+            {
+                foreach (KubernetesShardGroupConfiguration<TPersistentStorageCredentials> currentShardGroupConfiguration in shardGroupConfigurationItems)
+                {
+                    try
+                    {
+                        await ScaleDownShardGroupAsync(dataElement, currentShardGroupConfiguration.HashRangeStart);
+                    }
+                    catch (Exception e)
+                    {
+                        metricLogger.CancelBegin(beginId, new DistributedAccessManagerInstanceDeleteTime());
+                        throw new Exception($"Error scaling shard group with data element '{dataElement}' and hash range start value {currentShardGroupConfiguration.HashRangeStart}.", e);
+                    }
+                    try
+                    {
+                        await DeleteShardGroupAsync(dataElement, currentShardGroupConfiguration.HashRangeStart, deletePersistentStorageInstances);
+                    }
+                    catch
+                    {
+                        metricLogger.CancelBegin(beginId, new DistributedAccessManagerInstanceDeleteTime());
+                        throw;
+                    }
+                }
+            }
+            ScaleDownAndDeleteShardGroup(DataElement.User, userShardGroupConfigurationSet.Items);
+            ScaleDownAndDeleteShardGroup(DataElement.GroupToGroupMapping, groupToGroupMappingShardGroupConfigurationSet.Items);
+            ScaleDownAndDeleteShardGroup(DataElement.Group, groupShardGroupConfigurationSet.Items);
 
             // Delete distributed operation coordinator 
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation coordinator node...");
+            try
+            {
+                await ScaleDownAndDeleteDeploymentAsync(distributedOperationCoordinatorObjectNamePrefix, staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new DistributedAccessManagerInstanceDeleteTime());
+                throw;
+            }
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation coordinator node...");
 
-            // Delete shard config database
+            // Delete the router Cluster IP service
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation coordinator node load balancer service...");
+            try
+            {
+                await DeleteServiceAsync($"{distributedOperationCoordinatorObjectNamePrefix}{externalServiceNamePostfix}");
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new DistributedAccessManagerInstanceDeleteTime());
+                throw;
+            }
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation coordinator node load balancer service.");
 
-            // Delete config from userShardGroupConfiguration etc members and instanceConfig
+            // Delete persistent storage for the shard configuration
+            if (deletePersistentStorageInstances == true)
+            {
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting shard configuration persistent storage instance...");
+                String persistentStorageInstanceName = shardConfigurationPersistentStorageInstanceName;
+                if (staticConfiguration.PersistentStorageInstanceNamePrefix != "")
+                {
+                    persistentStorageInstanceName = $"{staticConfiguration.PersistentStorageInstanceNamePrefix}_{persistentStorageInstanceName}";
+                }
+                try
+                {
+                    persistentStorageManager.DeletePersistentStorage(persistentStorageInstanceName);
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(beginId, new DistributedAccessManagerInstanceDeleteTime());
+                    throw new Exception($"Error deleting persistent storage instance '{persistentStorageInstanceName}'.", e);
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting shard configuration persistent storage instance.");
+            }
 
-            throw new NotImplementedException();
+            // Update the *ShardGroupConfigurationSet fields and the instance configuration
+            userShardGroupConfigurationSet.Clear();
+            groupToGroupMappingShardGroupConfigurationSet.Clear();
+            groupShardGroupConfigurationSet.Clear();
+            instanceConfiguration.UserShardGroupConfiguration = null;
+            instanceConfiguration.GroupToGroupMappingShardGroupConfiguration = null;
+            instanceConfiguration.GroupShardGroupConfiguration = null;
+
+            metricLogger.End(beginId, new DistributedAccessManagerInstanceDeleteTime());
+            metricLogger.Increment(new DistributedAccessManagerInstanceDeleted());
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Deleted creating distributed AccessManager instance.");
         }
 
         /// <inheritdoc/>>

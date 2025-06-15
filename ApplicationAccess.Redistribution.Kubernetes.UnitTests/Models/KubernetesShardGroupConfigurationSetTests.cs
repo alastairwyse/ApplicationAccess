@@ -122,6 +122,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Models
         }
 
         [Test]
+        public void Clear()
+        {
+            testKubernetesShardGroupConfigurationSet.Clear();
+
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> result = testKubernetesShardGroupConfigurationSet.Items;
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
         public void Add_ItemWithHashRangeStartAlreadyExists()
         {
             var newItem = new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>

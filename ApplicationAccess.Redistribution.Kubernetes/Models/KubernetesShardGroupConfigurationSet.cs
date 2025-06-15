@@ -88,6 +88,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
         }
 
         /// <summary>
+        /// Removes all items from the set.
+        /// </summary>
+        public void Clear()
+        {
+            shardGroupConfigurationTree.Clear();
+        }
+
+        /// <summary>
         /// Adds a new items to the set.
         /// </summary>
         /// <param name="newItem">The item to add.</param>

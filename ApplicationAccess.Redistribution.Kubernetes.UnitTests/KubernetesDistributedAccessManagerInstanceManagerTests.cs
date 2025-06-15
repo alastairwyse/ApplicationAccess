@@ -1723,6 +1723,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public async Task DeleteDistributedAccessManagerInstanceAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test]
         public async Task CreateWriterLoadBalancerServiceAsync_ExceptionCreatingService()
         {
             var mockException = new Exception("Mock exception");

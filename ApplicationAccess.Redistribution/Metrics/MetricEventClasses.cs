@@ -339,6 +339,21 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Count metric which records that a distributed AccessManager instance was deleted.
+    /// </summary>
+    public class DistributedAccessManagerInstanceDeleted : CountMetric
+    {
+        protected static String staticName = "DistributedAccessManagerInstanceDeleted";
+        protected static String staticDescription = "A distributed AccessManager instance was deleted";
+
+        public DistributedAccessManagerInstanceDeleted()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records that a shard group in a distributed AccessManager instance was split.
     /// </summary>
     public class ShardGroupSplit : CountMetric
@@ -572,6 +587,21 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "The time taken to create a distributed AccessManager instance";
 
         public DistributedAccessManagerInstanceCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to delete a distributed AccessManager instance.
+    /// </summary>
+    public class DistributedAccessManagerInstanceDeleteTime : IntervalMetric
+    {
+        protected static String staticName = "DistributedAccessManagerInstanceDeleteTime";
+        protected static String staticDescription = "The time taken to delete a distributed AccessManager instance";
+
+        public DistributedAccessManagerInstanceDeleteTime()
         {
             base.name = staticName;
             base.description = staticDescription;
