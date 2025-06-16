@@ -576,7 +576,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Guid beginId = metricLogger.Begin(new DistributedAccessManagerInstanceDeleteTime());
 
             // Scale down and delete the shard groups
-            async void ScaleDownAndDeleteShardGroup(DataElement dataElement, IEnumerable<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> shardGroupConfigurationItems)
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Scaling down and deleting shard groups...");
+            async Task ScaleDownAndDeleteShardGroup(DataElement dataElement, IEnumerable<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> shardGroupConfigurationItems)
             {
                 foreach (KubernetesShardGroupConfiguration<TPersistentStorageCredentials> currentShardGroupConfiguration in shardGroupConfigurationItems)
                 {
@@ -600,9 +601,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     }
                 }
             }
-            ScaleDownAndDeleteShardGroup(DataElement.User, userShardGroupConfigurationSet.Items);
-            ScaleDownAndDeleteShardGroup(DataElement.GroupToGroupMapping, groupToGroupMappingShardGroupConfigurationSet.Items);
-            ScaleDownAndDeleteShardGroup(DataElement.Group, groupShardGroupConfigurationSet.Items);
+            await ScaleDownAndDeleteShardGroup(DataElement.User, userShardGroupConfigurationSet.Items);
+            await ScaleDownAndDeleteShardGroup(DataElement.GroupToGroupMapping, groupToGroupMappingShardGroupConfigurationSet.Items);
+            await ScaleDownAndDeleteShardGroup(DataElement.Group, groupShardGroupConfigurationSet.Items);
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed scaling down and deleting shard groups.");
 
             // Delete distributed operation coordinator 
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation coordinator node...");
@@ -615,7 +617,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 metricLogger.CancelBegin(beginId, new DistributedAccessManagerInstanceDeleteTime());
                 throw;
             }
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation coordinator node...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation coordinator node.");
 
             // Delete the router Cluster IP service
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation coordinator node load balancer service...");
@@ -655,9 +657,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             userShardGroupConfigurationSet.Clear();
             groupToGroupMappingShardGroupConfigurationSet.Clear();
             groupShardGroupConfigurationSet.Clear();
-            instanceConfiguration.UserShardGroupConfiguration = null;
-            instanceConfiguration.GroupToGroupMappingShardGroupConfiguration = null;
-            instanceConfiguration.GroupShardGroupConfiguration = null;
+            instanceConfiguration.UserShardGroupConfiguration.Clear();
+            instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Clear();
+            instanceConfiguration.GroupShardGroupConfiguration.Clear();
 
             metricLogger.End(beginId, new DistributedAccessManagerInstanceDeleteTime());
             metricLogger.Increment(new DistributedAccessManagerInstanceDeleted());
@@ -766,6 +768,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             this.staticConfiguration = staticConfiguration;
             instanceConfiguration = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials>();
+            instanceConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
+            instanceConfiguration.GroupToGroupMappingShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
+            instanceConfiguration.GroupShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
             userShardGroupConfigurationSet = new KubernetesShardGroupConfigurationSet<TPersistentStorageCredentials>();
             groupToGroupMappingShardGroupConfigurationSet = new KubernetesShardGroupConfigurationSet<TPersistentStorageCredentials>();
             groupShardGroupConfigurationSet = new KubernetesShardGroupConfigurationSet<TPersistentStorageCredentials>();

@@ -34,7 +34,8 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
             testShardConnectionOptions = new ShardConnectionOptions
             {
                 RetryCount = 10,
-                RetryInterval = 7
+                RetryInterval = 7, 
+                ConnectionTimeout = 300_000
             };
         }
 
@@ -92,6 +93,34 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith($"Error validating ShardConnection options.  Value for 'RetryInterval' must be between 1 and 2147483647."));
+        }
+
+        [Test]
+        public void Validate_ConnectionTimeoutNull()
+        {
+            testShardConnectionOptions.ConnectionTimeout = null;
+            var validationContext = new ValidationContext(testShardConnectionOptions);
+
+            var e = Assert.Throws<ValidationException>(delegate
+            {
+                Validator.ValidateObject(testShardConnectionOptions, validationContext, true);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error validating ShardConnection options.  Configuration for 'ConnectionTimeout' is required."));
+        }
+
+        [Test]
+        public void Validate_ConnectionTimeout0()
+        {
+            testShardConnectionOptions.ConnectionTimeout = 0;
+            var validationContext = new ValidationContext(testShardConnectionOptions);
+
+            var e = Assert.Throws<ValidationException>(delegate
+            {
+                Validator.ValidateObject(testShardConnectionOptions, validationContext, true);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error validating ShardConnection options.  Value for 'ConnectionTimeout' must be between 1 and 2147483647."));
         }
     }
 }

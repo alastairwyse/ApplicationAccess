@@ -135,6 +135,7 @@ namespace ApplicationAccess.Redistribution
                 );
                 logger.Log(this, LogLevel.Information, "Completed final event batch merge.");
             }
+            metricLogger.Add(new DuplicatePrimaryAddElementEventsFiltered(), eventFilter.DuplicatePrimaryAddEventsReceived);
             logger.Log(this, LogLevel.Information, "Completed merging events from source shard groups to target shard group.");
         }
 

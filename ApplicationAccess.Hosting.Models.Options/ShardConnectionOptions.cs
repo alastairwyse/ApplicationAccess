@@ -38,6 +38,10 @@ namespace ApplicationAccess.Hosting.Models.Options
         [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
         public Int32? RetryInterval { get; set; }
 
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(ConnectionTimeout)}' is required.")]
+        [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public Int32? ConnectionTimeout { get; set; }
+
         #pragma warning restore 0649
     }
 }

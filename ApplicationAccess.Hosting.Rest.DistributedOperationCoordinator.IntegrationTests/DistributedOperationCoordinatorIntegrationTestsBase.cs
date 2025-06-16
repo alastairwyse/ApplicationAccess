@@ -40,7 +40,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
         [OneTimeSetUp]
         protected virtual void OneTimeSetUp()
         {
-            mockDistributedAccessManagerOperationCoordinator = Substitute.For< IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>>();
+            mockDistributedAccessManagerOperationCoordinator = Substitute.For<IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>>();
             testDistributedOperationCoordinator = new TestDistributedOperationCoordinator();
             testDistributedOperationCoordinator.Services.GetService<AsyncQueryProcessorHolder>().AsyncQueryProcessor = mockDistributedAccessManagerOperationCoordinator;
             testDistributedOperationCoordinator.Services.GetService<AsyncEventProcessorHolder>().AsyncEventProcessor = mockDistributedAccessManagerOperationCoordinator;

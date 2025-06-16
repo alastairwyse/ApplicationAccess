@@ -1723,9 +1723,379 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public void DeleteDistributedAccessManagerInstanceAsync_AccessManagerInstanceDoesntExist()
+        {
+            var e = Assert.ThrowsAsync<InvalidOperationException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteDistributedAccessManagerInstanceAsync(true);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"A distributed AccessManager instance has not been created."));
+        }
+
+        [Test]
+        public void DeleteDistributedAccessManagerInstanceAsync_ExceptionScalingDownShardGroup()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("applicationaccesstest");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockPersistentStorageInstanceRandomNameGenerator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromException<V1PodList>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteDistributedAccessManagerInstanceAsync(true);
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            Assert.That(e.Message, Does.StartWith($"Error scaling shard group with data element 'User' and hash range start value {Int32.MinValue}."));
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public void DeleteDistributedAccessManagerInstanceAsync_ExceptionDeletingShardGroup()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            V1PodList returnPods = new
+            (
+                new List<V1Pod>()
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("applicationaccesstest");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockPersistentStorageInstanceRandomNameGenerator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
+            mockKubernetesClientShim.DeleteNamespacedDeploymentAsync(null, "user-reader-n2147483648", "default").Returns(Task.FromException<V1Status>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteDistributedAccessManagerInstanceAsync(true);
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public void DeleteDistributedAccessManagerInstanceAsync_ExceptionDeletingDistributedOperationCoordinator()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            V1PodList returnPods = new
+            (
+                new List<V1Pod>()
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("applicationaccesstest");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockPersistentStorageInstanceRandomNameGenerator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
+            mockKubernetesClientShim.DeleteNamespacedDeploymentAsync(null, "operation-coordinator", "default").Returns(Task.FromException<V1Status>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteDistributedAccessManagerInstanceAsync(true);
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void DeleteDistributedAccessManagerInstanceAsync_ExceptionDeletingDistributedOperationCoordinatorService()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            V1PodList returnPods = new
+            (
+                new List<V1Pod>()
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("applicationaccesstest");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockPersistentStorageInstanceRandomNameGenerator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
+            mockKubernetesClientShim.DeleteNamespacedServiceAsync(null, "operation-coordinator-externalservice", "default").Returns(Task.FromException<V1Service>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteDistributedAccessManagerInstanceAsync(true);
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void DeleteDistributedAccessManagerInstanceAsync_ExceptionDeletingShardConfigurationPersistentStorageInstance()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            V1PodList returnPods = new
+            (
+                new List<V1Pod>()
+            );
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration("applicationaccesstest");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockPersistentStorageInstanceRandomNameGenerator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
+            mockPersistentStorageManager.When((storageManager) => storageManager.DeletePersistentStorage("applicationaccesstest_shard_configuration")).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteDistributedAccessManagerInstanceAsync(true);
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            Assert.That(e.Message, Does.StartWith($"Error deleting persistent storage instance 'applicationaccesstest_shard_configuration'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
         public async Task DeleteDistributedAccessManagerInstanceAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
+            V1PodList returnPods = new
+            (
+                new List<V1Pod>()
+            );
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockPersistentStorageInstanceRandomNameGenerator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
+
+            await testKubernetesDistributedAccessManagerInstanceManager.DeleteDistributedAccessManagerInstanceAsync(true);
+
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-reader-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-writer-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-eventcache-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-reader-0-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-writer-0-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-eventcache-0-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "grouptogroupmapping-reader-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "grouptogroupmapping-writer-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "grouptogroupmapping-eventcache-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "group-reader-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "group-writer-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "group-eventcache-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-0", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-writer-0", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-eventcache-0", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "grouptogroupmapping-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "grouptogroupmapping-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "grouptogroupmapping-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "group-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "group-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "group-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-reader-0", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-writer-0", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-eventcache-0", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "grouptogroupmapping-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "grouptogroupmapping-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "grouptogroupmapping-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "group-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "group-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "group-eventcache-n2147483648", "default");
+            mockPersistentStorageManager.Received(1).DeletePersistentStorage("applicationaccesstest_user_n2147483648");
+            mockPersistentStorageManager.Received(1).DeletePersistentStorage("applicationaccesstest_user_0");
+            mockPersistentStorageManager.Received(1).DeletePersistentStorage("applicationaccesstest_grouptogroupmapping_n2147483648");
+            mockPersistentStorageManager.Received(1).DeletePersistentStorage("applicationaccesstest_group_n2147483648");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n2147483648", "default");
+            // First 6 calls are for user shard group pods, next 3 for group to group mapping pods, next 3 for group pods, and last 1 for the operation coordinator
+            await mockKubernetesClientShim.Received(13).ListNamespacedPodAsync(null, testNameSpace);
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "operation-coordinator", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "operation-coordinator", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "operation-coordinator-externalservice", "default");
+            mockPersistentStorageManager.Received(1).DeletePersistentStorage("applicationaccesstest_shard_configuration");
+            mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<DistributedAccessManagerInstanceDeleted>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleting distributed AccessManager instance in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Scaling down and deleting shard groups...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed scaling down and deleting shard groups.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleting distributed operation coordinator node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation coordinator node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleting shard configuration persistent storage instance...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed deleting shard configuration persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleted creating distributed AccessManager instance.");
+            // Assert that the instance configuration was updated correctly
+            instanceConfiguration = testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration;
+            Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration.Count);
+            Assert.AreEqual(0, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Count);
+            Assert.AreEqual(0, instanceConfiguration.GroupShardGroupConfiguration.Count);
+            // Assertions on the *ShardGroupConfigurationSet fields
+            Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Count);
+            Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Count);
+            Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Count);
+        }
+
+        [Test]
+        public async Task DeleteDistributedAccessManagerInstanceAsync_DeletePersistentStorageInstancesParameterFalse()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
+            V1PodList returnPods = new
+            (
+                new List<V1Pod>()
+            );
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageManager,
+                mockPersistentStorageInstanceRandomNameGenerator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
+
+            await testKubernetesDistributedAccessManagerInstanceManager.DeleteDistributedAccessManagerInstanceAsync(false);
+
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-reader-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-writer-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-eventcache-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-reader-0-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-writer-0-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "user-eventcache-0-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "grouptogroupmapping-reader-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "grouptogroupmapping-writer-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "grouptogroupmapping-eventcache-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "group-reader-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "group-writer-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "group-eventcache-n2147483648-service", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-0", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-writer-0", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-eventcache-0", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "grouptogroupmapping-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "grouptogroupmapping-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "grouptogroupmapping-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "group-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "group-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "group-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-reader-0", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-writer-0", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "user-eventcache-0", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "grouptogroupmapping-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "grouptogroupmapping-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "grouptogroupmapping-eventcache-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "group-reader-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "group-writer-n2147483648", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "group-eventcache-n2147483648", "default");
+            mockPersistentStorageManager.DidNotReceive().DeletePersistentStorage("applicationaccesstest_user_n2147483648");
+            mockPersistentStorageManager.DidNotReceive().DeletePersistentStorage("applicationaccesstest_user_0");
+            mockPersistentStorageManager.DidNotReceive().DeletePersistentStorage("applicationaccesstest_grouptogroupmapping_n2147483648");
+            mockPersistentStorageManager.DidNotReceive().DeletePersistentStorage("applicationaccesstest_group_n2147483648");
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n2147483648", "default");
+            // First 6 calls are for user shard group pods, next 3 for group to group mapping pods, next 3 for group pods, and last 1 for the operation coordinator
+            await mockKubernetesClientShim.Received(13).ListNamespacedPodAsync(null, testNameSpace);
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "operation-coordinator", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, "operation-coordinator", "default");
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "operation-coordinator-externalservice", "default");
+            mockPersistentStorageManager.DidNotReceive().DeletePersistentStorage("applicationaccesstest_shard_configuration");
+            mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedAccessManagerInstanceDeleteTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<DistributedAccessManagerInstanceDeleted>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleting distributed AccessManager instance in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Scaling down and deleting shard groups...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed scaling down and deleting shard groups.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleting distributed operation coordinator node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation coordinator node.");
+            mockApplicationLogger.DidNotReceive().Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleting shard configuration persistent storage instance...");
+            mockApplicationLogger.DidNotReceive().Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed deleting shard configuration persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleted creating distributed AccessManager instance.");
+            // Assert that the instance configuration was updated correctly
+            instanceConfiguration = testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration;
+            Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration.Count);
+            Assert.AreEqual(0, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Count);
+            Assert.AreEqual(0, instanceConfiguration.GroupShardGroupConfiguration.Count);
+            // Assertions on the *ShardGroupConfigurationSet fields
+            Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Count);
+            Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Count);
+            Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Count);
         }
 
         [Test]
@@ -9702,7 +10072,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        //[Ignore("Integration test")]
+        [Ignore("Integration test")]
         public async Task IntegrationTests_REMOVETHIS()
         {
         }
@@ -10050,6 +10420,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 ""ShardConnection"": {
                     ""RetryCount"": ""3"",
                     ""RetryInterval"": ""11"",
+                    ""ConnectionTimeout"": 300000
                 },
                 ""MetricLogging"": {
                     ""MetricLoggingEnabled"": true,
@@ -10090,6 +10461,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 ""ShardConnection"": {
                     ""RetryCount"": ""15"",
                     ""RetryInterval"": ""2"",
+                    ""ConnectionTimeout"": 300000
                 },
                 ""MetricLogging"": {
                     ""MetricLoggingEnabled"": true,

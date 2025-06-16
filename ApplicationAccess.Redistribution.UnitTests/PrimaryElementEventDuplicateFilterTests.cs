@@ -213,6 +213,7 @@ namespace ApplicationAccess.Redistribution.UnitTests
             Assert.AreEqual("15000000-0000-0000-0000-000000000000", result.Item1.ToString());
             Assert.AreEqual("16000000-0000-0000-0000-000000000000", result.Item2.ToString());
 
+            Assert.AreEqual(4, testPrimaryElementEventDuplicateFilter.DuplicatePrimaryAddEventsReceived);
             testEventPersisterBuffer.Received(1).BufferEvent(addUserEvent, true);
             testEventPersisterBuffer.Received(1).BufferEvent(removeUserEvent, false);
             testEventPersisterBuffer.Received(1).BufferEvent(addGroupEvent, false);

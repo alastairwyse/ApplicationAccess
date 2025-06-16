@@ -76,6 +76,8 @@ namespace ApplicationAccess.Redistribution
         protected IEventPersisterBuffer eventPersisterBuffer;
         /// <summary>Whether invalid events for primary elements (e.g. receiving a delete event for an element from a source where that element doesn't already exist) should be ignored.  Setting to false will throw an exception when such events are received.</summary>
         protected Boolean ignoreInvalidPrimaryElementEvents;
+        /// <summary>Count of the number of duplicate 'add' events received for primary elements.</summary>
+        protected Int32 duplicatePrimaryAddEventsReceived;
         /// <summary>The logger for general logging.</summary>
         protected IApplicationLogger logger;
         /// <summary>The logger for metrics.</summary>
@@ -87,6 +89,14 @@ namespace ApplicationAccess.Redistribution
         public IEventPersisterBuffer EventPersisterBuffer
         {
             set { eventPersisterBuffer = value; }
+        }
+
+        /// <summary>
+        /// Count of the number of duplicate 'add' events received for primary elements.
+        /// </summary>
+        public Int32 DuplicatePrimaryAddEventsReceived
+        {
+            get { return duplicatePrimaryAddEventsReceived; } 
         }
 
         /// <summary>
@@ -104,6 +114,7 @@ namespace ApplicationAccess.Redistribution
             currentEntityTypes = new Dictionary<String, PrimaryElementEventSources>();
             currentEntities = new Dictionary<Tuple<String, String>, PrimaryElementEventSources>();
             this.ignoreInvalidPrimaryElementEvents = ignoreInvalidPrimaryElementEvents;
+            duplicatePrimaryAddEventsReceived = 0;
             this.logger = logger;
             this.metricLogger = metricLogger;
         }
@@ -203,6 +214,7 @@ namespace ApplicationAccess.Redistribution
                             currentElementsDictionary[eventElementValue].ExistsInSourceShardGroup2 = true;
                         }
                     }
+                    duplicatePrimaryAddEventsReceived++;
 
                     return false;
                 }

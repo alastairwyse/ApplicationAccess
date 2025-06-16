@@ -194,6 +194,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
 
                 // Setup the DistributedAccessManagerAsyncClientFactory (required constructor parameter for ShardClientManager)
                 httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromMilliseconds(shardConnectionOptions.ConnectionTimeout.Value);
                 IApplicationLogger clientFactoryLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
                     loggerFactory.CreateLogger<DistributedAccessManagerAsyncClientFactory<String, String, String, String>>()

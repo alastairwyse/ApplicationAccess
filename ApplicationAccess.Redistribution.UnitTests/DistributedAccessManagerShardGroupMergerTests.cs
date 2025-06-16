@@ -261,6 +261,7 @@ namespace ApplicationAccess.Redistribution.UnitTests
             Assert.AreSame(event3, capturedPersistedEventLists[2][0]);
             Assert.AreEqual(1, capturedPersistedEventLists[2].Count);
             Assert.AreSame(event4, capturedPersistedEventLists[3][0]);
+            mockMetricLogger.Received(1).Add(Arg.Any<DuplicatePrimaryAddElementEventsFiltered>(), 0);
             mockApplicationLogger.Received(1).Log(testShardGroupMerger, LogLevel.Information, "Merging events from source shard groups to target shard group...");
             mockApplicationLogger.Received(1).Log(testShardGroupMerger, LogLevel.Information, "Starting initial event batch merge...");
             mockApplicationLogger.Received(1).Log(testShardGroupMerger, LogLevel.Information, "Completed initial event batch merge.");
@@ -347,6 +348,7 @@ namespace ApplicationAccess.Redistribution.UnitTests
             Assert.AreSame(event3, capturedPersistedEventLists[2][0]);
             Assert.AreEqual(1, capturedPersistedEventLists[2].Count);
             Assert.AreSame(event4, capturedPersistedEventLists[3][0]);
+            mockMetricLogger.Received(1).Add(Arg.Any<DuplicatePrimaryAddElementEventsFiltered>(), 0);
             mockApplicationLogger.Received(1).Log(testShardGroupMerger, LogLevel.Information, "Merging events from source shard groups to target shard group...");
             mockApplicationLogger.Received(1).Log(testShardGroupMerger, LogLevel.Information, "Starting initial event batch merge...");
             mockApplicationLogger.Received(1).Log(testShardGroupMerger, LogLevel.Information, "Completed initial event batch merge.");
@@ -357,6 +359,52 @@ namespace ApplicationAccess.Redistribution.UnitTests
             mockApplicationLogger.Received(1).Log(testShardGroupMerger, LogLevel.Information, "Starting final event batch merge...");
             mockApplicationLogger.Received(1).Log(testShardGroupMerger, LogLevel.Information, "Completed final event batch merge.");
             mockApplicationLogger.Received(1).Log(testShardGroupMerger, LogLevel.Information, "Completed merging events from source shard groups to target shard group.");
+        }
+
+        [Test]
+        public void MergeEventsToTargetShardGroup_DuplicatePrimaryAddElementEventsMetricLogged()
+        {
+            var event1Id = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            var event1 = GenerateAddUserEvent(event1Id, "user1", "2025-05-25 16:01");
+            var event2Id = Guid.Parse("00000000-0000-0000-0000-000000000002");
+            var event2 = GenerateAddUserEvent(event2Id, "user2", "2025-05-25 16:02");
+            var event3Id = Guid.Parse("00000000-0000-0000-0000-000000000003");
+            var event3 = GenerateAddUserEvent(event3Id, "user3", "2025-05-25 16:03");
+            var event4Id = Guid.Parse("00000000-0000-0000-0000-000000000004");
+            var event4 = GenerateAddUserEvent(event4Id, "user4", "2025-05-25 16:04");
+            mockSourceShardGroup1EventReader.GetInitialEvent().Returns<Guid>(event1Id);
+            mockSourceShardGroup2EventReader.GetInitialEvent().Returns<Guid>(event1Id);
+            mockSourceShardGroup1EventReader.GetEvents(event1Id, Int32.MinValue, Int32.MaxValue, false, 100).Returns(new List<TemporalEventBufferItemBase> { event1, event2, event3, event4 });
+            mockSourceShardGroup2EventReader.GetEvents(event1Id, Int32.MinValue, Int32.MaxValue, false, 100).Returns(new List<TemporalEventBufferItemBase> { event1, event2, event3, event4 });
+            mockSourceShardGroup1EventReader.GetNextEventAfter(event4Id).Returns((Nullable<Guid>)null);
+            mockSourceShardGroup2EventReader.GetNextEventAfter(event3Id).Returns(event4Id);
+            mockSourceShardGroup2EventReader.GetEvents(event4Id, Int32.MinValue, Int32.MaxValue, false, 100).Returns(new List<TemporalEventBufferItemBase> { event4 });
+            mockSourceShardGroup2EventReader.GetNextEventAfter(event4Id).Returns((Nullable<Guid>)null); 
+            var capturedPersistedEventLists = new List<IList<TemporalEventBufferItemBase>>();
+            mockTargetShardGroupEventPersister.PersistEvents(Arg.Do<IList<TemporalEventBufferItemBase>>
+            (
+                (argumentValue) =>
+                {
+                    capturedPersistedEventLists.Add(argumentValue);
+                }
+            ));
+
+            testShardGroupMerger.MergeEventsToTargetShardGroup
+            (
+                mockSourceShardGroup1EventReader,
+                mockSourceShardGroup2EventReader,
+                mockTargetShardGroupEventPersister,
+                mockOperationRouter,
+                mockSourceShardGroup1WriterAdministrator,
+                mockSourceShardGroup2WriterAdministrator,
+                100,
+                testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                testSourceWriterNodeOperationsCompleteCheckRetryInterval
+            );
+
+            Assert.AreEqual(1, capturedPersistedEventLists.Count);
+            Assert.AreEqual(4, capturedPersistedEventLists[0].Count);
+            mockMetricLogger.Received(1).Add(Arg.Any<DuplicatePrimaryAddElementEventsFiltered>(), 4);
         }
 
         [Test]
