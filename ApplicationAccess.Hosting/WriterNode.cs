@@ -51,7 +51,7 @@ namespace ApplicationAccess.Hosting
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventCache
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache)
+        ) : base(eventBufferFlushStrategy, persistentReader)
         {
             var eventDistributor = new AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess>
             (
@@ -90,7 +90,7 @@ namespace ApplicationAccess.Hosting
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventCache
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache)
+        ) : base(eventBufferFlushStrategy, persistentReader)
         {
             var eventDistributor = new AccessManagerTemporalEventBulkPersisterDistributor<TUser, TGroup, TComponent, TAccess>
             (
@@ -128,7 +128,7 @@ namespace ApplicationAccess.Hosting
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventCache,
             IMetricLogger metricLogger
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache, metricLogger)
+        ) : base(eventBufferFlushStrategy, persistentReader, metricLogger)
         {
             var eventDistributor = new AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess>
             (
@@ -170,7 +170,7 @@ namespace ApplicationAccess.Hosting
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventCache,
             IMetricLogger metricLogger
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache, metricLogger)
+        ) : base(eventBufferFlushStrategy, persistentReader, metricLogger)
         {
             var eventDistributor = new AccessManagerTemporalEventBulkPersisterDistributor<TUser, TGroup, TComponent, TAccess>
             (

@@ -51,7 +51,7 @@ namespace ApplicationAccess.Hosting
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister)
+        ) : base(eventBufferFlushStrategy, persistentReader)
         {
             eventBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>
             (
@@ -85,7 +85,7 @@ namespace ApplicationAccess.Hosting
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IMetricLogger metricLogger
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, metricLogger)
+        ) : base(eventBufferFlushStrategy, persistentReader, metricLogger)
         {
             eventBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>
             (

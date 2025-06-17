@@ -70,12 +70,10 @@ namespace ApplicationAccess.Hosting
         /// </summary>
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
         public ReaderWriterNodeBase
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
-            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister
+            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader
         )
         {
             metricLogger = new NullMetricLogger();
@@ -87,49 +85,11 @@ namespace ApplicationAccess.Hosting
         /// </summary>
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        public ReaderWriterNodeBase
-        (
-            IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
-            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister
-        )
-        {
-            metricLogger = new NullMetricLogger();
-            Initialize(eventBufferFlushStrategy, persistentReader);
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
-        /// </summary>
-        /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
-        /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public ReaderWriterNodeBase
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            IMetricLogger metricLogger
-        )
-        {
-            this.metricLogger = metricLogger;
-            Initialize(eventBufferFlushStrategy, persistentReader);
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
-        /// </summary>
-        /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
-        /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        /// <param name="metricLogger">The logger for metrics.</param>
-        public ReaderWriterNodeBase
-        (
-            IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
-            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IMetricLogger metricLogger
         )
         {

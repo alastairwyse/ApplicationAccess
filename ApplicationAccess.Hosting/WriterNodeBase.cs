@@ -69,14 +69,10 @@ namespace ApplicationAccess.Hosting
         /// </summary>
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        /// <param name="eventCache">Cache for events which change the AccessManager.</param>
         public WriterNodeBase
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
-            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventCache
+            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader
         )
         {
             metricLogger = new NullMetricLogger();
@@ -88,55 +84,11 @@ namespace ApplicationAccess.Hosting
         /// </summary>
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        /// <param name="eventCache">Cache for events which change the AccessManager.</param>
-        public WriterNodeBase
-        (
-            IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
-            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventCache
-        )
-        {
-            metricLogger = new NullMetricLogger();
-            Initialize(eventBufferFlushStrategy, persistentReader);
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
-        /// </summary>
-        /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
-        /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        /// <param name="eventCache">Cache for events which change the AccessManager.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public WriterNodeBase
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventCache,
-            IMetricLogger metricLogger
-        )
-        {
-            this.metricLogger = metricLogger;
-            Initialize(eventBufferFlushStrategy, persistentReader);
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
-        /// </summary>
-        /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
-        /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        /// <param name="eventCache">Cache for events which change the AccessManager.</param>
-        /// <param name="metricLogger">The logger for metrics.</param>
-        public WriterNodeBase
-        (
-            IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
-            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventCache,
             IMetricLogger metricLogger
         )
         {
