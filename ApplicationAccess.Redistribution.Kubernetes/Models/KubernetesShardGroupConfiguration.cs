@@ -28,7 +28,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
     public class KubernetesShardGroupConfiguration<TPersistentStorageCredentials> : ShardGroupConfiguration<TPersistentStorageCredentials>
         where TPersistentStorageCredentials : class, IPersistentStorageLoginCredentials
     {
-        /// <summary>A unique numeric id for the shard group reader node (unique within the distributed AccessManager instance).</summary>
+        /// <summary>Configuration for a client which connects to the reader node within the shard group.</summary>
         public AccessManagerRestClientConfiguration ReaderNodeClientConfiguration { get; set; }
 
         /// <summary>Configuration for a client which connects to the writer node within the shard group.</summary>

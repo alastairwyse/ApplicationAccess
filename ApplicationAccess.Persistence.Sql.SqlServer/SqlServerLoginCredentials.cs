@@ -25,7 +25,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
     public class SqlServerLoginCredentials : ConnectionStringPersistentStorageLoginCredentials
     {
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.Persistence.Sql.SqlServer.SqlServerLoginCredentials class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerLoginCredentials class.
         /// </summary>
         /// <param name="connectionString">A connection string for SQL Server.</param>
         public SqlServerLoginCredentials(String connectionString)
