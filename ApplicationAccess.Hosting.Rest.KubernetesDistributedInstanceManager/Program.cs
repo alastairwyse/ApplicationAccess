@@ -15,56 +15,137 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
-
+using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Hosting.Rest.Models;
 using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.Options;
+using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
 {
     public class Program
     {
+        /// <summary>The name of the section in the 'appsettings.json' configuration which holds configuration templates for various ApplicationAccess nodes.</summary>
+        protected const String appSettingsConfigurationTemplatesPropertyName = "AppSettingsConfigurationTemplates";
+
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            const String readerNodeConfigurationTemplatePropertyName = "ReaderNode";
+            const String eventCacheNodeConfigurationTemplatePropertyName = "EventCacheNode";
+            const String writerNodeConfigurationTemplatePropertyName = "WriterNode";
+            const String distributedOperationCoordinatorNodeConfigurationTemplatePropertyName = "DistributedOperationCoordinatorNode";
+            const String distributedOperationRouterNodeConfigurationTemplatePropertyName = "DistributedOperationRouterNode";
+            ReaderNodeAppSettingsConfigurationTemplate readerNodeAppSettingsConfigurationTemplate = new();
+            EventCacheNodeAppSettingsConfigurationTemplate eventCacheNodeAppSettingsConfigurationTemplate = new();
+            WriterNodeAppSettingsConfigurationTemplate writerNodeAppSettingsConfigurationTemplate = new();
+            DistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate distributedOperationCoordinatorNodeAppSettingsConfigurationTemplate = new();
+            DistributedOperationRouterNodeAppSettingsConfigurationTemplate distributedOperationRouterNodeAppSettingsConfigurationTemplate = new();
 
-            // Add services to the container.
+            var parameters = new ApplicationInitializerParameters()
+            {
+                Args = args,
+                SwaggerVersionString = "v1",
+                SwaggerApplicationName = "ApplicationAccessKubernetesDistributedInstanceManager",
+                SwaggerApplicationDescription = "Manages a distributed AccessManager implementation hosted in Kubernetes.",
+                SwaggerGenerationAdditionalAssemblies = new List<Assembly>(),
+                ConfigureOptionsAction = (WebApplicationBuilder builder) =>
+                {
+                    // Validate IOptions configuration
+                    builder.Services.AddOptions<DistributedAccessManagerInstanceOptions>()
+                        .Bind(builder.Configuration.GetSection(DistributedAccessManagerInstanceOptions.DistributedAccessManagerInstanceOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                    var distributedAccessManagerInstanceOptions = new DistributedAccessManagerInstanceOptions();
+                    builder.Configuration.GetSection(DistributedAccessManagerInstanceOptions.DistributedAccessManagerInstanceOptionsName).Bind(distributedAccessManagerInstanceOptions);
+                    var validator = new DistributedAccessManagerInstanceOptionsValidator();
+                    validator.Validate(distributedAccessManagerInstanceOptions);
+                    builder.Services.AddOptions<ErrorHandlingOptions>()
+                        .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+                    // Read and validate node 'appsettings.json' configuration templates
+                    void ReadAndValidateAppSettingsConfigurationTemplate(String nodeConfigurationTemplatePropertyName, JObject configurationTemplate)
+                    {
+                        ReadAppSettingsConfigurationTemplates(nodeConfigurationTemplatePropertyName, configurationTemplate, builder);
+                        if (configurationTemplate.Count == 0)
+                            throw new Exception($"Error validating {appSettingsConfigurationTemplatesPropertyName}.  Configuration for '{nodeConfigurationTemplatePropertyName}' is required.");
+                    }
+                    ReadAndValidateAppSettingsConfigurationTemplate(readerNodeConfigurationTemplatePropertyName, readerNodeAppSettingsConfigurationTemplate);
+                    ReadAndValidateAppSettingsConfigurationTemplate(eventCacheNodeConfigurationTemplatePropertyName, eventCacheNodeAppSettingsConfigurationTemplate);
+                    ReadAndValidateAppSettingsConfigurationTemplate(writerNodeConfigurationTemplatePropertyName, writerNodeAppSettingsConfigurationTemplate);
+                    ReadAndValidateAppSettingsConfigurationTemplate(distributedOperationCoordinatorNodeConfigurationTemplatePropertyName, distributedOperationCoordinatorNodeAppSettingsConfigurationTemplate);
+                    ReadAndValidateAppSettingsConfigurationTemplate(distributedOperationRouterNodeConfigurationTemplatePropertyName, distributedOperationRouterNodeAppSettingsConfigurationTemplate);
 
-            builder.Services.AddOptions<DistributedAccessManagerInstanceOptions>()
-                .Bind(builder.Configuration.GetSection(DistributedAccessManagerInstanceOptions.DistributedAccessManagerInstanceOptionsName))
-                .ValidateDataAnnotations().ValidateOnStart();
+                    // Register node 'appsettings.json' configuration templates in dependency injection
+                    builder.Services.AddSingleton(readerNodeAppSettingsConfigurationTemplate);
+                    builder.Services.AddSingleton(eventCacheNodeAppSettingsConfigurationTemplate);
+                    builder.Services.AddSingleton(writerNodeAppSettingsConfigurationTemplate);
+                    builder.Services.AddSingleton(distributedOperationCoordinatorNodeAppSettingsConfigurationTemplate);
+                    builder.Services.AddSingleton(distributedOperationRouterNodeAppSettingsConfigurationTemplate);
+                },
+                ProcessorHolderTypes = new List<Type>()
+                {
+                    // TODO:
 
-            IConfigurationSection mySection = builder.Configuration.GetSection(SomeConfigurationOptions.SomeConfigurationOptionsName);
-            //var blah = new SomeConfigurationOptions();
-            //mySection.Bind(builder.Configuration.GetSection(SomeConfigurationOptions.SomeConfigurationOptionsName));
-            //var mySection2 = mySection.GetSection("SomeInnerConfiguration").Get(typeof(JObject));
-            var converter = new ConfigurationToJsonConverter();
-            var readerNodeAppSettingsConfigurationTemplate = new ReaderNodeAppSettingsConfigurationTemplate();
-            converter.Convert(mySection.GetSection("JsonProp"), readerNodeAppSettingsConfigurationTemplate);
-            builder.Services.AddSingleton<ReaderNodeAppSettingsConfigurationTemplate>(readerNodeAppSettingsConfigurationTemplate);
+                    typeof(AsyncQueryProcessorHolder),
+                    typeof(AsyncEventProcessorHolder),
+                    typeof(DistributedAsyncQueryProcessorHolder),
+                    typeof(DistributedOperationRouterHolder)
+                },
+                // Add a mapping from ServiceUnavailableException to HTTP 503 error status
+                ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
+                {
+                    // TODO:
 
-            // TODO: Need to do above in here OR action passed to initializer to convert all subparts of 'AppSettingsConfigurationTemplates' to equiv objects deriving from JObject
+                    new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
+                },
+                ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()
+                {
+                    typeof(ServiceUnavailableException)
+                },
+                // Setup TripSwitchMiddleware
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
+            };
 
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            app.UseSwagger();
-            app.UseSwaggerUI();
-
-            app.UseAuthorization();
-
-
-            app.MapControllers();
+            var initializer = new ApplicationInitializer();
+            WebApplication app = initializer.Initialize<KubernetesDistributedInstanceManagerNodeHostedServiceWrapper>(parameters);
 
             app.Run();
+        }
+
+        /// <summary>
+        /// Reads 'appsettings.json' configuration template JSON for a node, and writes it to the specified <see cref="JObject"/>.
+        /// </summary>
+        /// <param name="templatePropertyName">The name of the section within this service's 'appsettings.json' configuration to read the configuration template from.</param>
+        /// <param name="template">The <see cref="JObject"/> to write the JSON to.</param>
+        /// <param name="builder"><see cref="WebApplicationBuilder"/> object used to access the service's 'appsettings.json' configuration.</param>
+        /// <remarks>Booleans and numbers in the source template are written to the <see cref="JObject"/> parameter as strings rather than their correct type.  This is because the <see cref="IConfigurationSection"/> interface used to read the 'appsettings.json' only supports reading of strings (since it's a generic interface which also supports less strongly typed configuration like 'ini' files).  This is not preferrable, but fortunately booleans and numbers are converted back to their proper types when read by the node (reader node, writer node, etc...) their surrounding JSON template is passed to (since the configuration Bind() process converts back to their declared types).</remarks>
+        private static void ReadAppSettingsConfigurationTemplates(String templatePropertyName, JObject template, WebApplicationBuilder builder)
+        {
+            IConfigurationSection configurationTemplateSection = builder.Configuration.GetSection(appSettingsConfigurationTemplatesPropertyName).GetSection(templatePropertyName);
+
+            void WriteJsonTemplateRecurse(IConfigurationSection configurationSection, JObject template)
+            {
+                foreach (IConfigurationSection currentChild in configurationSection.GetChildren())
+                {
+                    if (currentChild.Value == null)
+                    {
+                        JObject value = new();
+                        WriteJsonTemplateRecurse(currentChild, value);
+                        template.Add(currentChild.Key, value);
+                    }
+                    else
+                    {
+                        template.Add(currentChild.Key, currentChild.Value);
+                    }
+                }
+            }
+            WriteJsonTemplateRecurse(configurationTemplateSection, template);
         }
     }
 }

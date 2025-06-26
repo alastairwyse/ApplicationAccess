@@ -20,11 +20,16 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ApplicationAccess.Hosting.Metrics;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest;
+using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.Options;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationAccess.Redistribution.Kubernetes;
-using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.Options;
+using ApplicationLogging;
+using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
+using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
 {
@@ -110,9 +115,9 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         #region Private/Protected Methods
 
         /// <summary>
-        /// Initializes the 'kubernetesDistributedInstanceManagerNode' member constructor parameter members based on the specified configuration/options objects.
+        /// Initializes the 'kubernetesDistributedInstanceManager*' fields based on the specified configuration/options objects.
         /// </summary>
-        protected void InitializeKubernetesDistributedInstanceManagerNodeConstructorParameters
+        protected void CreateKubernetesDistributedInstanceManagerFields
         (
             DistributedAccessManagerInstanceOptions distributedAccessManagerInstanceOptions,
             ReaderNodeAppSettingsConfigurationTemplate readerNodeAppSettingsConfigurationTemplate,
@@ -124,7 +129,63 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
             ILoggerFactory loggerFactory
         )
         {
-            
+            metricLogger = new NullMetricLogger();
+            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            {
+                String fullMetricLoggerCategoryName = metricLoggerCategoryName;
+                if (metricLoggingOptions.MetricCategorySuffix != "")
+                {
+                    fullMetricLoggerCategoryName = $"{metricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
+                }
+                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>());
+                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<MetricLoggerBuffer>());
+                var metricLoggerFactory = new MetricLoggerFactory();
+                (metricLogger, metricLoggerBufferProcessingStrategy) = metricLoggerFactory.CreateMetricLoggerAndBufferProcessor
+                (
+                    metricLoggingOptions,
+                    fullMetricLoggerCategoryName,
+                    () => { return null; },
+                    tripSwitchActuator,
+                    metricBufferProcessorLogger,
+                    metricLoggerLogger,
+                    IntervalMetricBaseTimeUnit.Nanosecond,
+                    true
+                );
+            }
+
+            // Validate SqlDatabaseConnection
+            //   Must be SQL and a connection string
+            // Validate kube 'CpuResourceRequest' etc...
+
+
+            /*
+            Need all this... 
+
+            public KubernetesDistributedAccessManagerInstanceManager
+            (
+                KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
+                KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials> instanceConfiguration, 
+                IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager,
+                IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
+                Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
+                IApplicationLogger logger,
+                IMetricLogger metricLogger
+            )
+
+            public KubernetesDistributedInstanceManagerNode
+            (
+                KubernetesDistributedAccessManagerInstanceManager<SqlServerLoginCredentials> kubernetesDistributedInstanceManager,
+                Int32 sqlServerRetryCount,
+                Int32 sqlServerRetryInterval,
+                Int32 sqlServerOperationTimeout,
+                Int32 restClientRetryCount,
+                Int32 restClientRetryInterval,
+                Int32 restClientTimeout, 
+                IApplicationLogger logger, 
+                IMetricLogger metricLogger
+            )
+
+             * */
         }
 
         #endregion

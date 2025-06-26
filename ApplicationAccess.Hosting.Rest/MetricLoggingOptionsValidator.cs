@@ -16,7 +16,6 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Builder;
 using ApplicationAccess.Hosting.Models.Options;
 
 namespace ApplicationAccess.Hosting.Rest

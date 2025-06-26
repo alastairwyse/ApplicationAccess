@@ -19,9 +19,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence.SqlServer\ApplicationAccess.Distribution.Persistence.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Metrics\ApplicationAccess.Hosting.Metrics.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient\ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient\ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Redistribution.Kubernetes\ApplicationAccess.Redistribution.Kubernetes.csproj" />
   </ItemGroup>

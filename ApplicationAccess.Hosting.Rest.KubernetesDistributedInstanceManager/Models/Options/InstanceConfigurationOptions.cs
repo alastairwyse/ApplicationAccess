@@ -63,6 +63,6 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
             GroupShardGroupConfiguration = new List<ShardGroupConfigurationOptions>();
         }
 
-#pragma warning restore 0649
+        #pragma warning restore 0649
     }
 }

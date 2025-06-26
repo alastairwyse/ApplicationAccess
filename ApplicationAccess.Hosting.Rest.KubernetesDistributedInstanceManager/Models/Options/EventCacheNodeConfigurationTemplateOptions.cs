@@ -34,14 +34,13 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         protected const String ValidationErrorMessagePrefix = $"Error validating {EventCacheNodeConfigurationTemplateOptionsName} options";
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(TerminationGracePeriod)}' is required.")]
-        [Range(0, 65535, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
         public UInt16? TerminationGracePeriod { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(ContainerImage)}' is required.")]
         public String ContainerImage { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(MinimumLogLevel)}' is required.")]
-        public LogLevel MinimumLogLevel { get; set; }
+        public LogLevel? MinimumLogLevel { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(CpuResourceRequest)}' is required.")]
         public String CpuResourceRequest { get; set; }
@@ -54,7 +53,6 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         public UInt16? StartupProbePeriod { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(StartupProbeFailureThreshold)}' is required.")]
-        [Range(0, 65535, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
         public UInt16? StartupProbeFailureThreshold { get; set; }
 
         #pragma warning restore 0649

@@ -153,7 +153,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 (
                     CreateStaticConfiguration() with { NameSpace = null },
                     mockPersistentStorageManager,
-                    mockPersistentStorageInstanceRandomNameGenerator,
                     mockAppSettingsConfigurer,
                     testShardConfigurationSetPersisterCreationFunction,
                     mockApplicationLogger,
@@ -190,7 +189,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     CreateStaticConfiguration(),
                     instanceConfiguration,
                     mockPersistentStorageManager,
-                    mockPersistentStorageInstanceRandomNameGenerator,
                     mockAppSettingsConfigurer,
                     testShardConfigurationSetPersisterCreationFunction,
                     mockApplicationLogger,
@@ -264,7 +262,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 CreateStaticConfiguration(),
                 testInstanceConfiguration,
                 mockPersistentStorageManager,
-                mockPersistentStorageInstanceRandomNameGenerator,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -338,7 +335,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 CreateStaticConfiguration(),
                 testInstanceConfiguration,
                 mockPersistentStorageManager,
-                mockPersistentStorageInstanceRandomNameGenerator,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -374,7 +370,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
-                mockPersistentStorageInstanceRandomNameGenerator,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -405,7 +400,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
-                mockPersistentStorageInstanceRandomNameGenerator,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -436,7 +430,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
-                mockPersistentStorageInstanceRandomNameGenerator,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -467,7 +460,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 CreateStaticConfiguration(),
                 CreateInstanceConfiguration(""),
                 mockPersistentStorageManager,
-                mockPersistentStorageInstanceRandomNameGenerator,
                 mockAppSettingsConfigurer,
                 testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
@@ -10648,13 +10640,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             (
                 KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
                 IDistributedAccessManagerPersistentStorageManager<TestPersistentStorageLoginCredentials> persistentStorageManager,
-                IPersistentStorageInstanceRandomNameGenerator persistentStorageInstanceRandomNameGenerator,
                 IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
                 Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
                 IApplicationLogger logger,
                 IMetricLogger metricLogger
             )
-                : base(staticConfiguration, persistentStorageManager, persistentStorageInstanceRandomNameGenerator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
+                : base(staticConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
             {
             }
 
@@ -10674,13 +10665,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
                 KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration,
                 IDistributedAccessManagerPersistentStorageManager<TestPersistentStorageLoginCredentials> persistentStorageManager,
-                IPersistentStorageInstanceRandomNameGenerator persistentStorageInstanceRandomNameGenerator,
                 IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
                 Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
                 IApplicationLogger logger,
                 IMetricLogger metricLogger
             )
-                : base(staticConfiguration, instanceConfiguration, persistentStorageManager, persistentStorageInstanceRandomNameGenerator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
+                : base(staticConfiguration, instanceConfiguration, persistentStorageManager, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
             {
             }
 

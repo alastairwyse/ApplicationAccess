@@ -159,6 +159,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Redistrib
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager", "ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager\ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.csproj", "{FDCF5943-1432-4A75-B858-C29C2693367E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.UnitTests", "ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.UnitTests\ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.UnitTests.csproj", "{4A66C197-265C-47B0-B0E8-E1E9A5C68FC5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -477,6 +479,10 @@ Global
 		{FDCF5943-1432-4A75-B858-C29C2693367E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDCF5943-1432-4A75-B858-C29C2693367E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDCF5943-1432-4A75-B858-C29C2693367E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A66C197-265C-47B0-B0E8-E1E9A5C68FC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A66C197-265C-47B0-B0E8-E1E9A5C68FC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A66C197-265C-47B0-B0E8-E1E9A5C68FC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A66C197-265C-47B0-B0E8-E1E9A5C68FC5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

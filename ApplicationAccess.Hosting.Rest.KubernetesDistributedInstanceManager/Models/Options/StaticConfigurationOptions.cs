@@ -46,7 +46,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         public String PersistentStorageInstanceNamePrefix { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(LoadBalancerServicesHttps)}' is required.")]
-        public Boolean LoadBalancerServicesHttps { get; set; }
+        public Boolean? LoadBalancerServicesHttps { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DeploymentWaitPollingInterval)}' is required.")]
         [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
