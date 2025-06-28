@@ -20,6 +20,7 @@ using System.ComponentModel.DataAnnotations;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.Options;
 using ApplicationAccess.Redistribution.Models;
+using k8s.Models;
 
 namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
 {
@@ -77,18 +78,59 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 ValidateOptions(distributedAccessManagerInstanceOptions.InstanceConfiguration);
                 void ValidateShardGroupConfiguration(List<ShardGroupConfigurationOptions> shardGroupConfigurationOptionsList)
                 {
-                    foreach (ShardGroupConfigurationOptions currentConfigurationOptions in shardGroupConfigurationOptionsList)
+                    if (shardGroupConfigurationOptionsList != null)
                     {
-                        ValidateOptions(currentConfigurationOptions);
+                        foreach (ShardGroupConfigurationOptions currentConfigurationOptions in shardGroupConfigurationOptionsList)
+                        {
+                            ValidateOptions(currentConfigurationOptions);
+                        }
                     }
                 }
                 ValidateShardGroupConfiguration(distributedAccessManagerInstanceOptions.InstanceConfiguration.UserShardGroupConfiguration);
                 ValidateShardGroupConfiguration(distributedAccessManagerInstanceOptions.InstanceConfiguration.GroupToGroupMappingShardGroupConfiguration);
                 ValidateShardGroupConfiguration(distributedAccessManagerInstanceOptions.InstanceConfiguration.GroupShardGroupConfiguration);
             }
+
+            // Validate Kubernetes resource values within the static configuration
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.ReaderNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.ReaderNodeConfigurationTemplate.CpuResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.ReaderNodeConfigurationTemplate.CpuResourceRequest);
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.ReaderNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.ReaderNodeConfigurationTemplate.MemoryResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.ReaderNodeConfigurationTemplate.MemoryResourceRequest);
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.EventCacheNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.EventCacheNodeConfigurationTemplate.CpuResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.EventCacheNodeConfigurationTemplate.CpuResourceRequest);
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.EventCacheNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.EventCacheNodeConfigurationTemplate.MemoryResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.EventCacheNodeConfigurationTemplate.MemoryResourceRequest);
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.WriterNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.WriterNodeConfigurationTemplate.CpuResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.WriterNodeConfigurationTemplate.CpuResourceRequest);
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.WriterNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.WriterNodeConfigurationTemplate.MemoryResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.WriterNodeConfigurationTemplate.MemoryResourceRequest);
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.CpuResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.CpuResourceRequest);
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.MemoryResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.MemoryResourceRequest);
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.DistributedOperationRouterNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.CpuResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.CpuResourceRequest);
+            ValidateKubernetesResourceValue(nameof(StaticConfigurationOptions.DistributedOperationRouterNodeConfigurationTemplate), nameof(distributedAccessManagerInstanceOptions.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.MemoryResourceRequest), distributedAccessManagerInstanceOptions.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.MemoryResourceRequest);
         }
 
         #region Private/Protected Methods
+
+        /// <summary>
+        /// Validates a Kubernetes resource value from a node template within the distributed instance options static configuration.
+        /// </summary>
+        /// <param name="nodeConfigurationTemplatePropertyName">The name of the node template configuration containing the resource value.</param>
+        /// <param name="resourceValuePropertyName">The name of the resource value.</param>
+        /// <param name="resourceValue">The resource value.</param>
+        protected void ValidateKubernetesResourceValue(String nodeConfigurationTemplatePropertyName, String resourceValuePropertyName, String resourceValue)
+        {
+            try
+            {
+                ResourceQuantity resourceQuantity = new(resourceValue);
+                resourceQuantity.Validate();
+            }
+            catch (Exception e)
+            {
+                try
+                {
+                    throw new ValidationException($"Error validating {StaticConfigurationOptions.StaticConfigurationOptionsName} options.  Error validating {nodeConfigurationTemplatePropertyName} options.  Value '{resourceValue}' for '{resourceValuePropertyName}' is invalid.", e);
+                }
+                catch (Exception e2)
+                {
+                    throw new ValidationException(GenerateExceptionMessagePrefix(), e2);
+                }
+            }
+        }
 
         #pragma warning disable 1591
 

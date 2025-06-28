@@ -15,17 +15,29 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ApplicationAccess.Distribution.Persistence;
+using ApplicationAccess.Distribution.Persistence.SqlServer;
+using ApplicationAccess.Distribution.Serialization;
 using ApplicationAccess.Hosting.Metrics;
+using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest;
+using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.Options;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationAccess.Redistribution.Kubernetes;
+using ApplicationAccess.Redistribution.Kubernetes.Models;
+using ApplicationAccess.Redistribution.Persistence.SqlServer;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationMetrics;
@@ -44,8 +56,6 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         #pragma warning disable 1591
 
         // Members passed in via dependency injection
-        
-        // TODO
         protected DistributedAccessManagerInstanceOptions distributedAccessManagerInstanceOptions;
         protected ReaderNodeAppSettingsConfigurationTemplate readerNodeAppSettingsConfigurationTemplate;
         protected EventCacheNodeAppSettingsConfigurationTemplate eventCacheNodeAppSettingsConfigurationTemplate;
@@ -53,6 +63,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         protected DistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate distributedOperationCoordinatorNodeAppSettingsConfigurationTemplate;
         protected DistributedOperationRouterNodeAppSettingsConfigurationTemplate distributedOperationRouterNodeAppSettingsConfigurationTemplate;
         protected MetricLoggingOptions metricLoggingOptions;
+        protected KubernetesDistributedInstanceManagerHolder kubernetesDistributedInstanceManagerHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
 
@@ -75,6 +86,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
             WriterNodeAppSettingsConfigurationTemplate writerNodeAppSettingsConfigurationTemplate,
             DistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate distributedOperationCoordinatorNodeAppSettingsConfigurationTemplate,
             DistributedOperationRouterNodeAppSettingsConfigurationTemplate distributedOperationRouterNodeAppSettingsConfigurationTemplate,
+            KubernetesDistributedInstanceManagerHolder kubernetesDistributedInstanceManagerHolder,
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<KubernetesDistributedInstanceManagerNodeHostedServiceWrapper> logger
@@ -87,6 +99,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
             this.distributedOperationCoordinatorNodeAppSettingsConfigurationTemplate = distributedOperationCoordinatorNodeAppSettingsConfigurationTemplate;
             this.distributedOperationRouterNodeAppSettingsConfigurationTemplate = distributedOperationRouterNodeAppSettingsConfigurationTemplate;
             this.metricLoggingOptions = metricLoggingOptions.Value;
+            this.kubernetesDistributedInstanceManagerHolder = kubernetesDistributedInstanceManagerHolder;
             this.tripSwitchActuator = tripSwitchActuator;
             this.loggerFactory = loggerFactory;
             this.logger = logger;
@@ -99,6 +112,27 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
 
             logger.LogInformation($"Constructing KubernetesDistributedInstanceManagerNode instance...");
 
+            // Create field 'kubernetesDistributedInstanceManagerNode'
+            CreateKubernetesDistributedInstanceManagerFields
+            (
+                distributedAccessManagerInstanceOptions,
+                readerNodeAppSettingsConfigurationTemplate,
+                eventCacheNodeAppSettingsConfigurationTemplate,
+                writerNodeAppSettingsConfigurationTemplate,
+                distributedOperationCoordinatorNodeAppSettingsConfigurationTemplate,
+                distributedOperationRouterNodeAppSettingsConfigurationTemplate,
+                metricLoggingOptions,
+                loggerFactory
+            );
+
+            kubernetesDistributedInstanceManagerHolder.KubernetesDistributedInstanceManager = kubernetesDistributedInstanceManagerNode;
+
+            logger.LogInformation($"Completed constructing KubernetesDistributedInstanceManagerNode instance.");
+
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            {
+                StartMetricLogging();
+            }
 
             logger.LogInformation($"Completed starting {this.GetType().Name}.");
 
@@ -108,6 +142,22 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         /// <inheritdoc/>
         public Task StopAsync(CancellationToken cancellationToken)
         {
+            logger.LogInformation($"Stopping {this.GetType().Name}...");
+
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            {
+                StopMetricLogging();
+            }
+            logger.LogInformation($"Disposing objects...");
+            kubernetesDistributedInstanceManagerNode.Dispose();
+            kubernetesDistributedInstanceManager.Dispose();
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            {
+                DisposeMetricLogger();
+            }
+            logger.LogInformation($"Completed disposing objects.");
+
+            logger.LogInformation($"Completed stopping {this.GetType().Name}.");
 
             return Task.CompletedTask;
         }
@@ -129,6 +179,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
             ILoggerFactory loggerFactory
         )
         {
+            // Create metric logger
             metricLogger = new NullMetricLogger();
             if (metricLoggingOptions.MetricLoggingEnabled == true)
             {
@@ -153,39 +204,161 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 );
             }
 
-            // Validate SqlDatabaseConnection
-            //   Must be SQL and a connection string
-            // Validate kube 'CpuResourceRequest' etc...
-
-
-            /*
-            Need all this... 
-
-            public KubernetesDistributedAccessManagerInstanceManager
+            // Parse SqlServer connection parameters
+            if (distributedAccessManagerInstanceOptions.SqlServerDatabaseConnection.DatabaseType.Value != DatabaseType.SqlServer)
+            {
+                throw new ValidationException($"Error validating {DistributedAccessManagerInstanceOptions.DistributedAccessManagerInstanceOptionsName} options.  Error validating {nameof(distributedAccessManagerInstanceOptions.SqlServerDatabaseConnection)} options.  Only '{nameof(distributedAccessManagerInstanceOptions.SqlServerDatabaseConnection.DatabaseType)}' '{DatabaseType.SqlServer.ToString()}' is supported.");
+            }
+            var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
+            SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
             (
-                KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
-                KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials> instanceConfiguration, 
-                IDistributedAccessManagerPersistentStorageManager<TPersistentStorageCredentials> persistentStorageManager,
-                IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
-                Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
-                IApplicationLogger logger,
-                IMetricLogger metricLogger
-            )
+                distributedAccessManagerInstanceOptions.SqlServerDatabaseConnection.DatabaseType.Value,
+                distributedAccessManagerInstanceOptions.SqlServerDatabaseConnection.ConnectionParameters,
+                AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName
+            );
 
-            public KubernetesDistributedInstanceManagerNode
+            // Create static configuration
+            StaticConfigurationOptions staticConfigurationOptions = distributedAccessManagerInstanceOptions.StaticConfiguration;
+            KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration = new()
+            {
+                PodPort = staticConfigurationOptions.PodPort.Value,
+                ExternalPort = staticConfigurationOptions.ExternalPort.Value,
+                NameSpace = staticConfigurationOptions.NameSpace,
+                PersistentStorageInstanceNamePrefix = staticConfigurationOptions.PersistentStorageInstanceNamePrefix,
+                LoadBalancerServicesHttps = staticConfigurationOptions.LoadBalancerServicesHttps.Value,
+                DeploymentWaitPollingInterval = staticConfigurationOptions.DeploymentWaitPollingInterval.Value,
+                ServiceAvailabilityWaitAbortTimeout = staticConfigurationOptions.ServiceAvailabilityWaitAbortTimeout.Value,
+                DistributedOperationCoordinatorRefreshIntervalWaitBuffer = staticConfigurationOptions.DistributedOperationCoordinatorRefreshIntervalWaitBuffer.Value,
+                ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
+                {
+                    ReplicaCount = staticConfigurationOptions.ReaderNodeConfigurationTemplate.ReplicaCount.Value,
+                    TerminationGracePeriod = staticConfigurationOptions.ReaderNodeConfigurationTemplate.TerminationGracePeriod.Value,
+                    ContainerImage = staticConfigurationOptions.ReaderNodeConfigurationTemplate.ContainerImage,
+                    MinimumLogLevel = staticConfigurationOptions.ReaderNodeConfigurationTemplate.MinimumLogLevel.Value,
+                    AppSettingsConfigurationTemplate = readerNodeAppSettingsConfigurationTemplate,
+                    CpuResourceRequest = staticConfigurationOptions.ReaderNodeConfigurationTemplate.CpuResourceRequest,
+                    MemoryResourceRequest = staticConfigurationOptions.ReaderNodeConfigurationTemplate.MemoryResourceRequest,
+                    LivenessProbePeriod = staticConfigurationOptions.ReaderNodeConfigurationTemplate.LivenessProbePeriod.Value,
+                    StartupProbeFailureThreshold = staticConfigurationOptions.ReaderNodeConfigurationTemplate.StartupProbeFailureThreshold.Value,
+                    StartupProbePeriod = staticConfigurationOptions.ReaderNodeConfigurationTemplate.StartupProbePeriod.Value
+                },
+                EventCacheNodeConfigurationTemplate = new EventCacheNodeConfiguration
+                {
+                    TerminationGracePeriod = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.TerminationGracePeriod.Value,
+                    ContainerImage = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.ContainerImage,
+                    MinimumLogLevel = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.MinimumLogLevel.Value,
+                    AppSettingsConfigurationTemplate = eventCacheNodeAppSettingsConfigurationTemplate,
+                    CpuResourceRequest = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.CpuResourceRequest,
+                    MemoryResourceRequest = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.MemoryResourceRequest,
+                    StartupProbeFailureThreshold = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.StartupProbeFailureThreshold.Value,
+                    StartupProbePeriod = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.StartupProbePeriod.Value
+                },
+                WriterNodeConfigurationTemplate = new WriterNodeConfiguration
+                {
+                    PersistentVolumeClaimName = "eventbackup-claim",
+                    TerminationGracePeriod = staticConfigurationOptions.WriterNodeConfigurationTemplate.TerminationGracePeriod.Value,
+                    ContainerImage = staticConfigurationOptions.WriterNodeConfigurationTemplate.ContainerImage,
+                    MinimumLogLevel = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.MinimumLogLevel.Value,
+                    AppSettingsConfigurationTemplate = eventCacheNodeAppSettingsConfigurationTemplate,
+                    CpuResourceRequest = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.CpuResourceRequest,
+                    MemoryResourceRequest = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.MemoryResourceRequest,
+                    StartupProbeFailureThreshold = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.StartupProbeFailureThreshold.Value,
+                    StartupProbePeriod = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.StartupProbePeriod.Value
+                },
+                DistributedOperationCoordinatorNodeConfigurationTemplate = new DistributedOperationCoordinatorNodeConfiguration
+                {
+                    ReplicaCount = staticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate.ReplicaCount.Value,
+                    TerminationGracePeriod = staticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate.TerminationGracePeriod.Value,
+                    ContainerImage = staticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate.ContainerImage,
+                    MinimumLogLevel = staticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate.MinimumLogLevel.Value,
+                    AppSettingsConfigurationTemplate = distributedOperationCoordinatorNodeAppSettingsConfigurationTemplate,
+                    CpuResourceRequest = staticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate.CpuResourceRequest,
+                    MemoryResourceRequest = staticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate.MemoryResourceRequest,
+                    StartupProbeFailureThreshold = staticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate.StartupProbeFailureThreshold.Value,
+                    StartupProbePeriod = staticConfigurationOptions.DistributedOperationCoordinatorNodeConfigurationTemplate.StartupProbePeriod.Value
+                },
+                DistributedOperationRouterNodeConfigurationTemplate = new DistributedOperationRouterNodeConfiguration
+                {
+                    TerminationGracePeriod = staticConfigurationOptions.DistributedOperationRouterNodeConfigurationTemplate.TerminationGracePeriod.Value,
+                    ContainerImage = staticConfigurationOptions.DistributedOperationRouterNodeConfigurationTemplate.ContainerImage,
+                    MinimumLogLevel = staticConfigurationOptions.DistributedOperationRouterNodeConfigurationTemplate.MinimumLogLevel.Value,
+                    AppSettingsConfigurationTemplate = distributedOperationRouterNodeAppSettingsConfigurationTemplate,
+                    CpuResourceRequest = staticConfigurationOptions.DistributedOperationRouterNodeConfigurationTemplate.CpuResourceRequest,
+                    MemoryResourceRequest = staticConfigurationOptions.DistributedOperationRouterNodeConfigurationTemplate.MemoryResourceRequest,
+                    StartupProbeFailureThreshold = staticConfigurationOptions.DistributedOperationRouterNodeConfigurationTemplate.StartupProbeFailureThreshold.Value,
+                    StartupProbePeriod = staticConfigurationOptions.DistributedOperationRouterNodeConfigurationTemplate.StartupProbePeriod.Value
+                }
+            };
+
+            // Create instance configuration
+            KubernetesDistributedInstanceManagerInstanceConfigurationOptionsParser instanceConfigurationParser = new();
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<SqlServerLoginCredentials> instanceConfiguration = instanceConfigurationParser.Parse(distributedAccessManagerInstanceOptions.InstanceConfiguration);
+
+            // Create KubernetesDistributedAccessManagerInstanceManager
+            SqlServerDistributedAccessManagerPersistentStorageManager persistentStorageManager = new(databaseConnectionParameters.ConnectionString, true);
+            SqlServerCredentialsAppSettingsConfigurer credentialsAppSettingsConfigurer = new();
+            AccessManagerRestClientConfigurationJsonSerializer jsonSerializer = new();
+            Int32 ReadConnectionParameter(String configurationValueName)
+            {
+                String value = distributedAccessManagerInstanceOptions.SqlServerDatabaseConnection.ConnectionParameters[configurationValueName];
+                return Int32.Parse(value);
+            }
+            Int32 sqlServerRetryCount = ReadConnectionParameter("RetryCount");
+            Int32 sqlServerRetryInterval = ReadConnectionParameter("RetryInterval");
+            Int32 sqlServerOperationTimeout = ReadConnectionParameter("OperationTimeout");
+            IApplicationLogger shardConfigurationSetPersisterLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<SqlServerShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>>());
+            Func<SqlServerLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction = (SqlServerLoginCredentials credentials) =>
+            {
+                var configurationDbConnectionString = new SqlConnectionStringBuilder(credentials.ConnectionString);
+                return new SqlServerShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>
+                (
+                    configurationDbConnectionString.ToString(),
+                    sqlServerRetryCount,
+                    sqlServerRetryInterval,
+                    sqlServerOperationTimeout, 
+                    jsonSerializer,
+                    shardConfigurationSetPersisterLogger
+                );
+            };
+            IApplicationLogger kubernetesDistributedAccessManagerInstanceManagerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<KubernetesDistributedAccessManagerInstanceManager<SqlServerLoginCredentials>>());
+            if (instanceConfiguration == null)
+            {
+                kubernetesDistributedInstanceManager = new KubernetesDistributedAccessManagerInstanceManager<SqlServerLoginCredentials>
+                (
+                    staticConfiguration,
+                    persistentStorageManager,
+                    credentialsAppSettingsConfigurer,
+                    shardConfigurationSetPersisterCreationFunction,
+                    kubernetesDistributedAccessManagerInstanceManagerLogger,
+                    metricLogger
+                );
+            }
+            else
+            {
+                kubernetesDistributedInstanceManager = new KubernetesDistributedAccessManagerInstanceManager<SqlServerLoginCredentials>
+                (
+                    staticConfiguration,
+                    instanceConfiguration,
+                    persistentStorageManager,
+                    credentialsAppSettingsConfigurer,
+                    shardConfigurationSetPersisterCreationFunction,
+                    kubernetesDistributedAccessManagerInstanceManagerLogger,
+                    metricLogger
+                );
+            }
+            IApplicationLogger kubernetesDistributedInstanceManagerNodeLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<KubernetesDistributedInstanceManagerNode>());
+            kubernetesDistributedInstanceManagerNode = new KubernetesDistributedInstanceManagerNode
             (
-                KubernetesDistributedAccessManagerInstanceManager<SqlServerLoginCredentials> kubernetesDistributedInstanceManager,
-                Int32 sqlServerRetryCount,
-                Int32 sqlServerRetryInterval,
-                Int32 sqlServerOperationTimeout,
-                Int32 restClientRetryCount,
-                Int32 restClientRetryInterval,
-                Int32 restClientTimeout, 
-                IApplicationLogger logger, 
-                IMetricLogger metricLogger
-            )
-
-             * */
+                kubernetesDistributedInstanceManager,
+                sqlServerRetryCount,
+                sqlServerRetryInterval,
+                sqlServerOperationTimeout,
+                distributedAccessManagerInstanceOptions.ShardConnection.RetryCount.Value,
+                distributedAccessManagerInstanceOptions.ShardConnection.RetryInterval.Value,
+                distributedAccessManagerInstanceOptions.ShardConnection.ConnectionTimeout.Value,
+                kubernetesDistributedInstanceManagerNodeLogger,
+                metricLogger
+            );
         }
 
         #endregion

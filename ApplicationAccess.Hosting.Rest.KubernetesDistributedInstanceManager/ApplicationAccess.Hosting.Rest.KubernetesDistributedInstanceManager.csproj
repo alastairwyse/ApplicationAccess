@@ -6,7 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Authors>Alastair Wyse</Authors>
     <Description>Classes which host an ApplicationAccess KubernetesDistributedAccessManagerInstanceManager as a REST-based web API, using SQL Server as persistent storage for the distributed AccessManager instance.</Description>
-    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
@@ -26,6 +26,7 @@
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Redistribution.Kubernetes\ApplicationAccess.Redistribution.Kubernetes.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Redistribution.Persistence.SqlServer\ApplicationAccess.Redistribution.Persistence.SqlServer.csproj" />
   </ItemGroup>
   
 </Project>

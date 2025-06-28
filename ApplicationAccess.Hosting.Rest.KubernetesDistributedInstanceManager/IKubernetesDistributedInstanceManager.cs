@@ -45,7 +45,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         Uri Writer2Url { set; }
 
         /// <summary>
-        /// URL for the distributed operation coordinator component used for shard group splitting.
+        /// URL for the distributed operation coordinator component.
         /// </summary>
         Uri DistributedOperationCoordinatorUrl { set; }
 

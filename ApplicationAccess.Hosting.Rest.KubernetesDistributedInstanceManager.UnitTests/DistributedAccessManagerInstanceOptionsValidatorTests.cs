@@ -98,11 +98,6 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.MemoryResourceRequest = null; }, "DistributedOperationRouterNodeConfigurationTemplate", "MemoryResourceRequest");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.StartupProbeFailureThreshold = null; }, "DistributedOperationRouterNodeConfigurationTemplate", "StartupProbeFailureThreshold");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.StartupProbePeriod = null; }, "DistributedOperationRouterNodeConfigurationTemplate", "StartupProbePeriod");
-            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.DistributedOperationRouterUrl = null; }, "InstanceConfiguration", "DistributedOperationRouterUrl");
-            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.Writer1Url = null; }, "InstanceConfiguration", "Writer1Url");
-            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.Writer2Url = null; }, "InstanceConfiguration", "Writer2Url");
-            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.ShardConfigurationSqlServerConnectionString = null; }, "InstanceConfiguration", "ShardConfigurationSqlServerConnectionString");
-            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.UserShardGroupConfiguration = null; }, "InstanceConfiguration", "UserShardGroupConfiguration");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.UserShardGroupConfiguration[0].HashRangeStart = null; }, "ShardGroupConfiguration", "HashRangeStart");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.UserShardGroupConfiguration[0].ReaderNodeClientUrl = null; }, "ShardGroupConfiguration", "ReaderNodeClientUrl");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.UserShardGroupConfiguration[0].WriterNodeClientUrl = null; }, "ShardGroupConfiguration", "WriterNodeClientUrl");
@@ -115,7 +110,6 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.GroupShardGroupConfiguration[0].ReaderNodeClientUrl = null; }, "ShardGroupConfiguration", "ReaderNodeClientUrl");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.GroupShardGroupConfiguration[0].WriterNodeClientUrl = null; }, "ShardGroupConfiguration", "WriterNodeClientUrl");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.GroupShardGroupConfiguration[0].SqlServerConnectionString = null; }, "ShardGroupConfiguration", "SqlServerConnectionString");
-            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.InstanceConfiguration.DistributedOperationCoordinatorUrl = null; }, "InstanceConfiguration", "DistributedOperationCoordinatorUrl");
         }
 
         [Test]
@@ -137,6 +131,21 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.ReplicaCount = 0; }, "DistributedOperationCoordinatorNodeConfigurationTemplate", "ReplicaCount", 1, UInt16.MaxValue);
             Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.StartupProbePeriod = 0; }, "DistributedOperationCoordinatorNodeConfigurationTemplate", "StartupProbePeriod", 1, UInt16.MaxValue);
             Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.StartupProbePeriod = 0; }, "DistributedOperationRouterNodeConfigurationTemplate", "StartupProbePeriod", 1, UInt16.MaxValue);
+        }
+
+        [Test]
+        public void Validate_KubernetesResourceValueInvalid()
+        {
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.CpuResourceRequest = "abc"; }, "ReaderNodeConfigurationTemplate", "CpuResourceRequest", "abc");
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.MemoryResourceRequest = "def"; }, "ReaderNodeConfigurationTemplate", "MemoryResourceRequest", "def");
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.EventCacheNodeConfigurationTemplate.CpuResourceRequest = "hij"; }, "EventCacheNodeConfigurationTemplate", "CpuResourceRequest", "hij");
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.EventCacheNodeConfigurationTemplate.MemoryResourceRequest = "lmn"; }, "EventCacheNodeConfigurationTemplate", "MemoryResourceRequest", "lmn");
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.WriterNodeConfigurationTemplate.CpuResourceRequest = "opq"; }, "WriterNodeConfigurationTemplate", "CpuResourceRequest", "opq");
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.WriterNodeConfigurationTemplate.MemoryResourceRequest = "rst"; }, "WriterNodeConfigurationTemplate", "MemoryResourceRequest", "rst");
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.CpuResourceRequest = "uvw"; }, "DistributedOperationCoordinatorNodeConfigurationTemplate", "CpuResourceRequest", "uvw");
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.MemoryResourceRequest = "xyz"; }, "DistributedOperationCoordinatorNodeConfigurationTemplate", "MemoryResourceRequest", "xyz");
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.CpuResourceRequest = "zyx"; }, "DistributedOperationRouterNodeConfigurationTemplate", "CpuResourceRequest", "zyx");
+            Validate_KubernetesResourceValueInvalid((instOpts) => { instOpts.StaticConfiguration.DistributedOperationRouterNodeConfigurationTemplate.MemoryResourceRequest = "wvu"; }, "DistributedOperationRouterNodeConfigurationTemplate", "MemoryResourceRequest", "wvu");
         }
 
         #region Private/Protected Methods
@@ -216,6 +225,36 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             Assert.That(e.Message, Does.StartWith($"Error validating DistributedAccessManagerInstance options."));
             Assert.That(e.InnerException.Message, Does.StartWith($"Error validating {optionsClassName} options.  Value for '{propertyName}' must be between {expectedMinimumValue} and {expectedMaximumValue}."));
         }
+
+        /// <summary>
+        /// Asserts that an exception is thrown when a resource value from a node template within the distributed instance options static configuration contains an invalid value.
+        /// </summary>
+        /// <param name="distributedAccessManagerStaticOptionsSetupAction">Action which sets the resource value being tested to an invalid value.</param>
+        /// <param name="nodeConfigurationTemplatePropertyName">The name of the node template configuration containing the resource value.</param>
+        /// <param name="resourceValuePropertyName">The name of the resource value.</param>
+        /// <param name="resourceValue">The resource value.</param>
+        protected void Validate_KubernetesResourceValueInvalid
+        (
+            Action<DistributedAccessManagerInstanceOptions> distributedAccessManagerStaticOptionsSetupAction,
+            String nodeConfigurationTemplatePropertyName,
+            String resourceValuePropertyName,
+            String resourceValue
+        )
+        {
+            distributedAccessManagerInstanceOptions = GenerateDistributedAccessManagerInstanceOptions();
+            distributedAccessManagerStaticOptionsSetupAction(distributedAccessManagerInstanceOptions);
+
+
+            var e = Assert.Throws<ValidationException>(delegate
+            {
+                testDistributedAccessManagerInstanceOptionsValidator.Validate(distributedAccessManagerInstanceOptions);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error validating DistributedAccessManagerInstance options."));
+            Assert.That(e.InnerException.Message, Does.StartWith($"Error validating StaticConfiguration options.  Error validating {nodeConfigurationTemplatePropertyName} options.  Value '{resourceValue}' for '{resourceValuePropertyName}' is invalid."));
+        }
+
+        #pragma warning disable 1591
 
         protected DistributedAccessManagerInstanceOptions GenerateDistributedAccessManagerInstanceOptions()
         {
@@ -337,6 +376,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
                 }
             };
         }
+
+        #pragma warning restore 1591
 
         #endregion
     }

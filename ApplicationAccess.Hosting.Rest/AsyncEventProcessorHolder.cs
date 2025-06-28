@@ -21,7 +21,7 @@ namespace ApplicationAccess.Hosting.Rest
     /// <summary>
     /// Holds an instance of <see cref="IAccessManagerAsyncEventProcessor{TUser, TGroup, TComponent, TAccess}"/>.
     /// </summary>
-    /// <remarks>An instance of this class can be set on the ASP.NET services collection before the application is built, and then the 'GroupEventProcessor' property set after building (specifically during the IHostedService.StartAsync() method... when the value set on 'GroupEventProcessor' is actually instantiated).  Works around one of the 'chicken and egg'-type problems which often arise when trying to instantiate and populate the ASP.NET services collection.</remarks>
+    /// <remarks>An instance of this class can be set on the ASP.NET services collection before the application is built, and then the 'AsyncEventProcessor' property set after building (specifically during the IHostedService.StartAsync() method... when the value set on 'AsyncEventProcessor' is actually instantiated).  Works around one of the 'chicken and egg'-type problems which often arise when trying to instantiate and populate the ASP.NET services collection.</remarks>
     public class AsyncEventProcessorHolder
     {
         #pragma warning disable 0649

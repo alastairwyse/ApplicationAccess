@@ -196,7 +196,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
-        /// URL for the distributed operation coordinator component used for shard group splitting.
+        /// URL for the distributed operation coordinator component.
         /// </summary>
         /// <remarks>This property is included in classes' instance configuration, and is set when the <see cref="KubernetesDistributedAccessManagerInstanceManager{TPersistentStorageCredentials}.CreateDistributedAccessManagerInstanceAsync(IList{ShardGroupConfiguration{TPersistentStorageCredentials}}, IList{ShardGroupConfiguration{TPersistentStorageCredentials}}, IList{ShardGroupConfiguration{TPersistentStorageCredentials}})">CreateDistributedAccessManagerInstanceAsync()</see> method is called.  However it may be initially set to a URL which is internal to the Kubernetes cluster host (e.g. when running in Minikube) and require a proxy or similar to expose it publically.  This setter allows the value to be overridden with the publically accessible URL.</remarks>
         public Uri DistributedOperationCoordinatorUrl

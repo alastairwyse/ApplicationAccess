@@ -32,35 +32,32 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
 
         protected const String ValidationErrorMessagePrefix = $"Error validating {InstanceConfigurationOptionsName} options";
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DistributedOperationRouterUrl)}' is required.")]
         public String DistributedOperationRouterUrl { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(Writer1Url)}' is required.")]
         public String Writer1Url { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(Writer2Url)}' is required.")]
         public String Writer2Url { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(ShardConfigurationSqlServerConnectionString)}' is required.")]
         public String ShardConfigurationSqlServerConnectionString { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(UserShardGroupConfiguration)}' is required.")]
         public List<ShardGroupConfigurationOptions> UserShardGroupConfiguration { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(GroupToGroupMappingShardGroupConfiguration)}' is required.")]
         public List<ShardGroupConfigurationOptions> GroupToGroupMappingShardGroupConfiguration { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(GroupShardGroupConfiguration)}' is required.")]
         public List<ShardGroupConfigurationOptions> GroupShardGroupConfiguration { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DistributedOperationCoordinatorUrl)}' is required.")]
         public String DistributedOperationCoordinatorUrl { get; set; }
 
         public InstanceConfigurationOptions()
         {
+            DistributedOperationRouterUrl = null;
+            Writer1Url = null;
+            Writer2Url = null;
+            ShardConfigurationSqlServerConnectionString = null;
             UserShardGroupConfiguration = new List<ShardGroupConfigurationOptions>();
             GroupToGroupMappingShardGroupConfiguration = new List<ShardGroupConfigurationOptions>();
             GroupShardGroupConfiguration = new List<ShardGroupConfigurationOptions>();
+            DistributedOperationCoordinatorUrl = null;
         }
 
         #pragma warning restore 0649

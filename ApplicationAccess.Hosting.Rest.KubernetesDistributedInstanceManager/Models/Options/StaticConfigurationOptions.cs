@@ -50,15 +50,15 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DeploymentWaitPollingInterval)}' is required.")]
         [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
-        public UInt32? DeploymentWaitPollingInterval { get; set; }
+        public Int32? DeploymentWaitPollingInterval { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(ServiceAvailabilityWaitAbortTimeout)}' is required.")]
         [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
-        public UInt32? ServiceAvailabilityWaitAbortTimeout { get; set; }
+        public Int32? ServiceAvailabilityWaitAbortTimeout { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DistributedOperationCoordinatorRefreshIntervalWaitBuffer)}' is required.")]
         [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
-        public UInt32? DistributedOperationCoordinatorRefreshIntervalWaitBuffer { get; set; }
+        public Int32? DistributedOperationCoordinatorRefreshIntervalWaitBuffer { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(ReaderNodeConfigurationTemplate)}' is required.")]
         public ReaderNodeConfigurationTemplateOptions ReaderNodeConfigurationTemplate { get; set; }

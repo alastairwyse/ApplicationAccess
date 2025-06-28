@@ -16,16 +16,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Linq;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
 using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.Options;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Controllers;
+using Newtonsoft.Json.Linq;
 
 namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
 {
@@ -53,7 +55,10 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 SwaggerVersionString = "v1",
                 SwaggerApplicationName = "ApplicationAccessKubernetesDistributedInstanceManager",
                 SwaggerApplicationDescription = "Manages a distributed AccessManager implementation hosted in Kubernetes.",
-                SwaggerGenerationAdditionalAssemblies = new List<Assembly>(),
+                SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
+                {
+                    typeof(KubernetesDistributedInstanceManagerController).Assembly
+                },
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
                     // Validate IOptions configuration
@@ -73,7 +78,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                     {
                         ReadAppSettingsConfigurationTemplates(nodeConfigurationTemplatePropertyName, configurationTemplate, builder);
                         if (configurationTemplate.Count == 0)
-                            throw new Exception($"Error validating {appSettingsConfigurationTemplatesPropertyName}.  Configuration for '{nodeConfigurationTemplatePropertyName}' is required.");
+                            throw new ValidationException($"Error validating {appSettingsConfigurationTemplatesPropertyName} options.  Configuration for '{nodeConfigurationTemplatePropertyName}' is required.");
                     }
                     ReadAndValidateAppSettingsConfigurationTemplate(readerNodeConfigurationTemplatePropertyName, readerNodeAppSettingsConfigurationTemplate);
                     ReadAndValidateAppSettingsConfigurationTemplate(eventCacheNodeConfigurationTemplatePropertyName, eventCacheNodeAppSettingsConfigurationTemplate);
@@ -90,18 +95,11 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 },
                 ProcessorHolderTypes = new List<Type>()
                 {
-                    // TODO:
-
-                    typeof(AsyncQueryProcessorHolder),
-                    typeof(AsyncEventProcessorHolder),
-                    typeof(DistributedAsyncQueryProcessorHolder),
-                    typeof(DistributedOperationRouterHolder)
+                    typeof(KubernetesDistributedInstanceManagerHolder)
                 },
                 // Add a mapping from ServiceUnavailableException to HTTP 503 error status
                 ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
                 {
-                    // TODO:
-
                     new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
                 },
                 ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()

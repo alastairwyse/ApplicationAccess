@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution.Metrics;
 using ApplicationAccess.Distribution.Models;
