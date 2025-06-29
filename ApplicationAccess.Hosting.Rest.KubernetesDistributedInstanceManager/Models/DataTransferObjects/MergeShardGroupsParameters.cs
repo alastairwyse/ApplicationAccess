@@ -1,0 +1,40 @@
+﻿/*
+ * Copyright 2025 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+using System;
+using ApplicationAccess.Distribution.Models;
+using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Controllers;
+
+namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.DataTransferObjects
+{
+    /// <summary>
+    /// DTO container class holding parameters for the <see cref="KubernetesDistributedInstanceManagerController.MergeShardGroupsAsync(MergeShardGroupsParameters)">MergeShardGroupsAsync()</see> method.
+    /// </summary>
+    public class MergeShardGroupsParameters
+    {
+        #pragma warning disable 1591
+
+        public String DataElement { get; set; }
+        public Int32 SourceShardGroup1HashRangeStart { get; set; }
+        public Int32 SourceShardGroup2HashRangeStart { get; set; }
+        public Int32 SourceShardGroup2HashRangeEnd { get; set; }
+        public Int32 EventBatchSize { get; set; }
+        public Int32 SourceWriterNodeOperationsCompleteCheckRetryAttempts { get; set; }
+        public Int32 SourceWriterNodeOperationsCompleteCheckRetryInterval { get; set; }
+
+        #pragma warning restore 1591
+    }
+}

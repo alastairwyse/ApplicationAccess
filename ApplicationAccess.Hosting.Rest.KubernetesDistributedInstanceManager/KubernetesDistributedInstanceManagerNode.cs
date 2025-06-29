@@ -165,7 +165,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         /// <inheritdoc/>
         public async Task DeleteDistributedAccessManagerInstanceAsync(Boolean deletePersistentStorageInstances)
         {
-            await DeleteDistributedAccessManagerInstanceAsync(deletePersistentStorageInstances);
+            await kubernetesDistributedInstanceManager.DeleteDistributedAccessManagerInstanceAsync(deletePersistentStorageInstances);
         }
 
         /// <inheritdoc/>

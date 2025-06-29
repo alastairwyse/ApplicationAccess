@@ -31,11 +31,18 @@ using Newtonsoft.Json.Linq;
 
 namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
 {
+    /// <summary>
+    /// Entry point to the application.
+    /// </summary>
     public class Program
     {
         /// <summary>The name of the section in the 'appsettings.json' configuration which holds configuration templates for various ApplicationAccess nodes.</summary>
         protected const String appSettingsConfigurationTemplatesPropertyName = "AppSettingsConfigurationTemplates";
 
+        /// <summary>
+        /// Entry point to the application.
+        /// </summary>
+        /// <param name="args">Command line arguments passed to the application.</param>
         public static void Main(string[] args)
         {
             const String readerNodeConfigurationTemplatePropertyName = "ReaderNode";
