@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace ApplicationAccess.Redistribution.Persistence.SqlServer
 {
@@ -27,7 +28,10 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
         /// <inheritdoc/>
         public String ReadAllText(String path)
         {
-            return File.ReadAllText(path);
+            String basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            String fullPath = Path.Combine(basePath, path);
+
+            return File.ReadAllText(fullPath);
         }
     }
 }

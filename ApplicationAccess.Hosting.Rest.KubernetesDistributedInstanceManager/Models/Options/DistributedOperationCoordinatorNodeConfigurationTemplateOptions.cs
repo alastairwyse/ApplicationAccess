@@ -29,6 +29,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
     {
         #pragma warning disable 0649
 
+        #pragma warning disable 1591
+
         public const String DistributedOperationCoordinatorNodeConfigurationTemplateOptionsName = "DistributedOperationCoordinatorNodeConfigurationTemplate";
 
         protected const String ValidationErrorMessagePrefix = $"Error validating {DistributedOperationCoordinatorNodeConfigurationTemplateOptionsName} options";
@@ -58,6 +60,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(ReplicaCount)}' is required.")]
         [Range(1, 65535, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
         public UInt16? ReplicaCount { get; set; }
+
+        #pragma warning restore 1591
 
         #pragma warning restore 0649
     }

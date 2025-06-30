@@ -29,6 +29,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
     {
         #pragma warning disable 0649
 
+        #pragma warning disable 1591
+
         public const String EventCacheNodeConfigurationTemplateOptionsName = "EventCacheNodeConfigurationTemplate";
 
         protected const String ValidationErrorMessagePrefix = $"Error validating {EventCacheNodeConfigurationTemplateOptionsName} options";
@@ -54,6 +56,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(StartupProbeFailureThreshold)}' is required.")]
         public UInt16? StartupProbeFailureThreshold { get; set; }
+
+        #pragma warning restore 1591
 
         #pragma warning restore 0649
     }

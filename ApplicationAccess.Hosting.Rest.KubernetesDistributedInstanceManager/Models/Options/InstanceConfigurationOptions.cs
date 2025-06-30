@@ -28,6 +28,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
     {
         #pragma warning disable 0649
 
+        #pragma warning disable 1591
+
         public const String InstanceConfigurationOptionsName = "InstanceConfiguration";
 
         protected const String ValidationErrorMessagePrefix = $"Error validating {InstanceConfigurationOptionsName} options";
@@ -54,11 +56,13 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
             Writer1Url = null;
             Writer2Url = null;
             ShardConfigurationSqlServerConnectionString = null;
-            UserShardGroupConfiguration = new List<ShardGroupConfigurationOptions>();
-            GroupToGroupMappingShardGroupConfiguration = new List<ShardGroupConfigurationOptions>();
-            GroupShardGroupConfiguration = new List<ShardGroupConfigurationOptions>();
+            UserShardGroupConfiguration = null;
+            GroupToGroupMappingShardGroupConfiguration = null;
+            GroupShardGroupConfiguration = null;
             DistributedOperationCoordinatorUrl = null;
         }
+
+        #pragma warning restore 1591
 
         #pragma warning restore 0649
     }

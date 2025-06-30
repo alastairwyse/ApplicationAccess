@@ -27,6 +27,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
     {
         #pragma warning disable 0649
 
+        #pragma warning disable 1591
+
         public const String DistributedAccessManagerInstanceOptionsName = "DistributedAccessManagerInstance";
 
         protected const String ValidationErrorMessagePrefix = $"Error validating {DistributedAccessManagerInstanceOptionsName} options";
@@ -46,6 +48,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         {
             InstanceConfiguration = null;
         }
+
+        #pragma warning restore 1591
 
         #pragma warning restore 0649
     }

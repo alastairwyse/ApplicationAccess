@@ -30,9 +30,9 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
     /// </summary>
     public class SqlServerDistributedAccessManagerPersistentStorageManagerTests
     {
-        protected const String accessManagerDatabaseCreateScriptPath = "./Resources/CreateDatabase.sql";
-        protected const String accessManagerDatabaseUpdateScriptPath = "./Resources/ApplicationAccess/UpdateDatabase.sql";
-        protected const String accessManagerConfigurationDatabaseCreateScriptPath = "./Resources/ApplicationAccessConfiguration/CreateDatabase.sql";
+        protected const String accessManagerDatabaseCreateScriptPath = "Resources/CreateDatabase.sql";
+        protected const String accessManagerDatabaseUpdateScriptPath = "Resources/ApplicationAccess/UpdateDatabase.sql";
+        protected const String accessManagerConfigurationDatabaseCreateScriptPath = "Resources/ApplicationAccessConfiguration/CreateDatabase.sql";
 
         protected TestUtilities testUtilities;
         protected String testConnectionString;

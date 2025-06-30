@@ -652,13 +652,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             userShardGroupConfigurationSet.Clear();
             groupToGroupMappingShardGroupConfigurationSet.Clear();
             groupShardGroupConfigurationSet.Clear();
+            instanceConfiguration.ShardConfigurationPersistentStorageCredentials = null;
             instanceConfiguration.UserShardGroupConfiguration.Clear();
             instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Clear();
             instanceConfiguration.GroupShardGroupConfiguration.Clear();
+            instanceConfiguration.DistributedOperationCoordinatorUrl = null;
 
             metricLogger.End(beginId, new DistributedAccessManagerInstanceDeleteTime());
             metricLogger.Increment(new DistributedAccessManagerInstanceDeleted());
-            logger.Log(this, ApplicationLogging.LogLevel.Information, "Deleted creating distributed AccessManager instance.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
         }
 
         /// <inheritdoc/>>

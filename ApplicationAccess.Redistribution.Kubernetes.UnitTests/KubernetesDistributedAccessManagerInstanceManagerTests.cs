@@ -1984,12 +1984,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation coordinator node.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleting shard configuration persistent storage instance...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed deleting shard configuration persistent storage instance.");
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleted creating distributed AccessManager instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
             // Assert that the instance configuration was updated correctly
             instanceConfiguration = testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration;
             Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration.Count);
             Assert.AreEqual(0, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Count);
             Assert.AreEqual(0, instanceConfiguration.GroupShardGroupConfiguration.Count);
+            Assert.IsNull(instanceConfiguration.ShardConfigurationPersistentStorageCredentials);
+            Assert.IsNull(instanceConfiguration.DistributedOperationCoordinatorUrl);
             // Assertions on the *ShardGroupConfigurationSet fields
             Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Count);
             Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Count);
@@ -2078,7 +2080,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation coordinator node.");
             mockApplicationLogger.DidNotReceive().Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleting shard configuration persistent storage instance...");
             mockApplicationLogger.DidNotReceive().Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed deleting shard configuration persistent storage instance.");
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Deleted creating distributed AccessManager instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
             // Assert that the instance configuration was updated correctly
             instanceConfiguration = testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration;
             Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration.Count);

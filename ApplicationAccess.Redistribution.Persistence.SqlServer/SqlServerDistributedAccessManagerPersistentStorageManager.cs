@@ -31,9 +31,9 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
     {
         #pragma warning disable 1591
 
-        protected const String accessManagerDatabaseCreateScriptPath = "./Resources/CreateDatabase.sql";
-        protected const String accessManagerDatabaseUpdateScriptPath = "./Resources/ApplicationAccess/UpdateDatabase.sql";
-        protected const String accessManagerConfigurationDatabaseCreateScriptPath = "./Resources/ApplicationAccessConfiguration/CreateDatabase.sql";
+        protected const String accessManagerDatabaseCreateScriptPath = "Resources/CreateDatabase.sql";
+        protected const String accessManagerDatabaseUpdateScriptPath = "Resources/ApplicationAccess/UpdateDatabase.sql";
+        protected const String accessManagerConfigurationDatabaseCreateScriptPath = "Resources/ApplicationAccessConfiguration/CreateDatabase.sql";
         protected const String applicationAccessDatabaseNameSetvarStatement = ":Setvar DatabaseName ApplicationAccess";
         protected const String applicationAccessConfigurationDatabaseNameSetvarStatement = ":Setvar DatabaseName ApplicationAccessConfiguration";
         protected const String databaseNameWildcard = "$(DatabaseName)";

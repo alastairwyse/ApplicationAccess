@@ -204,7 +204,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
             (
                 ParseEnumFromString<DataElement>(parameters.DataElement, nameof(parameters.DataElement)),
                 parameters.SourceShardGroup1HashRangeStart,
-                parameters.SourceShardGroup2HashRangeEnd,
+                parameters.SourceShardGroup2HashRangeStart,
                 parameters.SourceShardGroup2HashRangeEnd,
                 parameters.EventBatchSize,
                 parameters.SourceWriterNodeOperationsCompleteCheckRetryAttempts,
@@ -240,7 +240,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
             SetStringVariableIfSourceNotNull(instanceConfiguration.DistributedOperationRouterUrl, out distributedOperationRouterUrl);
             SetStringVariableIfSourceNotNull(instanceConfiguration.Writer1Url, out writer1Url);
             SetStringVariableIfSourceNotNull(instanceConfiguration.Writer2Url, out writer2Url);
-            SetStringVariableIfSourceNotNull(instanceConfiguration.ShardConfigurationPersistentStorageCredentials, out shardConfigurationSqlServerConnectionString);
+            SetStringVariableIfSourceNotNull(instanceConfiguration.ShardConfigurationPersistentStorageCredentials?.ConnectionString, out shardConfigurationSqlServerConnectionString);
             SetStringVariableIfSourceNotNull(instanceConfiguration.DistributedOperationCoordinatorUrl, out distributedOperationCoordinatorUrl);
             List<KubernetesShardGroupConfiguration> ConvertShardGroupConfiguration(IList<KubernetesShardGroupConfiguration<SqlServerLoginCredentials>> inputConfiguration)
             {

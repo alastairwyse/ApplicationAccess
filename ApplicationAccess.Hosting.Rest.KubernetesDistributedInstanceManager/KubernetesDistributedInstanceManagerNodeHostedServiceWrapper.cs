@@ -258,12 +258,12 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                     PersistentVolumeClaimName = "eventbackup-claim",
                     TerminationGracePeriod = staticConfigurationOptions.WriterNodeConfigurationTemplate.TerminationGracePeriod.Value,
                     ContainerImage = staticConfigurationOptions.WriterNodeConfigurationTemplate.ContainerImage,
-                    MinimumLogLevel = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.MinimumLogLevel.Value,
-                    AppSettingsConfigurationTemplate = eventCacheNodeAppSettingsConfigurationTemplate,
-                    CpuResourceRequest = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.CpuResourceRequest,
-                    MemoryResourceRequest = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.MemoryResourceRequest,
-                    StartupProbeFailureThreshold = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.StartupProbeFailureThreshold.Value,
-                    StartupProbePeriod = staticConfigurationOptions.EventCacheNodeConfigurationTemplate.StartupProbePeriod.Value
+                    MinimumLogLevel = staticConfigurationOptions.WriterNodeConfigurationTemplate.MinimumLogLevel.Value,
+                    AppSettingsConfigurationTemplate = writerNodeAppSettingsConfigurationTemplate,
+                    CpuResourceRequest = staticConfigurationOptions.WriterNodeConfigurationTemplate.CpuResourceRequest,
+                    MemoryResourceRequest = staticConfigurationOptions.WriterNodeConfigurationTemplate.MemoryResourceRequest,
+                    StartupProbeFailureThreshold = staticConfigurationOptions.WriterNodeConfigurationTemplate.StartupProbeFailureThreshold.Value,
+                    StartupProbePeriod = staticConfigurationOptions.WriterNodeConfigurationTemplate.StartupProbePeriod.Value
                 },
                 DistributedOperationCoordinatorNodeConfigurationTemplate = new DistributedOperationCoordinatorNodeConfiguration
                 {

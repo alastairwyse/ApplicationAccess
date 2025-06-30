@@ -29,6 +29,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
     {
         #pragma warning disable 0649
 
+        #pragma warning disable 1591
+
         public const String ReaderNodeConfigurationTemplateOptionsName = "ReaderNodeConfigurationTemplate";
 
         protected const String ValidationErrorMessagePrefix = $"Error validating {ReaderNodeConfigurationTemplateOptionsName} options";
@@ -62,6 +64,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(LivenessProbePeriod)}' is required.")]
         [Range(1, 65535, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
         public UInt16? LivenessProbePeriod { get; set; }
+
+        #pragma warning restore 1591
 
         #pragma warning restore 0649
     }
