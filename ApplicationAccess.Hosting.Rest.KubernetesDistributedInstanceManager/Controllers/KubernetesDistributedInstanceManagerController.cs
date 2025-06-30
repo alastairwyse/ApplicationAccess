@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -35,7 +36,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
     /// </summary>
     [ApiController]
     [ApiVersion("1")]
-    [Route("api/v{version:apiVersion}")]
+    [Route("api/v{version:apiVersion}/distributedInstance")]
     public class KubernetesDistributedInstanceManagerController
     {
         #pragma warning disable 1591
@@ -57,7 +58,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         /// <param name="url">The url.</param>
         /// <response code="201">The url was set.</response>
         [HttpPut]
-        [Route("distributedOperationRouterUrl/{url}")]
+        [Route("distributedOperationRouterService/url/{url}")]
         [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult SetDistributedOperationRouterUrl(String url)
@@ -74,7 +75,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         /// <param name="url">The url.</param>
         /// <response code="201">The url was set.</response>
         [HttpPut]
-        [Route("writer1Url/{url}")]
+        [Route("writer1Service/url/{url}")]
         [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult SetWriter1Url(String url)
@@ -91,7 +92,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         /// <param name="url">The url.</param>
         /// <response code="201">The url was set.</response>
         [HttpPut]
-        [Route("writer2Url/{url}")]
+        [Route("writer2Service/url/{url}")]
         [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult SetWriter2Url(String url)
@@ -108,7 +109,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         /// <param name="url">The url.</param>
         /// <response code="201">The url was set.</response>
         [HttpPut]
-        [Route("distributedOperationCoordinatorUrl/{url}")]
+        [Route("distributedOperationCoordinatorService/url/{url}")]
         [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult SetDistributedOperationCoordinatorUrl(String url)
@@ -132,12 +133,64 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         }
 
         /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access the distributed router component used for shard group splitting, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <returns>The IP address of the load balancer service.</returns>
+        [HttpPost]
+        [Route("distributedOperationRouterService")]
+        [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<String> CreateDistributedOperationRouterLoadBalancerServiceAsync(CreateLoadBalancerServiceParameters parameters)
+        {
+            IPAddress ipAddress = await kubernetesDistributedInstanceManager.CreateDistributedOperationRouterLoadBalancerServiceAsync(parameters.Port);
+
+            return ipAddress.ToString();
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a first writer component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <returns>The IP address of the load balancer service.</returns>
+        [HttpPost]
+        [Route("writer1Service")]
+        [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<String> CreateWriter1LoadBalancerServiceAsync(CreateLoadBalancerServiceParameters parameters)
+        {
+            IPAddress ipAddress = await kubernetesDistributedInstanceManager.CreateWriter1LoadBalancerServiceAsync(parameters.Port);
+
+            return ipAddress.ToString();
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a second writer component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <returns>The IP address of the load balancer service.</returns>
+        [HttpPost]
+        [Route("writer2Service")]
+        [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<String> CreateWriter2LoadBalancerServiceAsync(CreateLoadBalancerServiceParameters parameters)
+        {
+            IPAddress ipAddress = await kubernetesDistributedInstanceManager.CreateWriter2LoadBalancerServiceAsync(parameters.Port);
+
+            return ipAddress.ToString();
+        }
+
+        /// <summary>
         /// Creates a new distributed AccessManager instance.
         /// </summary>
         /// <response code="200">The instance was created.</response>
         [HttpPost]
-        [Route("distributedInstance")]
+        [Route("")]
         [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<StatusCodeResult> CreateDistributedAccessManagerInstanceAsync(CreateDistributedAccessManagerInstanceParameters parameters)
         {
@@ -156,8 +209,9 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         /// </summary>
         /// <response code="200">The instance was deleted.</response>
         [HttpDelete]
-        [Route("distributedInstance")]
+        [Route("")]
         [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<StatusCodeResult> DeleteDistributedAccessManagerInstanceAsync([FromBody] DeleteDistributedAccessManagerInstanceParameters parameters)
         {
@@ -171,9 +225,10 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         /// </summary>
         /// <response code="200">The split was performed successfully.</response>
         [HttpPost]
-        [Route("distributedInstance/shardGroups:split")]
+        [Route("shardGroups:split")]
         [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [Consumes(MediaTypeNames.Application.Json)]
         public async Task<StatusCodeResult> SplitShardGroupAsync([FromBody] SplitShardGroupParameters parameters)
         {
             await kubernetesDistributedInstanceManager.SplitShardGroupAsync
@@ -195,8 +250,9 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         /// </summary>
         /// <response code="200">The merge was performed successfully.</response>
         [HttpPost]
-        [Route("distributedInstance/shardGroups:merge")]
+        [Route("shardGroups:merge")]
         [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<StatusCodeResult> MergeShardGroupsAsync([FromBody] MergeShardGroupsParameters parameters)
         {

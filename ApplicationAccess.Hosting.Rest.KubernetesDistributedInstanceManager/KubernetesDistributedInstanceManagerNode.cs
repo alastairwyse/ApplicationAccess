@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Net;
 using System.Net.Http;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Distribution.Models;
@@ -144,6 +145,24 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
             {
                 return kubernetesDistributedInstanceManager.InstanceConfiguration;
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<IPAddress> CreateDistributedOperationRouterLoadBalancerServiceAsync(UInt16 port)
+        {
+            return await kubernetesDistributedInstanceManager.CreateDistributedOperationRouterLoadBalancerServiceAsync(port);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IPAddress> CreateWriter1LoadBalancerServiceAsync(UInt16 port)
+        {
+            return await kubernetesDistributedInstanceManager.CreateWriter1LoadBalancerServiceAsync(port);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IPAddress> CreateWriter2LoadBalancerServiceAsync(UInt16 port)
+        {
+            return await kubernetesDistributedInstanceManager.CreateWriter2LoadBalancerServiceAsync(port);
         }
 
         /// <inheritdoc/>

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Persistence.Sql.SqlServer;
@@ -53,6 +54,27 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         /// Configuration for the distributed AccessManager instance.
         /// </summary>
         KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<SqlServerLoginCredentials> InstanceConfiguration { get; }
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access the distributed router component used for shard group splitting, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <param name="port">The external port to expose the load balancer service on.</param>
+        /// <returns>The IP address of the load balancer service.</returns>
+        Task<IPAddress> CreateDistributedOperationRouterLoadBalancerServiceAsync(UInt16 port);
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a first writer component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <param name="port">The external port to expose the writer service on.</param>
+        /// <returns>The IP address of the load balancer service.</returns>
+        Task<IPAddress> CreateWriter1LoadBalancerServiceAsync(UInt16 port);
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a second writer component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <param name="port">The external port to expose the writer service on.</param>
+        /// <returns>The IP address of the load balancer service.</returns>
+        Task<IPAddress> CreateWriter2LoadBalancerServiceAsync(UInt16 port);
 
         /// <summary>
         /// Creates a new distributed AccessManager instance.
