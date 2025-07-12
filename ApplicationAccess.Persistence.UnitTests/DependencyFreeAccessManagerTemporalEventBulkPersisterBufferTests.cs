@@ -554,6 +554,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityTypeEventBufferLock));
+                Assert.IsFalse(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityEventBufferLock));
                 Assert.IsFalse(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.UserToEntityMappingEventBufferLock));
                 Assert.IsFalse(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.GroupToEntityMappingEventBufferLock));
                 validatorAssertionsWereChecked = true;
@@ -621,6 +622,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityTypeEventBufferLock));
+                Assert.IsFalse(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityEventBufferLock));
                 Assert.IsFalse(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.UserToEntityMappingEventBufferLock));
                 Assert.IsFalse(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.GroupToEntityMappingEventBufferLock));
                 validatorAssertionsWereChecked = true;
@@ -724,6 +726,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             });
             eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
+                Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityTypeEventBufferLock));
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityEventBufferLock));
                 Assert.IsFalse(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.UserToEntityMappingEventBufferLock));
                 Assert.IsFalse(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.GroupToEntityMappingEventBufferLock));
@@ -1027,7 +1030,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             }
 
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer+DependencyFreeAccessManagerTemporalEventBulkPersisterBufferWithProtectedMembers class.
+            /// Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.DependencyFreeAccessManagerTemporalEventBulkPersisterBufferTests+DependencyFreeAccessManagerTemporalEventBulkPersisterBufferWithProtectedMembers class.
             /// </summary>
             /// <param name="eventValidator">The validator to use to validate events.</param>
             /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>

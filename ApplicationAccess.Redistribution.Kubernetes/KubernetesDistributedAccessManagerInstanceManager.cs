@@ -660,7 +660,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(beginId, new DistributedAccessManagerInstanceDeleteTime());
             metricLogger.Increment(new DistributedAccessManagerInstanceDeleted());
-            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed deleting distributed AccessManager instance.");
         }
 
         /// <inheritdoc/>>

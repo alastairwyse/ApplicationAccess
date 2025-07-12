@@ -26,7 +26,7 @@ namespace ApplicationAccess.Persistence.UnitTests
     /// <typeparam name="TGroup">The type of groups in the AccessManager implementation.</typeparam>
     /// <typeparam name="TComponent">The type of components in the AccessManager implementation.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    internal class MethodInterceptingAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>
+    public class MethodInterceptingAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>A mock of IMethodCallInterceptor (for intercepting method calls).</summary>
         protected IMethodCallInterceptor interceptor;

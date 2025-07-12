@@ -598,31 +598,31 @@ namespace ApplicationAccess.UnitTests
             }
 
             /// <summary>The user to application component and access level map as an object (to check for locking).</summary>
-            public Object UserToComponentMap
+            public IDictionary<TUser, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> UserToComponentMap
             {
                 get { return userToComponentMap; }
             }
 
             /// <summary>The group to application component and access level map as an object (to check for locking).</summary>
-            public Object GroupToComponentMap
+            public IDictionary<TGroup, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> GroupToComponentMap
             {
                 get { return groupToComponentMap; }
             }
 
             /// <summary>The entities colection as an object (to check for locking).</summary>
-            public Object Entities
+            public IDictionary<String, ISet<String>> Entities
             {
                 get { return entities; }
             }
 
             /// <summary>The user to entity map as an object (to check for locking).</summary>
-            public Object UserToEntityMap
+            public IDictionary<TUser, IDictionary<String, ISet<String>>> UserToEntityMap
             {
                 get { return userToEntityMap; }
             }
 
             /// <summary>The group to entity map as an object (to check for locking).</summary>
-            public Object GroupToEntityMap
+            public IDictionary<TGroup, IDictionary<String, ISet<String>>> GroupToEntityMap
             {
                 get { return groupToEntityMap; }
             }

@@ -67,7 +67,13 @@ namespace ApplicationAccess.Metrics
         public MetricLoggingDependencyFreeAccessManager(IMetricLogger metricLogger)
             : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(false, new MappingMetricLogger(metricLogger)), true)
         {
-            // Casting should never fail, since we just newed the 'userToGroupMap' and 'MetricLogger' properties to these types.
+            // We hard-code base class parameter 'throwIdempotencyExceptions' to true, even though this class (and those derived from it like
+            //   DistributedAccessManager) don't throw idempotency exceptions.  It's set true in this case class because wrapping methods in
+            //   ConcurrentAccessManagerMetricLogger catch the idempotency exceptions to decide what metrics to log in the case of failure
+            //   and then 'swallow' those exceptions to make the class act idempotently.  Hence this class and those derived from it
+            //   basically stop exposing the option to throw exceptions when an idempotent event occurs.
+
+            // Below casting should never fail, since we just newed the 'userToGroupMap' and 'MetricLogger' properties to these types.
             //   TODO: Find a cleaner way to do this... ideally don't want to expose the 'MetricLoggingConcurrentDirectedGraph.MetricLogger' property at all.
             mappingMetricLogger = (MappingMetricLogger)((MetricLoggingConcurrentDirectedGraph<TUser, TGroup>)userToGroupMap).MetricLogger;
             metricLoggingWrapper = new ConcurrentAccessManagerMetricLogger<TUser, TGroup, TComponent, TAccess>(metricLogger);
@@ -408,21 +414,18 @@ namespace ApplicationAccess.Metrics
             if (userToGroupMap.ContainsLeafVertex(user) == false)
             {
                 // Parameter 'generateEvent' is only set true when these methods are called as a prepending for a secondary Add*() event
-                //   so we onyl log metrics when the prepended element doesn't already exist AND when this is called as part of prepending.
+                //   so we only log metrics when the prepended element doesn't already exist AND when this is called as part of prepending.
                 //   We don't log metrics when this is called as part of a non-prepended event, since that metric logging is done already 
                 //   in the 'wrappingAction' parameter overload of this method (which itself calls this method).
                 if (generateEvent == true)
                 {
                     Action<TUser, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddUserMetricLoggingWrappingAction(user, (TUser wrappingActionUser, Action wrappingActionBaseAction) => { wrappingActionBaseAction.Invoke(); });
                     metricLoggingWrappingAction.Invoke(user, () => { userToGroupMap.AddLeafVertex(user); });
+                    eventProcessor.AddUser(user);
                 }
                 else
                 {
                     userToGroupMap.AddLeafVertex(user);
-                }
-                if (generateEvent == true)
-                {
-                    eventProcessor.AddUser(user);
                 }
             }
             else
@@ -441,14 +444,11 @@ namespace ApplicationAccess.Metrics
                 {
                     Action<TGroup, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddGroupMetricLoggingWrappingAction(group, (TGroup wrappingActionGroup, Action wrappingActionBaseAction) => { wrappingActionBaseAction.Invoke(); });
                     metricLoggingWrappingAction.Invoke(group, () => { userToGroupMap.AddNonLeafVertex(group); });
+                    eventProcessor.AddGroup(group);
                 }
                 else
                 {
                     userToGroupMap.AddNonLeafVertex(group);
-                }
-                if (generateEvent == true)
-                {
-                    eventProcessor.AddGroup(group);
                 }
             }
             else
@@ -472,14 +472,11 @@ namespace ApplicationAccess.Metrics
                         entities
                     );
                     metricLoggingWrappingAction.Invoke(entityType, () => { entities.Add(entityType, collectionFactory.GetSetInstance<String>()); });
+                    eventProcessor.AddEntityType(entityType);
                 }
                 else
                 {
                     entities.Add(entityType, collectionFactory.GetSetInstance<String>());
-                }
-                if (generateEvent == true)
-                {
-                    eventProcessor.AddEntityType(entityType);
                 }
             }
             else
@@ -507,20 +504,53 @@ namespace ApplicationAccess.Metrics
                         (String wrappingActionEntityType, String wrappingActionEntity, Action wrappingActionBaseAction) => { wrappingActionBaseAction.Invoke(); }
                     );
                     metricLoggingWrappingAction.Invoke(entityType, entity, () => { entities[entityType].Add(entity); });
+                    eventProcessor.AddEntity(entityType, entity);
                 }
                 else
                 {
                     entities[entityType].Add(entity);
-                }
-                if (generateEvent == true)
-                {
-                    eventProcessor.AddEntity(entityType, entity);
                 }
             }
             else
             {
                 if (throwIdempotencyExceptions == true)
                     throw new IdempotentAddOperationException();
+            }
+        }
+
+        #endregion
+
+        #region Event Methods With Switchable Metric Logging
+
+        // Likely seems strange to have a method override which makes metric logging optional in a class called 'MetricLoggingDependencyFreeAccessManager'.  Reason is that
+        //   derived class DistributedAccessManager has method overrides which allow prepending secondary element remove events on remove of a primary element (e.g. RemoveEntityType()
+        //   creates prepended 'remove entity' events to allow for accurate splitting and merging of shard groups in distributed implementations).  The usual pattern of override of
+        //   event methods with a 'wrappingAction' parameter is to call the base method, placing the overridden funcionality in the passed 'wrappingAction' parameter, which will cause 
+        //   program flow to first call the ConcurrentAccessManager method implementation which sets mutual exclusion locks, and then move back up the inheritance hiearachy (from
+        //   ConcurrentAccessManager to most-derived) calling each method implementation, before finally calling the actual event implementation in AccessManagerBase.  The problem 
+        //   with this for the aforementioned 'prepended secondary element remove event' method implementations in DistributedAccessManager is that metric logging in this class gets 'Begun()'
+        //   before the prepended secondary remove events have been created.  Hence the prepended remove events are included in internal metrics for the primary remove event, which both
+        //   skews/bloats those metrics and is inconsistent with the prepended of dependent 'primary add' events in DependencyFreeAccessManager (where prepended 'add' events are NOT included
+        //   in the main event's metrics).
+        //
+        // Hence we create the below methods which allow derived classes to actually bypass the metric logging in this class, and instead implement the metric logging in their own
+        //   method along with additional functionality, but permitting the derived class to run things before interval metrics are started.
+
+        /// <summary>
+        /// Removes an entity type.
+        /// </summary>
+        /// <param name="entityType">The entity type to remove.</param>
+        /// <param name="wrappingAction">An action to invoke after removing the entity type but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <param name="logMetrics">Whether to log metrics.</param>
+        protected void RemoveEntityType(String entityType, Action<String, Action> wrappingAction, Boolean logMetrics)
+        {
+            if (logMetrics == true)
+            {
+                RemoveEntityType(entityType, wrappingAction);
+            }
+            else
+            {
+                base.RemoveEntityType(entityType, wrappingAction);
             }
         }
 

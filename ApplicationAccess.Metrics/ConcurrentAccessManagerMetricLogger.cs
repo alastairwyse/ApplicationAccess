@@ -149,7 +149,7 @@ namespace ApplicationAccess.Metrics
             TUser user, 
             Action<TUser, Action> wrappingAction, 
             IDictionary<TUser, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> userToComponentMap
-           )
+        )
         {
             return (TUser metricLoggingActionUser, Action baseAction) =>
             {

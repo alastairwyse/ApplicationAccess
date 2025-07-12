@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using ApplicationAccess.Distribution;
+using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Utilities;
@@ -58,7 +59,7 @@ namespace ApplicationAccess.Hosting
             (
                 new List<IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
             );
-            eventBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>
+            eventBuffer = new DistributedAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>
             (
                 eventValidator,
                 eventBufferFlushStrategy,
@@ -98,7 +99,7 @@ namespace ApplicationAccess.Hosting
             (
                 new List<IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
             );
-            eventBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>
+            eventBuffer = new DistributedAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>
             (
                 eventValidator,
                 eventBufferFlushStrategy,

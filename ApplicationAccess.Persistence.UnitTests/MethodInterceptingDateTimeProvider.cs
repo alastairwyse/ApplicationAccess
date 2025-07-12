@@ -22,7 +22,7 @@ namespace ApplicationAccess.Persistence.UnitTests
     /// <summary>
     /// An implementation of <see cref="IDateTimeProvider"/> which allows interception of method calls via a call to <see cref="IMethodCallInterceptor.Intercept">IMethodCallInterceptor.Intercept()</see>, and subsequently calls the equivalent method on another instance of <see cref="IDateTimeProvider"/>.
     /// </summary>
-    internal class MethodInterceptingDateTimeProvider : IDateTimeProvider
+    public class MethodInterceptingDateTimeProvider : IDateTimeProvider
     {
         /// <summary>A mock of IMethodCallInterceptor (for intercepting method calls).</summary>
         protected IMethodCallInterceptor interceptor;

@@ -16,13 +16,14 @@
 
 using System;
 using System.Collections.Generic;
+using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities;
-using NUnit.Framework;
-using NSubstitute;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
+using NUnit.Framework;
+using NSubstitute;
 
 namespace ApplicationAccess.Hosting.UnitTests
 {
@@ -231,7 +232,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 mockEventBulkCache
             );
 
-            NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
+            NonPublicFieldAssert.IsOfType<DistributedAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
             testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
@@ -246,7 +247,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 mockMetricLogger
             );
 
-            NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
+            NonPublicFieldAssert.IsOfType<DistributedAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
         }
 
         [Test]
@@ -299,7 +300,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 mockEventBulkCache
             );
 
-            NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
+            NonPublicFieldAssert.IsOfType<DistributedAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
             testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
@@ -314,9 +315,8 @@ namespace ApplicationAccess.Hosting.UnitTests
                 mockMetricLogger
             );
 
-            NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
+            NonPublicFieldAssert.IsOfType<DistributedAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
         }
-
 
         [Test]
         public void Constructor_HashCodeGeneratorsSetCorrectlyOnComposedFields()

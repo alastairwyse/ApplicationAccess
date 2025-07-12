@@ -72,9 +72,9 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
                 },
                 ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()
-                    {
-                        typeof(ServiceUnavailableException)
-                    },
+                {
+                    typeof(ServiceUnavailableException)
+                },
                 // Setup TripSwitchMiddleware 
                 TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."), 
             };

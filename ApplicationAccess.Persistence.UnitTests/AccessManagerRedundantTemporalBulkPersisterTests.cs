@@ -18,11 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using NUnit.Framework;
-using NSubstitute;
 using ApplicationLogging;
 using ApplicationMetrics;
 using ApplicationAccess.Persistence.Models;
+using NUnit.Framework;
+using NSubstitute;
 
 namespace ApplicationAccess.Persistence.UnitTests
 {

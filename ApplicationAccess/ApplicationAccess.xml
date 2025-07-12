@@ -1249,6 +1249,7 @@
             </summary>
             <param name="user">The user to add.</param>
             <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+            <remarks>This method should only be called if appropriate mutual exclusion locks for the <see cref="M:ApplicationAccess.AccessManagerBase`4.AddUser(`0)">AddUser()</see> method have already been set.</remarks>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroup(`1,System.Boolean)">
             <summary>
@@ -1256,6 +1257,7 @@
             </summary>
             <param name="group">The group to add.</param>
             <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+            <remarks>This method should only be called if appropriate mutual exclusion locks for the <see cref="M:ApplicationAccess.AccessManagerBase`4.AddGroup(`1)">AddGroup()</see> method have already been set.</remarks>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddEntityType(System.String,System.Boolean)">
             <summary>
@@ -1263,6 +1265,7 @@
             </summary>
             <param name="entityType">The entity type to add.</param>
             <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+            <remarks>This method should only be called if appropriate mutual exclusion locks for the <see cref="M:ApplicationAccess.AccessManagerBase`4.AddEntityType(System.String)">AddEntityType()</see> method have already been set.</remarks>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddEntity(System.String,System.String,System.Boolean)">
             <summary>
@@ -1271,6 +1274,7 @@
             <param name="entityType">The type of the entity.</param>
             <param name="entity">The entity to add.</param>
             <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+            <remarks>This method should only be called if appropriate mutual exclusion locks for the <see cref="M:ApplicationAccess.AccessManagerBase`4.AddEntity(System.String,System.String)">AddEntity()</see> method have already been set.</remarks>
         </member>
         <member name="T:ApplicationAccess.DirectedGraph`2">
             <summary>

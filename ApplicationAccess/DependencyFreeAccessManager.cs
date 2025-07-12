@@ -633,6 +633,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="user">The user to add.</param>
         /// <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+        /// <remarks>This method should only be called if appropriate mutual exclusion locks for the <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}.AddUser(TUser)">AddUser()</see> method have already been set.</remarks>
         protected virtual void AddUser(TUser user, Boolean generateEvent)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -655,6 +656,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="group">The group to add.</param>
         /// <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+        /// <remarks>This method should only be called if appropriate mutual exclusion locks for the <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}.AddGroup(TGroup)">AddGroup()</see> method have already been set.</remarks>
         protected virtual void AddGroup(TGroup group, Boolean generateEvent)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -677,6 +679,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="entityType">The entity type to add.</param>
         /// <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+        /// <remarks>This method should only be called if appropriate mutual exclusion locks for the <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}.AddEntityType(String)">AddEntityType()</see> method have already been set.</remarks>
         protected virtual void AddEntityType(String entityType, Boolean generateEvent)
         {
             if (entities.ContainsKey(entityType) == false)
@@ -700,6 +703,7 @@ namespace ApplicationAccess
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity to add.</param>
         /// <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+        /// <remarks>This method should only be called if appropriate mutual exclusion locks for the <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}.AddEntity(String, String)">AddEntity()</see> method have already been set.</remarks>
         protected virtual void AddEntity(String entityType, String entity, Boolean generateEvent)
         {
             if (entities.ContainsKey(entityType) == false)

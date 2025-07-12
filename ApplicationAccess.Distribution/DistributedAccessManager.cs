@@ -285,5 +285,115 @@ namespace ApplicationAccess.Distribution
 
             return metricLoggingWrapper.GetEntitiesAccessibleByGroups(groups, entityType, getEntitiesAccessibleByGroupsFunc);
         }
+
+
+        #region Private/Protected Methods
+
+        #region Base Class Overrides
+
+        /// <inheritdoc/>
+        protected override void RemoveEntityType(String entityType, Action<String, Action> wrappingAction)
+        {
+            // We override this method so that we can generate prepended 'remove entity' events before we start logging metrics.
+            //   Reasoning is explained in comment for method MetricLoggingDependencyFreeAccessManager.RemoveEntityType(String entityType, Action<String, Action> wrappingAction, Boolean logMetrics).
+            // This is implemented here by...
+            //   1. Creating a 'wrappingAction' lambda (i.e. below 'prependedEventRemoveAction' Action) which we pass to the base class which...
+            //      a. Generates prepended 'remove entity' events
+            //      b. Then calls the metric logging functionality in base class GenerateRemoveEntityTypeMetricLoggingWrappingAction() method
+            //   2. Passing this 'wrappingAction' parameter to a special implementation of base class RemoveEntityType() method which disables metric logging there (we don't want to double log
+            //        the metrics).
+            // Strictly speaking a more correct/clean implementation of this would be to let DistributedAccessManager derive directly from DependencyFreeAccessManager, and then create a 
+            //   MetricLoggingDistributedAccessManager by using ConcurrentAccessManagerMetricLogger (same as is done for DependencyFreeAccessManager and MetricLoggingDependencyFreeAccessManager,
+            //   and ConcurrentAccessManager and MetricLoggingConcurrentAccessManager)... the prepended 'remove entity' could then be implemented in
+            //   MetricLoggingDistributedAccessManager.RemoveEntityType() inline with the metric logging, without having to implement the slightly 'dirty' disabling of base class functionality
+            //   which we're doing here.  However, since it's expected no further prepended 'remove' event generation will be required (since deciding to implement shard group merging via merged
+            //   event streams rather than merging in-place into an existing persistent store), this technique shouldn't need to be extended any further.
+
+            Action<String, Action> prependedEventRemoveAction = (actionEntityType, baseAction) =>
+            {
+                RemoveEntitiesForType(entityType);
+
+                Action<String, Action> metricLoggingAction = metricLoggingWrapper.GenerateRemoveEntityTypeMetricLoggingWrappingAction(entityType, wrappingAction, entities, base.RemoveEntityType);
+
+                metricLoggingAction.Invoke(actionEntityType, () => { baseAction.Invoke(); });
+            };
+
+            base.RemoveEntityType(entityType, prependedEventRemoveAction, false);
+        }
+
+        #endregion
+
+        #region Secondary 'Remove' Methods Supporting Optional Event Generation
+
+        /// <summary>
+        /// Idempotently removes an entity.
+        /// </summary>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity to remove.</param>
+        /// <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+        /// <remarks>This method is designed to be called from the <see cref="DistributedAccessManager{TUser, TGroup, TComponent, TAccess}.RemoveEntityType(String, Action{String, Action})">RemoveEntityType()</see> method as part of prepended secondary remove element event generation.  The method should only be called if mutual exclusion locks for RemoveEntityType() have already been set.</remarks>
+        protected virtual void RemoveEntity(String entityType, String entity, Boolean generateEvent)
+        {
+            if (entities.ContainsKey(entityType) == true && entities[entityType].Contains(entity) == true)
+            {
+                if (generateEvent == true)
+                {
+                    // TODO: Gets a bit confusing here with multiple wrapping actions.
+                    //   Basically we're following a similar pattern to methods like MetricLoggingDependencyFreeAccessManager.AddEntity() where we get the metric logging wrapping action
+                    //   from ConcurrentAccessManagerMetricLogger, pass it a wrapping action which doesn't wrap anything, and then invoke that metric logging wrapping action passing
+                    //   an inner action which just calls the base level (i.e. AccessManagerBase) RemoveEntity() method (or equivalent).
+                    // The 'wrapping action which doesn't wrap anything' mentioned above is because we don't actually want to add any wrapping functionality in this case... we simply
+                    //   allow metrics to be 'Begun()' call the base action to do the entity delete, finish the metrics, and be done.  The event generation is done outside of the 
+                    //   wrapping action (although this is simply adding an event to a buffer/queue, so somewhat inconsequential as to whether it's in the wrapping action or not).
+                    // Would be nice to simplify all this.  Basically the pattern with wrapping actions estabilshed in ConcurrentAccessManager was quite nice and clean once you got
+                    //   your head around it.  However since introducing ConcurrentAccessManagerMetricLogger, it's made things a bit hard to understand in terms of what is wrapping what
+                    //   (without debugging the code).  ConcurrentAccessManagerMetricLogger gave a big benefit in terms of being able to introduce consistent metric logging for 
+                    //   multiple subclasses of ConcurrentAccessManager (and hence avoid a lot of repeated code, whilst allowing us to preserve a clean inheritance hierarchy from
+                    //   ConcurrentAccessManager), but came at the cost of increased complexity (esp in this case after coming back to this functionality after a couple of years
+                    //   and having to re-familiarize myself).
+                    Action<String, String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveEntityMetricLoggingWrappingAction
+                    (
+                        entityType, 
+                        entity,
+                        (String wrappingActionEntityType, String wrappingActionEntity, Action wrappingActionBaseAction) => { wrappingActionBaseAction.Invoke(); }, 
+                        base.RemoveEntity
+                    );
+                    metricLoggingWrappingAction.Invoke(entityType, entity, () => 
+                    {
+                        RemoveEntity(entityType, entity, (actionUser, actionEntityType, actionEntity) => { }, (actionGroup, actionEntityType, actionEntity) => { });
+                    });
+                    eventProcessor.RemoveEntity(entityType, entity);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Removes all entities of the specified type.
+        /// </summary>
+        /// <param name="entityType">The type of the entities to remove.</param>
+        protected void RemoveEntitiesForType(String entityType)
+        {
+            if (entities.ContainsKey(entityType) == true)
+            {
+                var removeEntities = new List<String>();
+                ISet<String> removeEntitiesSet = entities[entityType];
+                foreach (String currentEntity in removeEntitiesSet)
+                {
+                    removeEntities.Add(currentEntity);
+                }
+                foreach (String currentEntity in removeEntities)
+                {
+                    RemoveEntity(entityType, currentEntity, true);
+                }
+            }
+        }
+
+        #endregion
     }
 }

@@ -333,7 +333,7 @@ namespace ApplicationAccess.Persistence
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
-        public void RemoveEntityType(string entityType)
+        public virtual void RemoveEntityType(string entityType)
         {
             lockManager.AcquireLocksAndInvokeAction(entityTypeEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -353,7 +353,7 @@ namespace ApplicationAccess.Persistence
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
-        public void RemoveEntity(string entityType, string entity)
+        public virtual void RemoveEntity(string entityType, string entity)
         {
             lockManager.AcquireLocksAndInvokeAction(entityEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
