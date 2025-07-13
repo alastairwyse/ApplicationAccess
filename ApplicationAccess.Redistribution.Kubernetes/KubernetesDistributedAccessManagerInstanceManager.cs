@@ -1497,7 +1497,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 String sourceWriter2NodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, sourceShardGroup2HashRangeStart);
                 try
                 {
-                    await UpdateServiceAsync(writer2LoadBalancerServiceName, sourceWriter1NodeIdentifier);
+                    await UpdateServiceAsync(writer2LoadBalancerServiceName, sourceWriter2NodeIdentifier);
                 }
                 catch
                 {
