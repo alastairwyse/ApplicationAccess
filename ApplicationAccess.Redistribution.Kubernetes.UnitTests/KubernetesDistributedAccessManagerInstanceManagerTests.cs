@@ -39,13 +39,6 @@ using Newtonsoft.Json.Linq;
 using NSubstitute;
 using NUnit.Framework;
 
-// TODO: ** Remove these references and Project references **
-using ApplicationAccess.Distribution.Persistence.SqlServer;
-using ApplicationAccess.Redistribution.Persistence.SqlServer;
-using ApplicationAccess.Persistence.Sql.SqlServer;
-using ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient;
-using ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient;
-
 namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 {
     /// <summary>
@@ -10063,18 +10056,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), name, testNameSpace);
             await mockKubernetesClientShim.Received(4).ListNamespacedPodAsync(null, testNameSpace);
             await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, name, testNameSpace);
-        }
-
-        [Test]
-        [Ignore("Integration test")]
-        public async Task IntegrationTests_REMOVETHIS()
-        {
-        }
-
-        [Test]
-        [Ignore("Integration test")]
-        public async Task IntegrationTests2_REMOVETHIS()
-        {
         }
 
         #region Private/Protected Methods

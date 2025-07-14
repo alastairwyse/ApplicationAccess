@@ -104,14 +104,17 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 {
                     typeof(KubernetesDistributedInstanceManagerHolder)
                 },
-                // Add a mapping from ServiceUnavailableException to HTTP 503 error status
                 ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
                 {
-                    new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
+                    // Add a mapping from ServiceUnavailableException to HTTP 503 error status
+                    new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable),
+                    // InvalidOperationException is thrown in KubernetesDistributedAccessManagerInstanceManager when manager state doesn't match method call parameters
+                    new Tuple<Type, HttpStatusCode>(typeof(InvalidOperationException), HttpStatusCode.BadRequest)
                 },
                 ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()
                 {
-                    typeof(ServiceUnavailableException)
+                    typeof(ServiceUnavailableException),
+                    typeof(InvalidOperationException)
                 },
                 // Setup TripSwitchMiddleware
                 TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
