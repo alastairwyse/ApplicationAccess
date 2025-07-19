@@ -143,12 +143,12 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             {
                 StartMetricLogging();
             }
-            // Start buffer flushing/processing
-            StartEventBufferProcessing();
             // Load the current state of the ReaderWriterNode from storage
             logger.LogInformation($"Loading data into {nameof(readerWriterNode)}...");
             readerWriterNode.Load(false);
             logger.LogInformation($"Completed loading data into {nameof(readerWriterNode)}.");
+            // Start buffer flushing/processing
+            StartEventBufferProcessing();
 
             logger.LogInformation($"Completed starting {this.GetType().Name}.");
 

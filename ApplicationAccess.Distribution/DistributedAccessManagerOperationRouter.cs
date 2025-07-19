@@ -347,13 +347,25 @@ namespace ApplicationAccess.Distribution
             }
             else
             {
-                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> shardRemoveFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                if (shardDataElement == DataElement.User)
                 {
-                    await client.RemoveGroupAsync(group);
-                };
+                    var shardDataElementTypes = new List<DataElement>() { DataElement.User };
+                    Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> shardRemoveFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                    {
+                        await client.RemoveGroupAsync(group);
+                    };
 
-                await RemoveElementAsync(shardDataElementTypes, shardRemoveFunc, $"remove group '{group}' from");
+                    await RemoveElementAsync(shardDataElementTypes, shardRemoveFunc, $"remove group '{group}' from");
+                }
+                else
+                {
+                    Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+                    {
+                        await client.RemoveGroupAsync(group);
+                    };
+
+                    await ImplementRoutingAsync(nameof(this.RemoveGroupAsync), group, groupHashCodeGenerator, clientAction);
+                }
             }
         }
 

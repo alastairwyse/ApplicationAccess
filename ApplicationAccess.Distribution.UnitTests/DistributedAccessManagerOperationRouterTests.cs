@@ -1221,58 +1221,52 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             mockThreadPauser.Received(1).TestPaused();
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
+            mockShardClientManager.DidNotReceive().GetAllClients(DataElement.Group, Operation.Event);
             await userShardClientAndDescription1.Client.Received(1).RemoveGroupAsync(testGroup);
             await userShardClientAndDescription2.Client.Received(1).RemoveGroupAsync(testGroup);
             await userShardClientAndDescription3.Client.Received(1).RemoveGroupAsync(testGroup);
             Assert.AreEqual(1, userShardClientAndDescription1.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, userShardClientAndDescription2.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, userShardClientAndDescription3.Client.ReceivedCalls().Count());
-            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
         public async Task RemoveGroupAsync_RoutingOnExecutingAgainstGroupShards()
         {
-            var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
-            var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
-            (
-                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
-                "GroupShardDescription1"
-            );
-            var groupShardClientAndDescription2 = new DistributedClientAndShardDescription
-            (
-                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
-                "GroupShardDescription2"
-            );
-            var groupShardClientAndDescription3 = new DistributedClientAndShardDescription
-            (
-                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
-                "GroupShardDescription3"
-            );
             String testGroup = "group1";
-            var groupClients = new List<DistributedClientAndShardDescription>()
-            {
-                groupShardClientAndDescription1,
-                groupShardClientAndDescription2,
-                groupShardClientAndDescription3
-            };
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Event)).Do((callInfo) => throw userShardGetClientsException);
-            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(groupClients);
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
 
             await testGroupOperationRouter.RemoveGroupAsync(testGroup);
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
-            await groupShardClientAndDescription1.Client.Received(1).RemoveGroupAsync(testGroup);
-            await groupShardClientAndDescription2.Client.Received(1).RemoveGroupAsync(testGroup);
-            await groupShardClientAndDescription3.Client.Received(1).RemoveGroupAsync(testGroup);
-            Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
-            Assert.AreEqual(1, groupShardClientAndDescription2.Client.ReceivedCalls().Count());
-            Assert.AreEqual(1, groupShardClientAndDescription3.Client.ReceivedCalls().Count());
-            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceEventShardClient.Received(1).RemoveGroupAsync(testGroup);
+            await mockTargetEventShardClient.DidNotReceive().RemoveGroupAsync(testGroup);
+            Assert.AreEqual(1, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+            
+
+            mockThreadPauser.ClearReceivedCalls();
+            mockGroupHashCodeGenerator.ClearReceivedCalls();
+            mockShardClientManager.ClearReceivedCalls();
+            mockSourceEventShardClient.ClearReceivedCalls();
+            mockTargetEventShardClient.ClearReceivedCalls();
+            mockShardClientManager.ClearReceivedCalls();
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(targetShardHashRangeStart);
+
+            await testGroupOperationRouter.RemoveGroupAsync(testGroup);
+
+            mockThreadPauser.Received(1).TestPaused();
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceEventShardClient.DidNotReceive().RemoveGroupAsync(testGroup);
+            await mockTargetEventShardClient.Received(1).RemoveGroupAsync(testGroup);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockTargetEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
         }
 
@@ -1314,10 +1308,10 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             mockThreadPauser.Received(1).TestPaused();
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
+            mockShardClientManager.DidNotReceive().GetAllClients(DataElement.Group, Operation.Event);
             await userShardClientAndDescription3.Client.Received(1).RemoveGroupAsync(testGroup);
             Assert.AreEqual(1, userShardClientAndDescription3.Client.ReceivedCalls().Count());
-            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to remove group '{testGroup}' from shard with configuration 'UserShardDescription3"));
             Assert.AreSame(mockException, e.InnerException);

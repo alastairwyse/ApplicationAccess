@@ -1234,14 +1234,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 // Update the shard group configuration to redirect to source shard group
                 logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to source shard group...");
                 configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
-            {
-                new HashRangeStartAndClientConfigurations
                 {
-                    HashRangeStart = hashRangeStart,
-                    ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Reader, hashRangeStart)),
-                    WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, hashRangeStart))
-                },
-            };
+                    new HashRangeStartAndClientConfigurations
+                    {
+                        HashRangeStart = hashRangeStart,
+                        ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Reader, hashRangeStart)),
+                        WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, hashRangeStart))
+                    },
+                };
                 configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
                 try
                 {
