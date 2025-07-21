@@ -593,13 +593,13 @@ namespace ApplicationAccess.Distribution.UnitTests
             List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(5);
             mockMetricLogger.Begin(Arg.Any<GroupRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] });
-            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2] });
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientsAndDescriptions[2]);
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[3], clientsAndDescriptions[4] });
 
             await testOperationCoordinator.RemoveGroupAsync(testGroup);
             
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Event, testGroup);
             mockShardClientManager.Received(1).GetAllClients(DataElement.GroupToGroupMapping, Operation.Event);
             await clientsAndDescriptions[0].Client.Received(1).RemoveGroupAsync(testGroup);
             await clientsAndDescriptions[1].Client.Received(1).RemoveGroupAsync(testGroup);
@@ -622,7 +622,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             var mockException = new Exception("Mock exception");
             mockMetricLogger.Begin(Arg.Any<GroupRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] });
-            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2] });
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientsAndDescriptions[2]);
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[3], clientsAndDescriptions[4] });
             clientsAndDescriptions[3].Client.RemoveGroupAsync(testGroup).Returns(Task.FromException(mockException));
 
@@ -632,7 +632,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Event, testGroup);
             mockShardClientManager.Received(1).GetAllClients(DataElement.GroupToGroupMapping, Operation.Event);
             await clientsAndDescriptions[0].Client.Received(1).RemoveGroupAsync(testGroup);
             await clientsAndDescriptions[1].Client.Received(1).RemoveGroupAsync(testGroup);

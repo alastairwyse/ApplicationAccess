@@ -282,12 +282,17 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public virtual async Task RemoveGroupAsync(String group)
         {
-            var dataElements = new List<DataElement>() { DataElement.User, DataElement.Group, DataElement.GroupToGroupMapping };
+            var clients = new List<DistributedClientAndShardDescription>();
+            clients.Add(shardClientManager.GetClient(DataElement.Group, Operation.Event, group));
+            foreach (DataElement currentDataElement in new List<DataElement>() { DataElement.User, DataElement.GroupToGroupMapping })
+            {
+                clients.AddRange(shardClientManager.GetAllClients(currentDataElement, Operation.Event));
+            }
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
             {
                 await client.RemoveGroupAsync(group);
             };
-            await ProcessEventAsync(new GroupRemoveTime(), new GroupRemoved(), dataElements, eventAction, $"remove group '{group}' from");
+            await ProcessEventAsync(new GroupRemoveTime(), new GroupRemoved(), clients, eventAction, $"remove group '{group}' from");
         }
 
         /// <inheritdoc/>
