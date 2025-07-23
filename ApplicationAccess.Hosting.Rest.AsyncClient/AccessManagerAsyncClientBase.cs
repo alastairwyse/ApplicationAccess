@@ -949,10 +949,10 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         }
 
         /// <summary>
-        /// Attempts to deserialize the body of a HTTP response received as a <see cref="Stream"/> to an <see cref="HttpErrorResponse"/> instance.
+        /// Attempts to deserialize the body of an HTTP response received as a <see cref="Stream"/> to an <see cref="HttpErrorResponse"/> instance.
         /// </summary>
         /// <param name="responseBody">The response body to deserialize.</param>
-        /// <returns>The deserialized response body, or null if the reponse could not be deserialized (e.g. was empty, or did not contain JSON).</returns>
+        /// <returns>The deserialized response body, or null if the response could not be deserialized (e.g. was empty, or did not contain JSON).</returns>
         protected async Task<HttpErrorResponse> DeserializeResponseBodyToHttpErrorResponseAsync(Stream responseBody)
         {
             using (var streamReader = new StreamReader(responseBody, defaultEncoding, false, 1024, true))
