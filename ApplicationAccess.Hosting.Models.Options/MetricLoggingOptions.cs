@@ -30,23 +30,23 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         protected const String ValidationErrorMessagePrefix = $"Error validating {MetricLoggingOptionsName} options";
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(MetricLoggingEnabled)}' is required.")]
-        public Boolean? MetricLoggingEnabled { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(Enabled)}' is required.")]
+        public Boolean? Enabled { get; set; }
 
         public String MetricCategorySuffix { get; set; }
 
-        public MetricBufferProcessingOptions? MetricBufferProcessing { get; set; }
+        public MetricBufferProcessingOptions? BufferProcessing { get; set; }
 
-        public MetricsSqlDatabaseConnectionOptions? MetricsSqlDatabaseConnection { get; set; }
+        public SqlDatabaseConnectionOptions? SqlDatabaseConnection { get; set; }
 
         public OpenTelemetryConnectionOptions? OpenTelemetryConnection { get; set; }
 
         public MetricLoggingOptions()
         {
-            MetricLoggingEnabled = null;
+            Enabled = null;
             MetricCategorySuffix = "";
-            MetricBufferProcessing = null;
-            MetricsSqlDatabaseConnection = null;
+            BufferProcessing = null;
+            SqlDatabaseConnection = null;
             OpenTelemetryConnection = null;
         }
 

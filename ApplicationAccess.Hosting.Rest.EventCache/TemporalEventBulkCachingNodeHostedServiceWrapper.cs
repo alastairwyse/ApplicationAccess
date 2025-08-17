@@ -89,7 +89,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             InitializeCachingNodeConstructorParameters(metricLoggingOptions);
 
             // Create the TemporalEventBulkCachingNode
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
+            if (metricLoggingOptions.Enabled.Value == false)
             {
                 cachingNode = new TemporalEventBulkCachingNode<String, String, String, String>(eventCachingOptions.CachedEventCount.Value, new NullMetricLogger());
             }
@@ -144,7 +144,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         /// </summary>
         protected void InitializeCachingNodeConstructorParameters(MetricLoggingOptions metricLoggingOptions)
         {
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>());
                 IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<MetricLoggerBuffer>());

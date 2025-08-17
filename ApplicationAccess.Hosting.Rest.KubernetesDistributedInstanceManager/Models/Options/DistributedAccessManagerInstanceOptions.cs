@@ -34,7 +34,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         protected const String ValidationErrorMessagePrefix = $"Error validating {DistributedAccessManagerInstanceOptionsName} options";
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(SqlServerDatabaseConnection)}' is required.")]
-        public AccessManagerSqlDatabaseConnectionOptions SqlServerDatabaseConnection { get; set; }
+        public SqlDatabaseConnectionOptions SqlServerDatabaseConnection { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(ShardConnection)}' is required.")]
         public ShardConnectionOptions ShardConnection { get; set; }

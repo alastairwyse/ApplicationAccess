@@ -24,6 +24,7 @@ using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.Metrics;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Hosting.Persistence;
 using ApplicationAccess.Hosting.Persistence.Sql;
 using ApplicationAccess.Hosting.Rest.Client;
 using ApplicationAccess.Metrics;
@@ -47,7 +48,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         #pragma warning disable 1591
 
         // Members passed in via dependency injection
-        protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
+        protected DatabaseConnectionOptions accessManagerDatabaseConnectionOptions;
         protected EventCacheConnectionOptions eventCacheConnectionOptions;
         protected EventCacheRefreshOptions eventCacheRefreshOptions;
         protected MetricLoggingOptions metricLoggingOptions;
@@ -77,7 +78,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         /// </summary>
         public ReaderNodeHostedServiceWrapperBase
         (
-            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
+            IOptions<DatabaseConnectionOptions> accessManagerDatabaseConnectionOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
             IOptions<EventCacheRefreshOptions> eventCacheRefreshOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -90,7 +91,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             ILogger<ReaderNodeHostedServiceWrapperBase<TReaderNode, TAccessManager>> logger
         ) : base(logger)
         {
-            this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
+            this.accessManagerDatabaseConnectionOptions = accessManagerDatabaseConnectionOptions.Value;
             this.eventCacheConnectionOptions = eventCacheConnectionOptions.Value;
             this.eventCacheRefreshOptions = eventCacheRefreshOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
@@ -113,7 +114,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             // Initialize the ReaderNode constructor parameter members from configuration
             InitializeReaderNodeConstructorParameters
             (
-                accessManagerSqlDatabaseConnectionOptions,
+                accessManagerDatabaseConnectionOptions,
                 eventCacheConnectionOptions,
                 eventCacheRefreshOptions,
                 metricLoggingOptions,
@@ -121,7 +122,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             );
 
             // Create the ReaderNode
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
+            if (metricLoggingOptions.Enabled.Value == false)
             {
                 readerNode = InitializeReaderNode();
             }
@@ -137,7 +138,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
 
             // Start buffer flushing/processing
             //   Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StartMetricLogging();
             }
@@ -164,14 +165,14 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             logger.LogInformation($"Stopping {nameof(refreshStrategy)}...");
             refreshStrategy.Stop();
             logger.LogInformation($"Completed stopping {nameof(refreshStrategy)}.");
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
             eventCacheClient.Dispose();
             persistentReader.Dispose();
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 DisposeMetricLogger();
             }
@@ -190,7 +191,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         /// </summary>
         protected void InitializeReaderNodeConstructorParameters
         (
-            AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions,
+            DatabaseConnectionOptions accessManagerDatabaseConnectionOptions,
             EventCacheConnectionOptions eventCacheConnectionOptions,
             EventCacheRefreshOptions eventCacheRefreshOptions,
             MetricLoggingOptions metricLoggingOptions,
@@ -226,12 +227,10 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 loggerFactory.CreateLogger<IAccessManagerTemporalBulkPersister<String, String, String, String>>()
             );
 
-            var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
-            SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
+            var databaseConnectionParametersParser = new DatabaseConnectionOptionsParser();
+            DatabaseConnectionParameters databaseConnectionParameters = databaseConnectionParametersParser.Parse
             (
-                accessManagerSqlDatabaseConnectionOptions.DatabaseType.Value,
-                accessManagerSqlDatabaseConnectionOptions.ConnectionParameters,
-                AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName
+                accessManagerDatabaseConnectionOptions
             );
 
             Uri eventCacheClientBaseUri = null;
@@ -244,9 +243,9 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 throw new Exception($"Failed to convert event cache host '{eventCacheConnectionOptions.Host}' to a {typeof(Uri).Name}.", e);
             }
 
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
+            if (metricLoggingOptions.Enabled.Value == false)
             {
-                var eventPersisterFactory = new SqlAccessManagerTemporalBulkPersisterFactory<String, String, String, String>
+                var eventPersisterFactory = new AccessManagerTemporalBulkPersisterFactory<String, String, String, String>
                 (
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
@@ -282,7 +281,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                     IntervalMetricBaseTimeUnit.Nanosecond,
                     true
                 );
-                var eventPersisterFactory = new SqlAccessManagerTemporalBulkPersisterFactory<String, String, String, String>
+                var eventPersisterFactory = new AccessManagerTemporalBulkPersisterFactory<String, String, String, String>
                 (
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),

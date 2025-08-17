@@ -163,6 +163,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.R
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Distribution.Persistence.UnitTests", "ApplicationAccess.Distribution.Persistence.UnitTests\ApplicationAccess.Distribution.Persistence.UnitTests.csproj", "{B1FB7F9C-F8BA-4B91-A619-0176F3111560}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Persistence", "ApplicationAccess.Hosting.Persistence\ApplicationAccess.Hosting.Persistence.csproj", "{118879F6-4091-4F24-AD4A-8C443A2A9A80}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Persistence.UnitTests", "ApplicationAccess.Hosting.Persistence.UnitTests\ApplicationAccess.Hosting.Persistence.UnitTests.csproj", "{A66D5C51-42F4-40D2-87EC-C11B7EB1C186}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -489,6 +493,14 @@ Global
 		{B1FB7F9C-F8BA-4B91-A619-0176F3111560}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1FB7F9C-F8BA-4B91-A619-0176F3111560}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1FB7F9C-F8BA-4B91-A619-0176F3111560}.Release|Any CPU.Build.0 = Release|Any CPU
+		{118879F6-4091-4F24-AD4A-8C443A2A9A80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{118879F6-4091-4F24-AD4A-8C443A2A9A80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{118879F6-4091-4F24-AD4A-8C443A2A9A80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{118879F6-4091-4F24-AD4A-8C443A2A9A80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A66D5C51-42F4-40D2-87EC-C11B7EB1C186}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A66D5C51-42F4-40D2-87EC-C11B7EB1C186}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A66D5C51-42F4-40D2-87EC-C11B7EB1C186}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A66D5C51-42F4-40D2-87EC-C11B7EB1C186}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

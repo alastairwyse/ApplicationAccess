@@ -29,10 +29,10 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
         {
             var testMetricLoggingOptions = new MetricLoggingOptions();
 
-            Assert.IsNull(testMetricLoggingOptions.MetricLoggingEnabled);
+            Assert.IsNull(testMetricLoggingOptions.Enabled);
             Assert.AreEqual("", testMetricLoggingOptions.MetricCategorySuffix);
-            Assert.IsNull(testMetricLoggingOptions.MetricBufferProcessing);
-            Assert.IsNull(testMetricLoggingOptions.MetricsSqlDatabaseConnection);
+            Assert.IsNull(testMetricLoggingOptions.BufferProcessing);
+            Assert.IsNull(testMetricLoggingOptions.SqlDatabaseConnection);
             Assert.IsNull(testMetricLoggingOptions.OpenTelemetryConnection);
         }
     }

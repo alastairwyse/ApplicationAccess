@@ -124,7 +124,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
 
             // Start buffer flushing/processing
             //   Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StartMetricLogging();
             }
@@ -139,14 +139,14 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
         {
             logger.LogInformation($"Stopping {this.GetType().Name}...");
 
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
             shardClientManager.Dispose();
             httpClient.Dispose();
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 DisposeMetricLogger();
             }
@@ -171,9 +171,9 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
             ILoggerFactory loggerFactory
         )
         {
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
+            if (metricLoggingOptions.Enabled.Value == false)
             {
-                throw new Exception($"Configuration option '{nameof(metricLoggingOptions.MetricLoggingEnabled)}' must be set true for the DistributedOperationRouterNode.");
+                throw new Exception($"Configuration option '{MetricLoggingOptions.MetricLoggingOptionsName}.{nameof(metricLoggingOptions.Enabled)}' must be set true for the DistributedOperationRouterNode.");
             }
             else
             {

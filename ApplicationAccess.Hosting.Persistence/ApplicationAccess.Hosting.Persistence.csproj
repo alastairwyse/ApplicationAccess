@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+    <Copyright>Copyright © Alastair Wyse 2025</Copyright>
+    <Description>Classes which write and read data associated with AccessManager classes to and from persistent storage, within a hosting environment.</Description>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Persistence.Sql\ApplicationAccess.Hosting.Persistence.Sql.csproj" />
+  </ItemGroup>
+
+</Project>

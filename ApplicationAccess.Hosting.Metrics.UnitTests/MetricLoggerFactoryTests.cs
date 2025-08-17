@@ -103,7 +103,7 @@ namespace ApplicationAccess.Hosting.Metrics.UnitTests
         {
             var testMetricLoggingOptions = new MetricLoggingOptions
             {
-                MetricLoggingEnabled = true, 
+                Enabled = true, 
                 OpenTelemetryConnection = new OpenTelemetryConnectionOptions()
                 {
                     Protocol = OpenTelemetryConnectionProtocol.HttpProtobuf, 
@@ -134,7 +134,7 @@ namespace ApplicationAccess.Hosting.Metrics.UnitTests
         {
             var testMetricLoggingOptions = new MetricLoggingOptions
             {
-                MetricLoggingEnabled = true,
+                Enabled = true,
                 OpenTelemetryConnection = new OpenTelemetryConnectionOptions()
                 {
                     Protocol = OpenTelemetryConnectionProtocol.HttpProtobuf,

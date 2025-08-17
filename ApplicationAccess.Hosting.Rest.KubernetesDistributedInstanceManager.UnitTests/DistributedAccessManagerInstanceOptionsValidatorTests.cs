@@ -260,7 +260,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
         {
             return new DistributedAccessManagerInstanceOptions
             {
-                SqlServerDatabaseConnection = new AccessManagerSqlDatabaseConnectionOptions
+                SqlServerDatabaseConnection = new SqlDatabaseConnectionOptions
                 {
                     DatabaseType = DatabaseType.SqlServer,
                     ConnectionParameters = new ConfigurationBuilder().Build().GetSection("EmptySection")

@@ -44,9 +44,12 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             (
                 @"
                 { 
-                    ""AccessManagerSqlDatabaseConnection"": {
-                        ""DatabaseType"": ""SqlServer""
+                    ""DatabaseConnection"": {
+                        ""SqlDatabaseConnection"": {
+                            ""DatabaseType"": ""SqlServer""
+                        }
                     }
+
                 }"
             );
 
@@ -55,7 +58,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
                 testSqlServerCredentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(testSqlServerLoginCredentials, testAppsettingsJson);
             });
 
-            Assert.That(e.Message, Does.StartWith($"JSON path 'AccessManagerSqlDatabaseConnection.ConnectionParameters' was not found in the specified 'appsettings.json' configuration."));
+            Assert.That(e.Message, Does.StartWith($"JSON path 'DatabaseConnection.SqlDatabaseConnection.ConnectionParameters' was not found in the specified 'appsettings.json' configuration."));
         }
 
         [Test]
@@ -65,12 +68,14 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             (
                 @"
                 { 
-                    ""AccessManagerSqlDatabaseConnection"": {
-                        ""DatabaseType"": ""SqlServer"", 
-                        ""ConnectionParameters"": {
-                            ""RetryCount"": 5,
-                            ""RetryInterval"": 10,
-                            ""OperationTimeout"": 0
+                    ""DatabaseConnection"": {
+                        ""SqlDatabaseConnection"": {
+                            ""DatabaseType"": ""SqlServer"", 
+                            ""ConnectionParameters"": {
+                                ""RetryCount"": 5,
+                                ""RetryInterval"": 10,
+                                ""OperationTimeout"": 0
+                            }
                         }
                     }
                 }"
@@ -79,13 +84,15 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             (
                 @"
                 { 
-                    ""AccessManagerSqlDatabaseConnection"": {
-                        ""DatabaseType"": ""SqlServer"", 
-                        ""ConnectionParameters"": {
-                            ""RetryCount"": 5,
-                            ""RetryInterval"": 10,
-                            ""OperationTimeout"": 0, 
-                            ""ConnectionString"": ""Data Source=127.0.0.1;Initial Catalog=applicationaccess_user_n2147483648;User ID=sa;Password=password;Encrypt=False;Authentication=SqlPassword""
+                    ""DatabaseConnection"": {
+                        ""SqlDatabaseConnection"": {
+                            ""DatabaseType"": ""SqlServer"", 
+                            ""ConnectionParameters"": {
+                                ""RetryCount"": 5,
+                                ""RetryInterval"": 10,
+                                ""OperationTimeout"": 0, 
+                                ""ConnectionString"": ""Data Source=127.0.0.1;Initial Catalog=applicationaccess_user_n2147483648;User ID=sa;Password=password;Encrypt=False;Authentication=SqlPassword""
+                            }
                         }
                     }
                 }"

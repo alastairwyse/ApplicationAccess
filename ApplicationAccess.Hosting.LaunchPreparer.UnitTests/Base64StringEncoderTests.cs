@@ -38,16 +38,18 @@ namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
             String testInputString = @"
             {
               ""AllowedHosts"": ""*"",
-              ""AccessManagerSqlDatabaseConnection"": {
-                ""DatabaseType"": ""SqlServer"",
-                ""ConnectionParameters"": {
-                  ""DataSource"": ""118.182.2.139"",
-                  ""InitialCatalog"": ""ApplicationAccess"",
-                  ""UserId"": ""sa"",
-                  ""Password"": ""mypassword"",
-                  ""RetryCount"": 10,
-                  ""RetryInterval"": 20,
-                  ""OperationTimeout"": 0
+              ""DatabaseConnection"": {
+                ""SqlDatabaseConnection"": {
+                  ""DatabaseType"": ""SqlServer"",
+                  ""ConnectionParameters"": {
+                      ""DataSource"": ""118.182.2.139"",
+                      ""InitialCatalog"": ""ApplicationAccess"",
+                      ""UserId"": ""sa"",
+                      ""Password"": ""mypassword"",
+                      ""RetryCount"": 10,
+                      ""RetryInterval"": 20,
+                      ""OperationTimeout"": 0
+                  }
                 }
               },
               ""EventBufferFlushing"": {
@@ -55,14 +57,14 @@ namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
                 ""FlushLoopInterval"": 30000
               },
               ""MetricLogging"": {
-                ""MetricLoggingEnabled"": false,
+                ""Enabled"": false,
                 ""MetricCategorySuffix"": """",
-                ""MetricBufferProcessing"": {
+                ""BufferProcessing"": {
                   ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
                   ""BufferSizeLimit"": 500,
                   ""DequeueOperationLoopInterval"": 30000
                 },
-                ""MetricsSqlDatabaseConnection"": {
+                ""SqlDatabaseConnection"": {
                 ""DatabaseType"": ""SqlServer"",
                 ""ConnectionParameters"": {
                   ""DataSource"": ""118.182.2.139"",

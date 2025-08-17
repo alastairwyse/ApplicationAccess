@@ -52,7 +52,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         #pragma warning disable 1591
 
         // Members passed in via dependency injection
-        protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
+        protected DatabaseConnectionOptions accessManagerDatabaseConnectionOptions;
         protected ShardConfigurationRefreshOptions shardConfigurationRefreshOptions;
         protected ShardConnectionOptions shardConnectionOptions;
         protected MetricLoggingOptions metricLoggingOptions;
@@ -81,7 +81,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         /// </summary>
         public DistributedOperationCoordinatorNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
+            IOptions<DatabaseConnectionOptions> accessManagerDatabaseConnectionOptions,
             IOptions<ShardConfigurationRefreshOptions> shardConfigurationRefreshOptions,
             IOptions<ShardConnectionOptions> shardConnectionOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -92,7 +92,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger
         ) : base(logger)
         {
-            this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
+            this.accessManagerDatabaseConnectionOptions = accessManagerDatabaseConnectionOptions.Value;
             this.shardConfigurationRefreshOptions = shardConfigurationRefreshOptions.Value;
             this.shardConnectionOptions = shardConnectionOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
@@ -113,7 +113,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             // Initialize the DistributedOperationCoordinatorNode constructor parameter members from configuration
             InitializeDistributedOperationCoordinatorNodeConstructorParameters
             (
-                accessManagerSqlDatabaseConnectionOptions,
+                accessManagerDatabaseConnectionOptions,
                 shardConfigurationRefreshOptions,
                 shardConnectionOptions, 
                 metricLoggingOptions,
@@ -136,7 +136,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
 
             // Start buffer flushing/processing
             //   Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StartMetricLogging();
             }
@@ -159,7 +159,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             logger.LogInformation($"Stopping {nameof(shardConfigurationRefreshStrategy)}...");
             shardConfigurationRefreshStrategy.Stop();
             logger.LogInformation($"Completed stopping {nameof(shardConfigurationRefreshStrategy)}.");
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StopMetricLogging();
             }
@@ -170,7 +170,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             }
             shardClientManager.Dispose();
             httpClient.Dispose();
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 DisposeMetricLogger();
             }
@@ -189,16 +189,16 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         /// </summary>
         protected void InitializeDistributedOperationCoordinatorNodeConstructorParameters
         (
-            AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions,
+            DatabaseConnectionOptions accessManagerDatabaseConnectionOptions,
             ShardConfigurationRefreshOptions shardConfigurationRefreshOptions,
             ShardConnectionOptions shardConnectionOptions,
             MetricLoggingOptions metricLoggingOptions,
             ILoggerFactory loggerFactory
         )
         {
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
+            if (metricLoggingOptions.Enabled.Value == false)
             {
-                throw new Exception($"Configuration option '{nameof(metricLoggingOptions.MetricLoggingEnabled)}' must be set true for the DistributedOperationCoordinatorNode." );
+                throw new Exception($"Configuration option '{MetricLoggingOptions.MetricLoggingOptionsName}.{nameof(metricLoggingOptions.Enabled)}' must be set true for the DistributedOperationCoordinatorNode." );
             }
             else
             {
@@ -245,23 +245,25 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 );
 
                 // Setup the persister to read the shard configuration
-                if (accessManagerSqlDatabaseConnectionOptions.DatabaseType != DatabaseType.SqlServer)
+                if (accessManagerDatabaseConnectionOptions.SqlDatabaseConnection == null)
                 {
-                    throw new Exception($"Configuration option '{nameof(accessManagerSqlDatabaseConnectionOptions.DatabaseType)}' must be set to '{DatabaseType.SqlServer}' for the DistributedOperationCoordinatorNode.");
+                    throw new Exception($"Configuration option '{nameof(DatabaseConnectionOptions.SqlDatabaseConnection)}' must be set for the DistributedOperationCoordinatorNode.");
                 }
-                var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
-                SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
+                if (accessManagerDatabaseConnectionOptions.SqlDatabaseConnection.DatabaseType != DatabaseType.SqlServer)
+                {
+                    throw new Exception($"Configuration option '{nameof(SqlDatabaseConnectionOptions.DatabaseType)}' must be set to '{DatabaseType.SqlServer}' for the DistributedOperationCoordinatorNode.");
+                }
+                var databaseConnectionParametersParser = new DatabaseConnectionOptionsParser();
+                DatabaseConnectionParameters databaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
-                    accessManagerSqlDatabaseConnectionOptions.DatabaseType.Value,
-                    accessManagerSqlDatabaseConnectionOptions.ConnectionParameters,
-                    AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName
+                    accessManagerDatabaseConnectionOptions
                 );
                 var shardConfigurationSetPersisterFactory = new SqlShardConfigurationSetPersisterFactory<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>
                 (
                     clientConfigurationJsonSerializer,
                     shardConfigurationSetPersisterLogger
                 );
-                shardConfigurationSetPersister = shardConfigurationSetPersisterFactory.GetPersister(databaseConnectionParameters);
+                shardConfigurationSetPersister = shardConfigurationSetPersisterFactory.GetPersister(databaseConnectionParameters.SqlDatabaseConnectionParameters);
                 var hashCodeGenerator = new DefaultStringHashCodeGenerator();
                 // Read the initial shard configuration
                 logger.LogInformation($"Reading initial shard configuration...");

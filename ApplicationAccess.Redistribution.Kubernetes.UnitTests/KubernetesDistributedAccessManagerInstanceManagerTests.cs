@@ -9062,12 +9062,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             V1Deployment capturedDeploymentDefinition = null;
             JObject expectedJsonConfiguration = CreateReaderNodeAppSettingsConfigurationTemplate();
-            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
+            expectedJsonConfiguration["DatabaseConnection"]["SqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
             expectedJsonConfiguration["EventCacheConnection"]["Host"] = eventCacheServiceUrl.ToString();
             expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
             mockAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Do<JObject>
             (
-                appSettingsConfig => appSettingsConfig["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString
+                appSettingsConfig => appSettingsConfig["DatabaseConnection"]["SqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString
             ));
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
 
@@ -9251,13 +9251,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             V1Deployment capturedDeploymentDefinition = null;
             JObject expectedJsonConfiguration = CreateWriterNodeAppSettingsConfigurationTemplate();
-            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
+            expectedJsonConfiguration["DatabaseConnection"]["SqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
             expectedJsonConfiguration["EventPersistence"]["EventPersisterBackupFilePath"] = "/eventbackup/user-writer-n2147483648-eventbackup.json";
             expectedJsonConfiguration["EventCacheConnection"]["Host"] = eventCacheServiceUrl.ToString();
             expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
             mockAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Do<JObject>
             (
-                appSettingsConfig => appSettingsConfig["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString
+                appSettingsConfig => appSettingsConfig["DatabaseConnection"]["SqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString
             ));
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
 
@@ -9339,11 +9339,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=AccessManagerConfiguration");
             V1Deployment capturedDeploymentDefinition = null;
             JObject expectedJsonConfiguration = CreateDistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate();
-            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
+            expectedJsonConfiguration["DatabaseConnection"]["SqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
             expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
             mockAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Do<JObject>
             (
-                appSettingsConfig => appSettingsConfig["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString
+                appSettingsConfig => appSettingsConfig["DatabaseConnection"]["SqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString
             ));
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
 
@@ -10243,12 +10243,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             String stringifiedAppSettings = @"
             {
-                ""AccessManagerSqlDatabaseConnection"": {
-                    ""DatabaseType"": ""SqlServer"",
-                    ""ConnectionParameters"": {
-                        ""RetryCount"": 10,
-                        ""RetryInterval"": 20,
-                        ""OperationTimeout"": 0
+                ""DatabaseConnection"":{
+                    ""SqlDatabaseConnection"": {
+                        ""DatabaseType"": ""SqlServer"",
+                        ""ConnectionParameters"": {
+                            ""RetryCount"": 10,
+                            ""RetryInterval"": 20,
+                            ""OperationTimeout"": 0
+                        }
                     }
                 },
                 ""EventCacheConnection"": {
@@ -10259,14 +10261,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ""RefreshInterval"": 30000
                 },
                 ""MetricLogging"": {
-                    ""MetricLoggingEnabled"": true,
-                    ""MetricBufferProcessing"": {
+                    ""Enabled"": true,
+                    ""BufferProcessing"": {
                         ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
                         ""BufferSizeLimit"": 500,
                         ""DequeueOperationLoopInterval"": 30000,
                         ""BufferProcessingFailureAction"": ""ReturnServiceUnavailable""
                     },
-                    ""MetricsSqlDatabaseConnection"": {
+                    ""SqlDatabaseConnection"": {
                         ""DatabaseType"": ""SqlServer"",
                         ""ConnectionParameters"": {
                             ""DataSource"": ""127.0.0.1"",
@@ -10296,14 +10298,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ""CachedEventCount"": 5000
                 },
                 ""MetricLogging"": {
-                    ""MetricLoggingEnabled"": false,
-                    ""MetricBufferProcessing"": {
+                    ""Enabled"": false,
+                    ""BufferProcessing"": {
                         ""BufferProcessingStrategy"": ""SizeLimitedBufferProcessor"",
                         ""BufferSizeLimit"": 501,
                         ""DequeueOperationLoopInterval"": 30001,
                         ""BufferProcessingFailureAction"": ""DisableMetricLogging""
                     },
-                    ""MetricsSqlDatabaseConnection"": {
+                    ""SqlDatabaseConnection"": {
                         ""DatabaseType"": ""SqlServer"",
                         ""ConnectionParameters"": {
                             ""DataSource"": ""127.0.0.1"",
@@ -10329,12 +10331,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             String stringifiedAppSettings = @"
             {
-                ""AccessManagerSqlDatabaseConnection"": {
-                    ""DatabaseType"": ""SqlServer"",
-                    ""ConnectionParameters"": {
-                        ""RetryCount"": 4,
-                        ""RetryInterval"": 5,
-                        ""OperationTimeout"": 120000
+                ""DatabaseConnection"":{
+                    ""SqlDatabaseConnection"": {
+                        ""DatabaseType"": ""SqlServer"",
+                        ""ConnectionParameters"": {
+                            ""RetryCount"": 4,
+                            ""RetryInterval"": 5,
+                            ""OperationTimeout"": 120000
+                        }
                     }
                 },
                 ""EventBufferFlushing"": {
@@ -10348,14 +10352,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ""RetryInterval"": 7
                 },
                 ""MetricLogging"": {
-                    ""MetricLoggingEnabled"": true,
-                    ""MetricBufferProcessing"": {
+                    ""Enabled"": true,
+                    ""BufferProcessing"": {
                         ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
                         ""BufferSizeLimit"": 1000,
                         ""DequeueOperationLoopInterval"": 45000,
                         ""BufferProcessingFailureAction"": ""ReturnServiceUnavailable""
                     },
-                    ""MetricsSqlDatabaseConnection"": {
+                    ""SqlDatabaseConnection"": {
                         ""DatabaseType"": ""SqlServer"",
                         ""ConnectionParameters"": {
                             ""DataSource"": ""127.0.0.1"",
@@ -10381,12 +10385,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             String stringifiedAppSettings = @"
             {
-                ""AccessManagerSqlDatabaseConnection"": {
-                    ""DatabaseType"": ""SqlServer"",
-                    ""ConnectionParameters"": {
-                        ""RetryCount"": 3,
-                        ""RetryInterval"": 9,
-                        ""OperationTimeout"": 120000
+                ""DatabaseConnection"":{
+                    ""SqlDatabaseConnection"": {
+                        ""DatabaseType"": ""SqlServer"",
+                        ""ConnectionParameters"": {
+                            ""RetryCount"": 3,
+                            ""RetryInterval"": 9,
+                            ""OperationTimeout"": 120000
+                        }
                     }
                 },
                 ""ShardConfigurationRefresh"": {
@@ -10398,14 +10404,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ""ConnectionTimeout"": 300000
                 },
                 ""MetricLogging"": {
-                    ""MetricLoggingEnabled"": true,
-                    ""MetricBufferProcessing"": {
+                    ""Enabled"": true,
+                    ""BufferProcessing"": {
                         ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
                         ""BufferSizeLimit"": 2000,
                         ""DequeueOperationLoopInterval"": 46000,
                         ""BufferProcessingFailureAction"": ""ReturnServiceUnavailable""
                     },
-                    ""MetricsSqlDatabaseConnection"": {
+                    ""SqlDatabaseConnection"": {
                         ""DatabaseType"": ""SqlServer"",
                         ""ConnectionParameters"": {
                             ""DataSource"": ""127.0.0.1"",
@@ -10439,14 +10445,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ""ConnectionTimeout"": 300000
                 },
                 ""MetricLogging"": {
-                    ""MetricLoggingEnabled"": true,
-                    ""MetricBufferProcessing"": {
+                    ""Enabled"": true,
+                    ""BufferProcessing"": {
                         ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
                         ""BufferSizeLimit"": 250,
                         ""DequeueOperationLoopInterval"": 2000,
                         ""BufferProcessingFailureAction"": ""ReturnServiceUnavailable""
                     },
-                    ""MetricsSqlDatabaseConnection"": {
+                    ""SqlDatabaseConnection"": {
                         ""DatabaseType"": ""SqlServer"",
                         ""ConnectionParameters"": {
                             ""DataSource"": ""127.0.0.1"",

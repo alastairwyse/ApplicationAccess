@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
+using System;
 using System.Collections.Generic;
 using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// An implementation of <see cref="IAccessManagerTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> which doesn't persist any events.
+    /// An implementation of <see cref="IAccessManagerTemporalBulkPersister{TUser, TGroup, TComponent, TAccess}"/> which doesn't persist any events.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    /// <remarks>Intended for use in testing... e.g. to test a ReaderNode or ReaderWriterNode in a memory-only context.</remarks>
-    public class NullAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>
+    /// <remarks>Intended for use in testing... e.g. to test a node in a memory-only context.</remarks>
+    public class NullAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.NullAccessManagerTemporalBulkPersister class.
@@ -37,8 +38,42 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <inheritdoc/>
+        public AccessManagerState Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        {
+            throw new PersistentStorageEmptyException($"Class '{this.GetType().Name}' cannot load.");
+        }
+
+        /// <inheritdoc/>
+        public AccessManagerState Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        {
+            throw new PersistentStorageEmptyException($"Class '{this.GetType().Name}' cannot load.");
+        }
+
+        /// <inheritdoc/>
+        public AccessManagerState Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        {
+            throw new PersistentStorageEmptyException($"Class '{this.GetType().Name}' cannot load.");
+        }
+
+        /// <inheritdoc/>
         public void PersistEvents(IList<TemporalEventBufferItemBase> events)
         {
         }
+
+        /// <inheritdoc/>
+        public void PersistEvents(IList<TemporalEventBufferItemBase> events, bool ignorePreExistingEvents)
+        {
+        }
+
+        #region Finalize / Dispose Methods
+
+        /// <summary>
+        /// Releases the unmanaged resources used by the NullAccessManagerTemporalBulkPersister.
+        /// </summary>
+        public void Dispose()
+        {
+        }
+
+        #endregion
     }
 }

@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using Microsoft.Extensions.Options;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.Options;
 using ApplicationAccess.Persistence.Sql.SqlServer;

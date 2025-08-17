@@ -27,15 +27,15 @@
 #
 # EXAMPLES
 #     .\Docker-Build.ps1 "EventCache" "C:\Temp\DockerBuild\EventCache\" "EventCache.tar" -IncludePdbFiles
-#     .\Docker-Build.ps1 "ReaderWriter" "C:\Temp\DockerBuild\ReaderWriter\" "ReaderWriter.tar"
+#     .\Docker-Build.ps1 "ReaderWriter" "C:\Temp\DockerBuild\ReaderWriter\" "ReaderWriter.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "ReaderWriterLite" "C:\Temp\DockerBuild\ReaderWriterLite\" "ReaderWriterLite.tar" -IncludePdbFiles
-#     .\Docker-Build.ps1 "DependencyFreeReaderWriter" "C:\Temp\DockerBuild\DependencyFreeReaderWriter\" "DependencyFreeReaderWriter.tar"
+#     .\Docker-Build.ps1 "DependencyFreeReaderWriter" "C:\Temp\DockerBuild\DependencyFreeReaderWriter\" "DependencyFreeReaderWriter.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "Reader" "C:\Temp\DockerBuild\Reader\" "Reader.tar" -IncludePdbFiles
-#     .\Docker-Build.ps1 "Writer" "C:\Temp\DockerBuild\Writer\" "Writer.tar"
+#     .\Docker-Build.ps1 "Writer" "C:\Temp\DockerBuild\Writer\" "Writer.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "DistributedReader" "C:\Temp\DockerBuild\DistributedReader\" "DistributedReader.tar" -IncludePdbFiles
-#     .\Docker-Build.ps1 "DistributedWriter" "C:\Temp\DockerBuild\DistributedWriter\" "DistributedWriter.tar"
-#     .\Docker-Build.ps1 "DistributedOperationCoordinator" "C:\Temp\DockerBuild\DistributedOperationCoordinator\" "DistributedOperationCoordinator.tar"
-#     .\Docker-Build.ps1 "DistributedOperationRouter" "C:\Temp\DockerBuild\DistributedOperationRouter\" "DistributedOperationRouter.tar"
+#     .\Docker-Build.ps1 "DistributedWriter" "C:\Temp\DockerBuild\DistributedWriter\" "DistributedWriter.tar" -IncludePdbFiles
+#     .\Docker-Build.ps1 "DistributedOperationCoordinator" "C:\Temp\DockerBuild\DistributedOperationCoordinator\" "DistributedOperationCoordinator.tar" -IncludePdbFiles
+#     .\Docker-Build.ps1 "DistributedOperationRouter" "C:\Temp\DockerBuild\DistributedOperationRouter\" "DistributedOperationRouter.tar" -IncludePdbFiles
 #
 # NOTES / TODO
 #     Currently the below command must be executed to allow the scripts to be run (without 

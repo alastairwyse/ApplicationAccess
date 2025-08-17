@@ -110,19 +110,19 @@ namespace ApplicationAccess.Hosting.Metrics
             else
             {
                 var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
-                if (metricLoggingOptions.MetricBufferProcessing.BufferProcessingFailureAction == MetricBufferProcessingFailureAction.ReturnServiceUnavailable)
+                if (metricLoggingOptions.BufferProcessing.BufferProcessingFailureAction == MetricBufferProcessingFailureAction.ReturnServiceUnavailable)
                 {
                     // Parameter 'metricLoggingComponentRetrievalFunction' is not used when 'processingFailureAction' is set to 'ReturnServiceUnavailable', hence can return null
                     metricLoggingComponentRetrievalFunction = () => { return null; };
                 }
                 Action<Exception> bufferProcessingExceptionAction = metricsBufferProcessorFactory.GetBufferProcessingExceptionAction
                 (
-                    metricLoggingOptions.MetricBufferProcessing.BufferProcessingFailureAction,
+                    metricLoggingOptions.BufferProcessing.BufferProcessingFailureAction,
                     metricLoggingComponentRetrievalFunction,
                     tripSwitchActuator,
                     metricBufferProcessorLogger
                 );
-                WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricLoggingOptions.MetricBufferProcessing, bufferProcessingExceptionAction, false);
+                WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricLoggingOptions.BufferProcessing, bufferProcessingExceptionAction, false);
                 var metricLoggerFactory = new SqlMetricLoggerFactory
                 (
                     categoryName,
@@ -134,9 +134,9 @@ namespace ApplicationAccess.Hosting.Metrics
                 var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
                 SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value,
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
+                    metricLoggingOptions.SqlDatabaseConnection.DatabaseType.Value,
+                    metricLoggingOptions.SqlDatabaseConnection.ConnectionParameters,
+                    SqlDatabaseConnectionOptions.SqlDatabaseConnectionOptionsName
                 );
                 IMetricLogger metricLogger = metricLoggerFactory.GetMetricLogger(metricsDatabaseConnectionParameters);
 

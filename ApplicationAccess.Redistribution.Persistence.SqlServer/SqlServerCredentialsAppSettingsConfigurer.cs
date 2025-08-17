@@ -28,7 +28,8 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
     {
         #pragma warning disable 1591
 
-        protected const String appsettingsAccessManagerSqlDatabaseConnectionPropertyName = "AccessManagerSqlDatabaseConnection";
+        protected const String appsettingsDatabaseConnectionPropertyName = "DatabaseConnection";
+        protected const String appsettingsSqlDatabaseConnectionPropertyName = "SqlDatabaseConnection";
         protected const String appsettingsConnectionParametersPropertyName = "ConnectionParameters";
         protected const String appsettingsConnectionStringPropertyName = "ConnectionString";
 
@@ -41,7 +42,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
         /// <param name="appsettingsJson">The 'appsettings.json' configuration.</param>
         public void ConfigureAppsettingsJsonWithPersistentStorageCredentials(SqlServerLoginCredentials persistentStorageCredentials, JObject appsettingsJson)
         {
-            String connectionParametersPath = $"{appsettingsAccessManagerSqlDatabaseConnectionPropertyName}.{appsettingsConnectionParametersPropertyName}";
+            String connectionParametersPath = $"{appsettingsDatabaseConnectionPropertyName}.{appsettingsSqlDatabaseConnectionPropertyName}.{appsettingsConnectionParametersPropertyName}";
             try
             {
                 appsettingsJson.SelectToken(connectionParametersPath, true);
@@ -51,7 +52,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
                 throw new Exception($"JSON path '{connectionParametersPath}' was not found in the specified 'appsettings.json' configuration.", e);
             }
 
-            appsettingsJson[appsettingsAccessManagerSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsConnectionStringPropertyName] = persistentStorageCredentials.ConnectionString;
+            appsettingsJson[appsettingsDatabaseConnectionPropertyName][appsettingsSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsConnectionStringPropertyName] = persistentStorageCredentials.ConnectionString;
         }
     }
 }

@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
@@ -42,9 +43,13 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 },
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
-                    builder.Services.AddOptions<AccessManagerSqlDatabaseConnectionOptions>()
-                        .Bind(builder.Configuration.GetSection(AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName))
+                    builder.Services.AddOptions<DatabaseConnectionOptions>()
+                        .Bind(builder.Configuration.GetSection(DatabaseConnectionOptions.DatabaseConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
+                    DatabaseConnectionOptions databaseConnectionOptions = new();
+                    builder.Configuration.GetSection(DatabaseConnectionOptions.DatabaseConnectionOptionsName).Bind(databaseConnectionOptions);
+                    DatabaseConnectionOptionsValidator validator = new();
+                    validator.Validate(databaseConnectionOptions);
                     builder.Services.AddOptions<EventCacheConnectionOptions>()
                         .Bind(builder.Configuration.GetSection(EventCacheConnectionOptions.EventCacheConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();

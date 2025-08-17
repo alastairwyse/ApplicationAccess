@@ -36,7 +36,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         }
 
         [Test]
-        public void Validate_MetricLoggingEnabledNull()
+        public void Validate_EnabledNull()
         {
             var testMetricLoggingOptions = new MetricLoggingOptions();
 
@@ -45,27 +45,27 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
                 testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options.  Configuration for 'MetricLoggingEnabled' is required."));
+            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options.  Configuration for 'Enabled' is required."));
         }
 
         [Test]
-        public void Validate_NeitherMetricsSqlDatabaseConnectionNorOpenTelemetryConnectionDefined()
+        public void Validate_NeitherSqlDatabaseConnectionNorOpenTelemetryConnectionDefined()
         {
-            var testMetricLoggingOptions = new MetricLoggingOptions() { MetricLoggingEnabled = true };
+            var testMetricLoggingOptions = new MetricLoggingOptions() { Enabled = true };
 
             var e = Assert.Throws<ValidationException>(delegate
             {
                 testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options.  Configuration for either section 'MetricsSqlDatabaseConnection' or section 'OpenTelemetryConnection' is required."));
+            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options.  Configuration for either section 'SqlDatabaseConnection' or section 'OpenTelemetryConnection' is required."));
         }
 
         [Test]
-        public void Validate_BothMetricsSqlDatabaseConnectionAndOpenTelemetryConnectionDefined()
+        public void Validate_BothSqlDatabaseConnectionAndOpenTelemetryConnectionDefined()
         {
-            var testMetricLoggingOptions = new MetricLoggingOptions() { MetricLoggingEnabled = true };
-            testMetricLoggingOptions.MetricsSqlDatabaseConnection = new MetricsSqlDatabaseConnectionOptions();
+            var testMetricLoggingOptions = new MetricLoggingOptions() { Enabled = true };
+            testMetricLoggingOptions.SqlDatabaseConnection = new SqlDatabaseConnectionOptions();
             testMetricLoggingOptions.OpenTelemetryConnection = new OpenTelemetryConnectionOptions();
 
             var e = Assert.Throws<ValidationException>(delegate
@@ -73,53 +73,32 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
                 testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options.  Configuration for either section 'MetricsSqlDatabaseConnection' or section 'OpenTelemetryConnection' must be provided, but not both."));
+            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options.  Configuration for either section 'SqlDatabaseConnection' or section 'OpenTelemetryConnection' must be provided, but not both."));
         }
 
         [Test]
-        public void Validate_MetricBufferProcessingNull()
+        public void Validate_BufferProcessingNull()
         {
-            var testMetricLoggingOptions = new MetricLoggingOptions() { MetricLoggingEnabled = true };
-            testMetricLoggingOptions.MetricsSqlDatabaseConnection = new MetricsSqlDatabaseConnectionOptions();
+            var testMetricLoggingOptions = new MetricLoggingOptions() { Enabled = true };
+            testMetricLoggingOptions.SqlDatabaseConnection = new SqlDatabaseConnectionOptions();
 
             var e = Assert.Throws<ValidationException>(delegate
             {
                 testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options.  Configuration for section 'MetricBufferProcessing' is required."));
+            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options.  Configuration for section 'BufferProcessing' is required."));
         }
 
         [Test]
-        public void Validate_MetricBufferProcessingBufferProcessingStrategyNull()
+        public void Validate_BufferProcessingBufferProcessingStrategyNull()
         {
-            var testMetricLoggingOptions = new MetricLoggingOptions() { MetricLoggingEnabled = true };
-            testMetricLoggingOptions.MetricsSqlDatabaseConnection = new MetricsSqlDatabaseConnectionOptions();
-            testMetricLoggingOptions.MetricBufferProcessing = new MetricBufferProcessingOptions();
-            testMetricLoggingOptions.MetricBufferProcessing.BufferSizeLimit = 5;
-            testMetricLoggingOptions.MetricBufferProcessing.DequeueOperationLoopInterval = 1000;
-            testMetricLoggingOptions.MetricBufferProcessing.BufferProcessingFailureAction = MetricBufferProcessingFailureAction.ReturnServiceUnavailable;
-
-            var e = Assert.Throws<ValidationException>(delegate
-            {
-                testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options."));
-            Assert.That(e.InnerException.Message, Does.StartWith($"Error validating MetricBufferProcessing options.  Configuration for 'BufferProcessingStrategy' is required."));
-        }
-
-        [Test]
-        public void Validate_MetricsSqlDatabaseConnectionDatabaseTypeNull()
-        {
-            var testMetricLoggingOptions = new MetricLoggingOptions() { MetricLoggingEnabled = true };
-            testMetricLoggingOptions.MetricsSqlDatabaseConnection = new MetricsSqlDatabaseConnectionOptions();
-            testMetricLoggingOptions.MetricBufferProcessing = new MetricBufferProcessingOptions();
-            testMetricLoggingOptions.MetricBufferProcessing.BufferSizeLimit = 5;
-            testMetricLoggingOptions.MetricBufferProcessing.DequeueOperationLoopInterval = 1000;
-            testMetricLoggingOptions.MetricBufferProcessing.BufferProcessingFailureAction = MetricBufferProcessingFailureAction.ReturnServiceUnavailable;
-            testMetricLoggingOptions.MetricBufferProcessing.BufferProcessingStrategy = MetricBufferProcessingStrategyImplementation.LoopingWorkerThreadBufferProcessor;
-            testMetricLoggingOptions.MetricsSqlDatabaseConnection = new MetricsSqlDatabaseConnectionOptions();
+            var testMetricLoggingOptions = new MetricLoggingOptions() { Enabled = true };
+            testMetricLoggingOptions.SqlDatabaseConnection = new SqlDatabaseConnectionOptions();
+            testMetricLoggingOptions.BufferProcessing = new MetricBufferProcessingOptions();
+            testMetricLoggingOptions.BufferProcessing.BufferSizeLimit = 5;
+            testMetricLoggingOptions.BufferProcessing.DequeueOperationLoopInterval = 1000;
+            testMetricLoggingOptions.BufferProcessing.BufferProcessingFailureAction = MetricBufferProcessingFailureAction.ReturnServiceUnavailable;
 
             var e = Assert.Throws<ValidationException>(delegate
             {
@@ -127,13 +106,33 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options."));
-            Assert.That(e.InnerException.Message, Does.StartWith($"Configuration for 'DatabaseType' is required."));
+            Assert.That(e.InnerException.Message, Does.StartWith($"Error validating BufferProcessing options.  Configuration for 'BufferProcessingStrategy' is required."));
+        }
+
+        [Test]
+        public void Validate_SqlDatabaseConnectionDatabaseTypeNull()
+        {
+            var testMetricLoggingOptions = new MetricLoggingOptions() { Enabled = true };
+            testMetricLoggingOptions.SqlDatabaseConnection = new SqlDatabaseConnectionOptions();
+            testMetricLoggingOptions.BufferProcessing = new MetricBufferProcessingOptions();
+            testMetricLoggingOptions.BufferProcessing.BufferSizeLimit = 5;
+            testMetricLoggingOptions.BufferProcessing.DequeueOperationLoopInterval = 1000;
+            testMetricLoggingOptions.BufferProcessing.BufferProcessingFailureAction = MetricBufferProcessingFailureAction.ReturnServiceUnavailable;
+            testMetricLoggingOptions.BufferProcessing.BufferProcessingStrategy = MetricBufferProcessingStrategyImplementation.LoopingWorkerThreadBufferProcessor;
+
+            var e = Assert.Throws<ValidationException>(delegate
+            {
+                testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options."));
+            Assert.That(e.InnerException.Message, Does.StartWith($"Error validating SqlDatabaseConnection options.  Configuration for 'DatabaseType' is required."));
         }
 
         [Test]
         public void Validate_OpenTelemetryConnectionProtocolNull()
         {
-            var testMetricLoggingOptions = new MetricLoggingOptions() { MetricLoggingEnabled = true };
+            var testMetricLoggingOptions = new MetricLoggingOptions() { Enabled = true };
             testMetricLoggingOptions.OpenTelemetryConnection = new OpenTelemetryConnectionOptions();
 
             var e = Assert.Throws<ValidationException>(delegate
@@ -148,12 +147,12 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         [Test]
         public void Validate_MetricLoggingDisabled()
         {
-            var testMetricLoggingOptions = new MetricLoggingOptions() { MetricLoggingEnabled = false };
+            var testMetricLoggingOptions = new MetricLoggingOptions() { Enabled = false };
 
             testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);
 
 
-            testMetricLoggingOptions.MetricsSqlDatabaseConnection = new MetricsSqlDatabaseConnectionOptions();
+            testMetricLoggingOptions.SqlDatabaseConnection = new SqlDatabaseConnectionOptions();
             testMetricLoggingOptions.OpenTelemetryConnection = new OpenTelemetryConnectionOptions();
 
             testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);

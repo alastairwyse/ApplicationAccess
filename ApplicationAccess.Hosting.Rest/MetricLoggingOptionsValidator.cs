@@ -23,17 +23,20 @@ namespace ApplicationAccess.Hosting.Rest
     /// <summary>
     /// Validates a <see cref="MetricLoggingOptions"/> instance.
     /// </summary>
-    public class MetricLoggingOptionsValidator
+    public class MetricLoggingOptionsValidator : OptionsValidatorBase
     {
-        /// <summary>Contains utility method for Options classes.</summary>
-        protected OptionsUtilities optionsUtilities;
+        /// <inheritdoc/>
+        protected override String OptionsName 
+        { 
+            get { return MetricLoggingOptions.MetricLoggingOptionsName; }
+        }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.MetricLoggingOptionsValidator class.
         /// </summary>
         public MetricLoggingOptionsValidator()
+            : base()
         {
-            optionsUtilities = new OptionsUtilities();
         }
 
         /// <summary>
@@ -45,41 +48,41 @@ namespace ApplicationAccess.Hosting.Rest
             // Validate data annotations in the top level object
             var validationContext = new ValidationContext(metricLoggingOptions);
             Validator.ValidateObject(metricLoggingOptions, validationContext, true);
-            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            if (metricLoggingOptions.Enabled == false)
             {
                 return;
             }
 
-            if (metricLoggingOptions.MetricsSqlDatabaseConnection == null && metricLoggingOptions.OpenTelemetryConnection == null)
+            if (metricLoggingOptions.SqlDatabaseConnection == null && metricLoggingOptions.OpenTelemetryConnection == null)
             {
                 // Both 'Connection' configuration settings are missing
-                throw new ValidationException($"{GenerateExceptionMessagePrefix()}  Configuration for either section '{MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName}' or section '{OpenTelemetryConnectionOptions.OpenTelemetryConnectionOptionsName}' is required.");
+                throw new ValidationException($"{GenerateExceptionMessagePrefix()}  Configuration for either section '{SqlDatabaseConnectionOptions.SqlDatabaseConnectionOptionsName}' or section '{OpenTelemetryConnectionOptions.OpenTelemetryConnectionOptionsName}' is required.");
             }
-            else if (metricLoggingOptions.MetricsSqlDatabaseConnection != null && metricLoggingOptions.OpenTelemetryConnection != null)
+            else if (metricLoggingOptions.SqlDatabaseConnection != null && metricLoggingOptions.OpenTelemetryConnection != null)
             {
                 // Both 'Connection' configuration settings are set (can only have one)
-                throw new ValidationException($"{GenerateExceptionMessagePrefix()}  Configuration for either section '{MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName}' or section '{OpenTelemetryConnectionOptions.OpenTelemetryConnectionOptionsName}' must be provided, but not both.");
+                throw new ValidationException($"{GenerateExceptionMessagePrefix()}  Configuration for either section '{SqlDatabaseConnectionOptions.SqlDatabaseConnectionOptionsName}' or section '{OpenTelemetryConnectionOptions.OpenTelemetryConnectionOptionsName}' must be provided, but not both.");
             }
-            else if (metricLoggingOptions.MetricsSqlDatabaseConnection != null)
+            else if (metricLoggingOptions.SqlDatabaseConnection != null)
             {
                 // SQL database connection configured
-                if (metricLoggingOptions.MetricBufferProcessing == null)
+                if (metricLoggingOptions.BufferProcessing == null)
                 {
-                    throw new ValidationException($"{GenerateExceptionMessagePrefix()}  Configuration for section '{nameof(metricLoggingOptions.MetricBufferProcessing)}' is required.");
+                    throw new ValidationException($"{GenerateExceptionMessagePrefix()}  Configuration for section '{nameof(metricLoggingOptions.BufferProcessing)}' is required.");
                 }
-                validationContext = new ValidationContext(metricLoggingOptions.MetricBufferProcessing);
+                validationContext = new ValidationContext(metricLoggingOptions.BufferProcessing);
                 try
                 {
-                    Validator.ValidateObject(metricLoggingOptions.MetricBufferProcessing, validationContext, true);
+                    Validator.ValidateObject(metricLoggingOptions.BufferProcessing, validationContext, true);
                 }
                 catch (Exception e)
                 {
                     throw new ValidationException(GenerateExceptionMessagePrefix(), e);
                 }
-                validationContext = new ValidationContext(metricLoggingOptions.MetricsSqlDatabaseConnection);
+                validationContext = new ValidationContext(metricLoggingOptions.SqlDatabaseConnection);
                 try
                 {
-                    Validator.ValidateObject(metricLoggingOptions.MetricsSqlDatabaseConnection, validationContext, true);
+                    Validator.ValidateObject(metricLoggingOptions.SqlDatabaseConnection, validationContext, true);
                 }
                 catch (Exception e)
                 {
@@ -99,18 +102,5 @@ namespace ApplicationAccess.Hosting.Rest
                 }
             }
         }
-
-        #region Private/Protected Methods
-
-        #pragma warning disable 1591
-
-        protected String GenerateExceptionMessagePrefix()
-        {
-            return optionsUtilities.GenerateValidationExceptionMessagePrefix(MetricLoggingOptions.MetricLoggingOptionsName);
-        }
-
-        #pragma warning restore 1591
-
-        #endregion
     }
 }

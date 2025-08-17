@@ -26,7 +26,7 @@ namespace ApplicationAccess.Hosting.Models.Options
     {
         #pragma warning disable 0649
 
-        public const String MetricBufferProcessingOptionsName = "MetricBufferProcessing";
+        public const String MetricBufferProcessingOptionsName = "BufferProcessing";
 
         protected const String ValidationErrorMessagePrefix = $"Error validating {MetricBufferProcessingOptionsName} options";
 

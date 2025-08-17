@@ -24,15 +24,19 @@ namespace ApplicationAccess.Hosting.Models.Options
     /// Container class storing generic options for connecting SQL Server databases, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
     /// </summary>
     /// <remarks>Property <see cref="SqlDatabaseConnectionOptions.ConnectionParameters"/> is stored as type <see cref="IConfigurationSection"/> as the specific child parameters will vary depending on the database type.</remarks>
-    public abstract class SqlDatabaseConnectionOptions
+    public class SqlDatabaseConnectionOptions
     {
         #pragma warning disable 0649
         #pragma warning disable 8618
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(DatabaseType)}' is required.")]
+        public const String SqlDatabaseConnectionOptionsName = "SqlDatabaseConnection";
+
+        protected const String ValidationErrorMessagePrefix = $"Error validating {SqlDatabaseConnectionOptionsName} options";
+
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DatabaseType)}' is required.")]
         public DatabaseType? DatabaseType { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(ConnectionParameters)}' is required.")]
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(ConnectionParameters)}' is required.")]
         public IConfigurationSection ConnectionParameters { get; set; }
 
         public SqlDatabaseConnectionOptions()

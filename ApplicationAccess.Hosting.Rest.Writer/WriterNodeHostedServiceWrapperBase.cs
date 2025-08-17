@@ -52,7 +52,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         #pragma warning disable 1591
 
         // Members passed in via dependency injection
-        protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
+        protected DatabaseConnectionOptions accessManagerDatabaseConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
         protected EventPersistenceOptions eventPersistenceOptions;
         protected EventCacheConnectionOptions eventCacheConnectionOptions;
@@ -81,7 +81,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         /// </summary>
         public WriterNodeHostedServiceWrapperBase
         (
-            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
+            IOptions<DatabaseConnectionOptions> accessManagerDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<EventPersistenceOptions> eventPersistenceOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
@@ -95,7 +95,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             ILogger<WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager, TBufferFlushStrategy>> logger
         ) : base(logger)
         {
-            this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
+            this.accessManagerDatabaseConnectionOptions = accessManagerDatabaseConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
             this.eventPersistenceOptions = eventPersistenceOptions.Value;
             this.eventCacheConnectionOptions = eventCacheConnectionOptions.Value;
@@ -119,7 +119,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             // Initialize the WriterNode constructor parameter members from configuration
             InitializeWriterNodeConstructorParameters
             (
-                accessManagerSqlDatabaseConnectionOptions,
+                accessManagerDatabaseConnectionOptions,
                 eventBufferFlushingOptions,
                 eventCacheConnectionOptions,
                 metricLoggingOptions,
@@ -127,7 +127,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             );
 
             // Create the WriterNode
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
+            if (metricLoggingOptions.Enabled.Value == false)
             {
                 writerNode = InitializeWriterNode();
             }
@@ -142,7 +142,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             logger.LogInformation($"Completed constructing WriterNode instance.");
 
             // Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StartMetricLogging();
             }
@@ -165,13 +165,13 @@ namespace ApplicationAccess.Hosting.Rest.Writer
 
             // Stop and clear buffer flushing/processing
             StopEventBufferProcessing();
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
             DisposeEventBufferProcessors();
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 DisposeMetricLogger();
             }
@@ -191,7 +191,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         /// </summary>
         protected void InitializeWriterNodeConstructorParameters
         (
-            AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions,
+            DatabaseConnectionOptions accessManagerDatabaseConnectionOptions,
             EventBufferFlushingOptions eventBufferFlushingOptions,
             EventCacheConnectionOptions eventCacheConnectionOptions,
             MetricLoggingOptions metricLoggingOptions,
@@ -209,12 +209,10 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 loggerFactory.CreateLogger<IAccessManagerTemporalBulkPersister<String, String, String, String>>()
             );
 
-            var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
-            SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
+            var databaseConnectionParametersParser = new DatabaseConnectionOptionsParser();
+            DatabaseConnectionParameters databaseConnectionParameters = databaseConnectionParametersParser.Parse
             (
-                accessManagerSqlDatabaseConnectionOptions.DatabaseType.Value,
-                accessManagerSqlDatabaseConnectionOptions.ConnectionParameters,
-                AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName
+                accessManagerDatabaseConnectionOptions
             );
 
             Uri eventCacheClientBaseUri = null;
@@ -239,9 +237,9 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 {
                 }
             };
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
+            if (metricLoggingOptions.Enabled.Value == false)
             {
-                var eventPersisterFactory = new SqlAccessManagerTemporalBulkPersisterFactory<String, String, String, String>
+                var eventPersisterFactory = new AccessManagerTemporalBulkPersisterFactory<String, String, String, String>
                 (
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
@@ -278,7 +276,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     IntervalMetricBaseTimeUnit.Nanosecond,
                     true
                 );
-                var eventPersisterFactory = new SqlAccessManagerTemporalBulkPersisterFactory<String, String, String, String>
+                var eventPersisterFactory = new AccessManagerTemporalBulkPersisterFactory<String, String, String, String>
                 (
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),

@@ -129,7 +129,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
 
             logger.LogInformation($"Completed constructing KubernetesDistributedInstanceManagerNode instance.");
 
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StartMetricLogging();
             }
@@ -144,14 +144,14 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         {
             logger.LogInformation($"Stopping {this.GetType().Name}...");
 
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
             kubernetesDistributedInstanceManagerNode.Dispose();
             kubernetesDistributedInstanceManager.Dispose();
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            if (metricLoggingOptions.Enabled.Value == true)
             {
                 DisposeMetricLogger();
             }
@@ -181,7 +181,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         {
             // Create metric logger
             metricLogger = new NullMetricLogger();
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.Enabled == true)
             {
                 String fullMetricLoggerCategoryName = metricLoggerCategoryName;
                 if (metricLoggingOptions.MetricCategorySuffix != "")
@@ -214,7 +214,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
             (
                 distributedAccessManagerInstanceOptions.SqlServerDatabaseConnection.DatabaseType.Value,
                 distributedAccessManagerInstanceOptions.SqlServerDatabaseConnection.ConnectionParameters,
-                AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName
+                SqlDatabaseConnectionOptions.SqlDatabaseConnectionOptionsName
             );
 
             // Create static configuration

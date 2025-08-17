@@ -50,7 +50,7 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
                 Validator.ValidateObject(testMetricBufferProcessingOptions, validationContext, true);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricBufferProcessing options.  Configuration for 'BufferProcessingStrategy' is required."));
+            Assert.That(e.Message, Does.StartWith($"Error validating BufferProcessing options.  Configuration for 'BufferProcessingStrategy' is required."));
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
                 Validator.ValidateObject(testMetricBufferProcessingOptions, validationContext, true);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricBufferProcessing options.  Configuration for 'BufferSizeLimit' is required."));
+            Assert.That(e.Message, Does.StartWith($"Error validating BufferProcessing options.  Configuration for 'BufferSizeLimit' is required."));
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
                 Validator.ValidateObject(testMetricBufferProcessingOptions, validationContext, true);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricBufferProcessing options.  Value for 'BufferSizeLimit' must be between 1 and 2147483647."));
+            Assert.That(e.Message, Does.StartWith($"Error validating BufferProcessing options.  Value for 'BufferSizeLimit' must be between 1 and 2147483647."));
         }
 
         [Test]
@@ -92,7 +92,7 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
                 Validator.ValidateObject(testMetricBufferProcessingOptions, validationContext, true);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricBufferProcessing options.  Configuration for 'DequeueOperationLoopInterval' is required."));
+            Assert.That(e.Message, Does.StartWith($"Error validating BufferProcessing options.  Configuration for 'DequeueOperationLoopInterval' is required."));
         }
 
         [Test]
@@ -106,7 +106,7 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
                 Validator.ValidateObject(testMetricBufferProcessingOptions, validationContext, true);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Error validating MetricBufferProcessing options.  Value for 'DequeueOperationLoopInterval' must be between 1 and 2147483647."));
+            Assert.That(e.Message, Does.StartWith($"Error validating BufferProcessing options.  Value for 'DequeueOperationLoopInterval' must be between 1 and 2147483647."));
         }
     }
 }

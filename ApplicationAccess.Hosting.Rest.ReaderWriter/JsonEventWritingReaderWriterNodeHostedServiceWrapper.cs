@@ -37,7 +37,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
     public class JsonEventWritingReaderWriterNodeHostedServiceWrapper : IHostedService
     {
         // Members passed in via dependency injection
-        protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
+        protected DatabaseConnectionOptions accessManagerDatabaseConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
         protected MetricLoggingOptions metricLoggingOptions;
         protected EntityEventProcessorHolder entityEventProcessorHolder;
@@ -67,7 +67,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// </summary>
         public JsonEventWritingReaderWriterNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
+            IOptions<DatabaseConnectionOptions> accessManagerDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
             EntityEventProcessorHolder entityEventProcessorHolder,
@@ -82,7 +82,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             ILogger<ReaderWriterNodeHostedServiceWrapper> logger
         )
         {
-            this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
+            this.accessManagerDatabaseConnectionOptions = accessManagerDatabaseConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
             this.entityEventProcessorHolder = entityEventProcessorHolder;
@@ -107,7 +107,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             // Initialize the ReaderWriterNode constructor parameter members from configuration
             InitializeReaderWriterNodeConstructorParameters
             (
-                accessManagerSqlDatabaseConnectionOptions,
+                accessManagerDatabaseConnectionOptions,
                 eventBufferFlushingOptions,
                 metricLoggingOptions,
                 loggerFactory
@@ -192,7 +192,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// </summary>
         protected void InitializeReaderWriterNodeConstructorParameters
         (
-            AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions,
+            DatabaseConnectionOptions accessManagerDatabaseConnectionOptions,
             EventBufferFlushingOptions eventBufferFlushingOptions,
             MetricLoggingOptions metricLoggingOptions,
             ILoggerFactory loggerFactory

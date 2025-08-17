@@ -33,6 +33,7 @@
     <ProjectReference Include="..\ApplicationAccess.Hosting.Metrics\ApplicationAccess.Hosting.Metrics.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Persistence.Sql\ApplicationAccess.Hosting.Persistence.Sql.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Persistence\ApplicationAccess.Hosting.Persistence.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Client\ApplicationAccess.Hosting.Rest.Client.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Utilities\ApplicationAccess.Hosting.Rest.Utilities.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj" />
