@@ -229,6 +229,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 DeploymentWaitPollingInterval = staticConfigurationOptions.DeploymentWaitPollingInterval.Value,
                 ServiceAvailabilityWaitAbortTimeout = staticConfigurationOptions.ServiceAvailabilityWaitAbortTimeout.Value,
                 DistributedOperationCoordinatorRefreshIntervalWaitBuffer = staticConfigurationOptions.DistributedOperationCoordinatorRefreshIntervalWaitBuffer.Value,
+                SetReaderWriterNodePersistentStorageCredentials = staticConfigurationOptions.SetReaderWriterNodePersistentStorageCredentials,
                 ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
                 {
                     ReplicaCount = staticConfigurationOptions.ReaderNodeConfigurationTemplate.ReplicaCount.Value,

@@ -9108,6 +9108,56 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public async Task CreateReaderNodeDeploymentAsync_SetReaderWriterNodePersistentStorageCredentialsFalse()
+        {
+            String name = "user-reader-n2147483648";
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration() with { SetReaderWriterNodePersistentStorageCredentials = false };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockPersistentStorageInstanceRandomNameGenerator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            V1Deployment capturedDeploymentDefinition = null;
+            JObject expectedJsonConfiguration = CreateReaderNodeAppSettingsConfigurationTemplate();
+            expectedJsonConfiguration["EventCacheConnection"]["Host"] = eventCacheServiceUrl.ToString();
+            expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
+            await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+
+            mockAppSettingsConfigurer.DidNotReceive().ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
+            Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
+            Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Metadata.Name);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Replicas);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Selector.MatchLabels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Selector.MatchLabels["app"]);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Template.Metadata.Labels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Metadata.Labels["app"]);
+            Assert.AreEqual(3600, capturedDeploymentDefinition.Spec.Template.Spec.TerminationGracePeriodSeconds);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers.Count);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Name);
+            Assert.AreEqual("applicationaccess/distributedreader:20250203-0900", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Image);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports.Count);
+            Assert.AreEqual(5000, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort);
+            Assert.AreEqual(4, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env.Count);
+            IList<V1EnvVar> deploymentEnvironmentVarriables = capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env;
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MODE", "Launch")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("LISTEN_PORT", "5000")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MINIMUM_LOG_LEVEL", "Warning")));
+            ValidateEncodedJsonEnvironmentVariable(deploymentEnvironmentVarriables, expectedJsonConfiguration);
+            Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
+            Assert.AreEqual(new ResourceQuantity("100m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
+            Assert.AreEqual(new ResourceQuantity("120Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
+            Assert.AreEqual("/api/v1/status", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].LivenessProbe.HttpGet.Path);
+            Assert.AreEqual($"""5000""", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].LivenessProbe.HttpGet.Port.Value);
+            Assert.AreEqual(10, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].LivenessProbe.PeriodSeconds);
+            Assert.AreEqual("/api/v1/status", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.HttpGet.Path);
+            Assert.AreEqual($"""5000""", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.HttpGet.Port.Value);
+            Assert.AreEqual(12, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.FailureThreshold);
+            Assert.AreEqual(11, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.PeriodSeconds);
+        }
+
+        [Test]
         public void CreateEventCacheNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
         {
             String name = "user-eventcache-n2147483648";
@@ -9264,6 +9314,56 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
 
             mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
+            Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
+            Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Metadata.Name);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Replicas);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Selector.MatchLabels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Selector.MatchLabels["app"]);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Template.Metadata.Labels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Metadata.Labels["app"]);
+            Assert.AreEqual("eventbackup-storage", capturedDeploymentDefinition.Spec.Template.Spec.Volumes[0].Name);
+            Assert.AreEqual("eventbackup-claim", capturedDeploymentDefinition.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName);
+            Assert.AreEqual(1200, capturedDeploymentDefinition.Spec.Template.Spec.TerminationGracePeriodSeconds);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers.Count);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Name);
+            Assert.AreEqual("applicationaccess/distributedwriter:20250203-0900", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Image);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports.Count);
+            Assert.AreEqual(5000, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort);
+            Assert.AreEqual(4, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env.Count);
+            IList<V1EnvVar> deploymentEnvironmentVarriables = capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env;
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MODE", "Launch")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("LISTEN_PORT", "5000")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MINIMUM_LOG_LEVEL", "Critical")));
+            ValidateEncodedJsonEnvironmentVariable(deploymentEnvironmentVarriables, expectedJsonConfiguration);
+            Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
+            Assert.AreEqual(new ResourceQuantity("200m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
+            Assert.AreEqual(new ResourceQuantity("240Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
+            Assert.AreEqual("/eventbackup", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath);
+            Assert.AreEqual("eventbackup-storage", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].VolumeMounts[0].Name);
+            Assert.AreEqual(7, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.FailureThreshold);
+            Assert.AreEqual(5, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.PeriodSeconds);
+        }
+
+        [Test]
+        public async Task CreateWriterNodeDeploymentAsync_SetReaderWriterNodePersistentStorageCredentialsFalse()
+        {
+            String name = "user-writer-n2147483648";
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration() with { SetReaderWriterNodePersistentStorageCredentials = false };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageManager, mockPersistentStorageInstanceRandomNameGenerator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            V1Deployment capturedDeploymentDefinition = null;
+            JObject expectedJsonConfiguration = CreateWriterNodeAppSettingsConfigurationTemplate();
+            expectedJsonConfiguration["EventPersistence"]["EventPersisterBackupFilePath"] = "/eventbackup/user-writer-n2147483648-eventbackup.json";
+            expectedJsonConfiguration["EventCacheConnection"]["Host"] = eventCacheServiceUrl.ToString();
+            expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
+            await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+
+            mockAppSettingsConfigurer.DidNotReceive().ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
             Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
@@ -10165,12 +10265,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             {
                 PodPort = 5000,
                 ExternalPort = 7000,
-                NameSpace = testNameSpace, 
+                NameSpace = testNameSpace,
                 PersistentStorageInstanceNamePrefix = "applicationaccesstest",
                 LoadBalancerServicesHttps = false,
                 DeploymentWaitPollingInterval = 100,
                 ServiceAvailabilityWaitAbortTimeout = 5000,
                 DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 1000,
+                SetReaderWriterNodePersistentStorageCredentials = true,
                 ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
                 {
                     ReplicaCount = 1,

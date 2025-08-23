@@ -54,6 +54,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
         /// </summary>
         public required Int32 DistributedOperationCoordinatorRefreshIntervalWaitBuffer { get; init; }
 
+        /// <summary>Whether the reader and writer node appsettings configuration should be updated with credentials from the <see cref="KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration{TPersistentStorageCredentials}.ShardConfigurationPersistentStorageCredentials">ShardConfigurationPersistentStorageCredentials</see> configuration.</summary>
+        /// <remarks>Generally this should be set true, however it should be set false if no appsettings 'DatabaseConnection' details for the reader and writer nodes are specified (i.e. when data persistence is disabled).</remarks>
+        public required Boolean SetReaderWriterNodePersistentStorageCredentials { get; init; }
+
         /// <summary>Base/template for configuration of reader node pods/deployments within the distributed AccessManager implementation.</summary>
         public required ReaderNodeConfiguration ReaderNodeConfigurationTemplate { get; init; }
 

@@ -77,8 +77,15 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DistributedOperationRouterNodeConfigurationTemplate)}' is required.")]
         public DistributedOperationRouterNodeConfigurationTemplateOptions DistributedOperationRouterNodeConfigurationTemplate { get; set; }
 
-        #pragma warning restore 1591
+        public Boolean SetReaderWriterNodePersistentStorageCredentials { get; set; }
 
+        public StaticConfigurationOptions()
+        {
+            SetReaderWriterNodePersistentStorageCredentials = true;
+        }
+
+        #pragma warning restore 1591
+    
         #pragma warning restore 0649
     }
 }

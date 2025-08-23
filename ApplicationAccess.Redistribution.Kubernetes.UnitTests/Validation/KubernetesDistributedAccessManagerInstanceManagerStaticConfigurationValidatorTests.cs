@@ -49,6 +49,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 DeploymentWaitPollingInterval = 100,
                 ServiceAvailabilityWaitAbortTimeout = 5000,
                 DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 1000,
+                SetReaderWriterNodePersistentStorageCredentials = true, 
                 ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
                 {
                     ReplicaCount = 1,

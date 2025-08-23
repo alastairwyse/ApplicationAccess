@@ -2989,7 +2989,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for reader nodes");
             appsettingsContents[appsettingsEventCacheConnectionPropertyName][appsettingsHostPropertyName] = eventCacheServiceUrl.ToString();
             appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
-            credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(persistentStorageCredentials, appsettingsContents);
+            if (staticConfiguration.SetReaderWriterNodePersistentStorageCredentials == true)
+            {
+                credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(persistentStorageCredentials, appsettingsContents);
+            }
             var encoder = new Base64StringEncoder();
             var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
 
@@ -3073,7 +3076,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             appsettingsContents[appsettingsEventPersistencePropertyName][appsettingsEventPersisterBackupFilePathPropertyName] = $"{eventBackupVolumeMountPath}/{name}{eventBackupFilePostfix}.json";
             appsettingsContents[appsettingsEventCacheConnectionPropertyName][appsettingsHostPropertyName] = eventCacheServiceUrl.ToString();
             appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
-            credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(persistentStorageCredentials, appsettingsContents);
+            if (staticConfiguration.SetReaderWriterNodePersistentStorageCredentials == true)
+            {
+                credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(persistentStorageCredentials, appsettingsContents);
+            }
             var encoder = new Base64StringEncoder();
             var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
 
