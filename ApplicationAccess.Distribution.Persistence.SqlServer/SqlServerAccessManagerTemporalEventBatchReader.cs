@@ -810,7 +810,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         protected void DeleteUserEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
         {
             List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
-            storedProcedureExecutor.Execute(deleteUserEventsStoredProcedureName, parameters);
+            storedProcedureExecutor.ExecuteWithDeadlockRetry(deleteUserEventsStoredProcedureName, parameters);
         }
 
         /// <summary>
@@ -821,7 +821,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         protected void DeleteGroupEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
         {
             List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
-            storedProcedureExecutor.Execute(deleteGroupEventsStoredProcedureName, parameters);
+            storedProcedureExecutor.ExecuteWithDeadlockRetry(deleteGroupEventsStoredProcedureName, parameters);
         }
 
         /// <summary>
@@ -832,7 +832,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         protected void DeleteUserToGroupMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
         {
             List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
-            storedProcedureExecutor.Execute(deleteUserToGroupMappingEventsStoredProcedureName, parameters);
+            storedProcedureExecutor.ExecuteWithDeadlockRetry(deleteUserToGroupMappingEventsStoredProcedureName, parameters);
         }
 
         /// <summary>
@@ -843,7 +843,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         protected void DeleteUserToApplicationComponentAndAccessLevelMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
         {
             List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
-            storedProcedureExecutor.Execute(deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, parameters);
+            storedProcedureExecutor.ExecuteWithDeadlockRetry(deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, parameters);
         }
 
         /// <summary>
@@ -854,7 +854,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         protected void DeleteGroupToApplicationComponentAndAccessLevelMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
         {
             List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
-            storedProcedureExecutor.Execute(deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, parameters);
+            storedProcedureExecutor.ExecuteWithDeadlockRetry(deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, parameters);
         }
 
         /// <summary>
@@ -865,7 +865,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         protected void DeleteUserToEntityMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
         {
             List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
-            storedProcedureExecutor.Execute(deleteUserToEntityMappingEventsStoredProcedureName, parameters);
+            storedProcedureExecutor.ExecuteWithDeadlockRetry(deleteUserToEntityMappingEventsStoredProcedureName, parameters);
         }
 
         /// <summary>
@@ -876,7 +876,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         protected void DeleteGroupToEntityMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
         {
             List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
-            storedProcedureExecutor.Execute(deleteGroupToEntityMappingEventsStoredProcedureName, parameters);
+            storedProcedureExecutor.ExecuteWithDeadlockRetry(deleteGroupToEntityMappingEventsStoredProcedureName, parameters);
         }
 
         /// <summary>

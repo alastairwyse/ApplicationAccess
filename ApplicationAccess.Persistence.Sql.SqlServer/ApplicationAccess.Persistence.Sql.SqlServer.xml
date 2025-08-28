@@ -16,6 +16,13 @@
             <param name="procedureName">The name of the stored procedure.</param>
             <param name="parameters">The parameters to pass to the stored procedure.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.IStoredProcedureExecutionWrapper.ExecuteWithDeadlockRetry(System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter})">
+            <summary>
+            Executes a stored procedure which does not return a result set, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying.
+            </summary>
+            <param name="procedureName">The name of the stored procedure.</param>
+            <param name="parameters">The parameters to pass to the stored procedure.</param>
+        </member>
         <member name="T:ApplicationAccess.Persistence.Sql.SqlServer.SqlCommandExecutionRetried">
             <summary>
             Count metric which records execution of a SQL command resulting in a transient error and being retried.
@@ -178,18 +185,21 @@
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.executeAction">
             <summary>The action which executes the stored procedures.</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.#ctor(System.Action{System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter}})">
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.executeWithDeadlockRetryAction">
+            <summary>The action which executes stored procedures with deadlock retry.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.#ctor(System.Action{System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter}},System.Action{System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter}})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister+StoredProcedureExecutionWrapper class.
             </summary>
             <param name="executeAction">The action which executes the stored procedures.</param>
+            <param name="executeWithDeadlockRetryAction">The action which executes stored procedures with deadlock retry.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.Execute(System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter})">
-            <summary>
-            Executes a stored procedure which does not return a result set.
-            </summary>
-            <param name="procedureName">The name of the stored procedure.</param>
-            <param name="parameters">The parameters to pass to the stored procedure.</param>
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.ExecuteWithDeadlockRetry(System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter})">
+            <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4">
             <summary>
@@ -560,6 +570,13 @@
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterBase.ExecuteStoredProcedure(System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter})">
             <summary>
             Attempts to execute a stored procedure which does not return a result set.
+            </summary>
+            <param name="procedureName">The name of the stored procedure.</param>
+            <param name="parameters">The parameters to pass to the stored procedure.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterBase.ExecuteStoredProcedureWithDeadlockRetry(System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter})">
+            <summary>
+            Attempts to execute a stored procedure which does not return a result set, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying according to the specified retry logic.
             </summary>
             <param name="procedureName">The name of the stored procedure.</param>
             <param name="parameters">The parameters to pass to the stored procedure.</param>

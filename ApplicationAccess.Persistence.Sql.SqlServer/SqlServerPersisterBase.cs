@@ -175,6 +175,78 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             }
         }
 
+        /// <summary>
+        /// Attempts to execute a stored procedure which does not return a result set, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying according to the specified retry logic.
+        /// </summary>
+        /// <param name="procedureName">The name of the stored procedure.</param>
+        /// <param name="parameters">The parameters to pass to the stored procedure.</param>
+        protected void ExecuteStoredProcedureWithDeadlockRetry(String procedureName, IEnumerable<SqlParameter> parameters)
+        {
+            const Int32 deadlockErrorNumber = 1205;
+
+            Int32 retryCount = sqlRetryLogicOption.NumberOfTries - 1;
+            var exceptions = new List<Exception>();
+            while (true)
+            {
+                try
+                {
+                    using (var connection = new SqlConnection(connectionString))
+                    using (var command = new SqlCommand(procedureName))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        foreach (SqlParameter currentParameter in parameters)
+                        {
+                            command.Parameters.Add(currentParameter);
+                        }
+                        connection.RetryLogicProvider = SqlConfigurableRetryFactory.CreateFixedRetryProvider(sqlRetryLogicOption);
+                        connection.RetryLogicProvider.Retrying += connectionRetryAction;
+                        connection.Open();
+                        command.Connection = connection;
+                        command.CommandTimeout = operationTimeout;
+                        String setDeadlockPriorityStatement = $"SET DEADLOCK_PRIORITY LOW;";
+                        using (var setDeadlockPriorityCommand = new SqlCommand(setDeadlockPriorityStatement))
+                        {
+                            setDeadlockPriorityCommand.Connection = connection;
+                            setDeadlockPriorityCommand.CommandTimeout = operationTimeout;
+                            setDeadlockPriorityCommand.ExecuteNonQuery();
+                        }
+                        try
+                        {
+                            command.ExecuteNonQuery();
+                            break;
+                        }
+                        finally
+                        {
+                            connection.RetryLogicProvider.Retrying -= connectionRetryAction;
+                            command.Parameters.Clear();
+                        }
+                    }
+                }
+                catch (SqlException sqlException)
+                {
+                    if (sqlException.Errors.Count > 0 && sqlException.Errors[0].Number == deadlockErrorNumber)
+                    {
+                        exceptions.Add(sqlException);
+                        if (retryCount > 0)
+                        {
+                            var retryEventArgs = new SqlRetryingEventArgs(sqlRetryLogicOption.NumberOfTries - retryCount, new TimeSpan(0), exceptions);
+                            connectionRetryAction.Invoke(this, retryEventArgs);
+                            retryCount--;
+                        }
+                        else
+                        {
+                            String exceptionMessage = $"The number of deadlock retries has exceeded the maximum of {sqlRetryLogicOption.NumberOfTries} attempt(s).";
+                            throw new AggregateException(exceptionMessage, exceptions);
+                        }
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+        }
+
         #endregion
     }
 }

@@ -31,5 +31,12 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <param name="procedureName">The name of the stored procedure.</param>
         /// <param name="parameters">The parameters to pass to the stored procedure.</param>
         void Execute(String procedureName, IEnumerable<SqlParameter> parameters);
+
+        /// <summary>
+        /// Executes a stored procedure which does not return a result set, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying.
+        /// </summary>
+        /// <param name="procedureName">The name of the stored procedure.</param>
+        /// <param name="parameters">The parameters to pass to the stored procedure.</param>
+        void ExecuteWithDeadlockRetry(String procedureName, IEnumerable<SqlParameter> parameters);
     }
 }

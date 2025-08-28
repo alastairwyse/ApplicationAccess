@@ -2528,8 +2528,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table Users for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table Users for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2548,8 +2551,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting user events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting user events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2563,8 +2569,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table EventIdToUserMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table EventIdToUserMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2599,8 +2608,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table Groups for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table Groups for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2619,8 +2631,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting group events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting group events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2634,8 +2649,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table EventIdToGroupMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table EventIdToGroupMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2670,8 +2688,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table UserToGroupMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table UserToGroupMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2690,8 +2711,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting user to group mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting user to group mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2705,8 +2729,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table EventIdToUserToGroupMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table EventIdToUserToGroupMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2741,8 +2768,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table UserToApplicationComponentAndAccessLevelMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table UserToApplicationComponentAndAccessLevelMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2761,8 +2791,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting user to application component and access level mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting user to application component and access level mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2776,8 +2809,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table EventIdToUserToApplicationComponentAndAccessLevelMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table EventIdToUserToApplicationComponentAndAccessLevelMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2812,8 +2848,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table GroupToApplicationComponentAndAccessLevelMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table GroupToApplicationComponentAndAccessLevelMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2832,8 +2871,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting group to application component and access level mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting group to application component and access level mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2847,8 +2889,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table EventIdToGroupToApplicationComponentAndAccessLevelMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table EventIdToGroupToApplicationComponentAndAccessLevelMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2883,8 +2928,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table UserToEntityMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table UserToEntityMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2903,8 +2951,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting user to entity mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting user to entity mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2918,8 +2969,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table EventIdToUserToEntityMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table EventIdToUserToEntityMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2954,8 +3008,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table GroupToEntityMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table GroupToEntityMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2974,8 +3031,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting group to entity mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting group to entity mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION
@@ -2989,8 +3049,11 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error deleting from table EventIdToGroupToEntityMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 1205)
+            THROW
+        ELSE
+            SET @ErrorMessage = N'Error deleting from table EventIdToGroupToEntityMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+            THROW 50001, @ErrorMessage, 1;
     END CATCH
 
     COMMIT TRANSACTION

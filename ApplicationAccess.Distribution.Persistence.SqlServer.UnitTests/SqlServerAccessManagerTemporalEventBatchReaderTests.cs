@@ -203,13 +203,13 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
 
             testSqlServerAccessManagerTemporalEventBatchReader.DeleteEvents(testHashRangeStart, testHashRangeEnd, true);
 
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToGroupMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteGroupToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteUserToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteUserToGroupMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteGroupEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteUserEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
         }
 
         [Test]
@@ -225,13 +225,13 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
 
             testSqlServerAccessManagerTemporalEventBatchReader.DeleteEvents(-1234, 5678, false);
 
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToGroupMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
-            mockStoredProcedureExecutionWrapper.DidNotReceive().Execute(deleteGroupEventsStoredProcedureName, Arg.Any<IList<SqlParameter>>());
-            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteGroupToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteUserToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteUserToGroupMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.DidNotReceive().ExecuteWithDeadlockRetry(deleteGroupEventsStoredProcedureName, Arg.Any<IList<SqlParameter>>());
+            mockStoredProcedureExecutionWrapper.Received(1).ExecuteWithDeadlockRetry(deleteUserEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
         }
 
         #region Private/Protected Methods

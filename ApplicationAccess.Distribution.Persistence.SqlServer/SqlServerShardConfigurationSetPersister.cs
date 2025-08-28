@@ -89,7 +89,11 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         ) : base(connectionString, retryCount, retryInterval, operationTimeout, logger)
         {
             this.jsonSerializer = jsonSerializer;
-            storedProcedureExecutor = new StoredProcedureExecutionWrapper((String procedureName, IEnumerable<SqlParameter> parameters) => { ExecuteStoredProcedure(procedureName, parameters); });
+            storedProcedureExecutor = new StoredProcedureExecutionWrapper
+            (
+                (String procedureName, IEnumerable<SqlParameter> parameters) => { ExecuteStoredProcedure(procedureName, parameters); },
+                (String procedureName, IEnumerable<SqlParameter> parameters) => { ExecuteStoredProcedureWithDeadlockRetry(procedureName, parameters); }
+            );
             disposed = false;
             stagingTable = new DataTable();
             dataElementTypeColumn = new DataColumn(dataElementTypeColumnName, typeof(String));
@@ -299,24 +303,30 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         {
             /// <summary>An action which executed the stored procedure.</summary>
             protected Action<String, IEnumerable<SqlParameter>> executeAction;
+            /// <summary>The action which executes stored procedures with deadlock retry.</summary>
+            protected Action<String, IEnumerable<SqlParameter>> executeWithDeadlockRetryAction;
 
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Distribution.Persistence.SqlServer.SqlServerShardConfigurationSetPersister+StoredProcedureExecutionWrapper class.
             /// </summary>
             /// <param name="executeAction"></param>
-            public StoredProcedureExecutionWrapper(Action<String, IEnumerable<SqlParameter>> executeAction)
+            /// <param name="executeWithDeadlockRetryAction">The action which executes stored procedures with deadlock retry.</param>
+            public StoredProcedureExecutionWrapper(Action<String, IEnumerable<SqlParameter>> executeAction, Action<String, IEnumerable<SqlParameter>> executeWithDeadlockRetryAction)
             {
                 this.executeAction = executeAction;
+                this.executeWithDeadlockRetryAction = executeWithDeadlockRetryAction;
             }
 
-            /// <summary>
-            /// Executes a stored procedure which does not return a result set.
-            /// </summary>
-            /// <param name="procedureName">The name of the stored procedure.</param>
-            /// <param name="parameters">The parameters to pass to the stored procedure.</param>
+            /// <inheritdoc/>
             public void Execute(String procedureName, IEnumerable<SqlParameter> parameters)
             {
                 executeAction.Invoke(procedureName, parameters);
+            }
+
+            /// <inheritdoc/>
+            public void ExecuteWithDeadlockRetry(String procedureName, IEnumerable<SqlParameter> parameters)
+            {
+                executeWithDeadlockRetryAction.Invoke(procedureName, parameters);
             }
         }
 
