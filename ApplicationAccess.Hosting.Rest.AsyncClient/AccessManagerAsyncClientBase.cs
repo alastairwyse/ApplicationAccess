@@ -892,9 +892,20 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
                 using (var request = new HttpRequestMessage(method, requestUrl))
                 {
                     request.Content = requestBody;
-                    using (var response = await httpClient.SendAsync(request))
+                    try
                     {
-                        await responseAction.Invoke(method, requestUrl, response.StatusCode, await response.Content.ReadAsStreamAsync());
+                        using (var response = await httpClient.SendAsync(request))
+                        {
+                            await responseAction.Invoke(method, requestUrl, response.StatusCode, await response.Content.ReadAsStreamAsync());
+                        }
+                    }
+                    catch
+                    {
+                        // If the call to SendAsync() throws a transient exception, the 'using' statement enclosing the HttpRequestMessage calls Dispose() on 'request'
+                        //   However, as the 'requestBody' is attached to the 'Content' property of the request, it also gets disposed, and hence can't be used for
+                        //   any subsequent retries.  Hence need to explicitly remove it from the request if any exception occurs.
+                        request.Content = null;
+                        throw;
                     }
                 }
             };

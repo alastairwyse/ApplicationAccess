@@ -24,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using ApplicationAccess.Distribution;
+using ApplicationAccess.Hosting.Rest.AsyncClient;
 using ApplicationAccess.Utilities; 
 using ApplicationLogging;
 using ApplicationMetrics;
@@ -415,6 +416,44 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             mockDistributedGroupQueryProcessor.Received(1).GetEntitiesAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), urlReservedCharcters);
             Assert.AreEqual(3, groupStringifier.ToStringCallCount);
             Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
+        public void SendRequestAsync_RequestBodyOverloadRetry()
+        {
+            using (var testClient = new HttpClient())
+            {
+                testDistributedAccessManagerAsyncClient.Dispose();
+                testBaseUrl = new Uri("http://www.acd8aac2-cb88-4296-b604-285f6132e449.com/");
+                testDistributedAccessManagerAsyncClient = new DistributedAccessManagerAsyncClient<String, String, String, String>
+                (
+                    testBaseUrl,
+                    testClient,
+                    userStringifier,
+                    groupStringifier,
+                    applicationComponentStringifier,
+                    accessLevelStringifier,
+                    5,
+                    1,
+                    mockLogger,
+                    mockMetricLogger
+                );
+
+                List<String> testGroups = new() { "group1", "group2", "group3" };
+                mockDistributedGroupQueryProcessor.ClearReceivedCalls();
+
+                var e = Assert.ThrowsAsync<HttpRequestException>(async delegate
+                {
+                    await testDistributedAccessManagerAsyncClient.GetGroupToUserMappingsAsync(testGroups);
+                });
+
+                mockLogger.Received(1).Log(testDistributedAccessManagerAsyncClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 1 of 5).", Arg.Any<HttpRequestException>());
+                mockLogger.Received(1).Log(testDistributedAccessManagerAsyncClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 2 of 5).", Arg.Any<HttpRequestException>());
+                mockLogger.Received(1).Log(testDistributedAccessManagerAsyncClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 3 of 5).", Arg.Any<HttpRequestException>());
+                mockLogger.Received(1).Log(testDistributedAccessManagerAsyncClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 4 of 5).", Arg.Any<HttpRequestException>());
+                mockLogger.Received(1).Log(testDistributedAccessManagerAsyncClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 5 of 5).", Arg.Any<HttpRequestException>());
+                mockMetricLogger.Received(5).Increment(Arg.Any<HttpRequestRetried>());
+            }
         }
 
         #region Private/Protected Methods
