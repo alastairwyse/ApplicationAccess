@@ -214,7 +214,6 @@ namespace ApplicationAccess.Hosting.Rest.Utilities
                 typeof(IndexOutOfRangeException),
                 (Exception exception) =>
                 {
-                    var indexOutOfRangeException = (IndexOutOfRangeException)exception;
                     if (exception.TargetSite == null)
                     {
                         return new HttpErrorResponse(exception.GetType().Name, exception.Message);

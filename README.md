@@ -266,7 +266,7 @@ mySerializer.Deserialize<String, String, Screen, AccessLevel>
 
 ### Setup Choices
 
-The available data elements in the AccessManager are designed to be flexible enough to accommodate multiple different mappings to the real-world components and entities they represent.  In the above example we created a single group containing all members of the sales team, and then used entities to mapped to individual sales team members to split printing machine sales and weaving machine sales.  However, another approach would be to use a group hierarchy to represent this... i.e. make the individual staff members of separate 'WeavingMachineSales' and 'PrintingMachineSales' groups, and then have both these groups mapped to a parent 'Sales' group.
+The available data elements in the AccessManager are designed to be flexible enough to accommodate multiple different mappings to the real-world components and entities they represent.  In the above example we created a single group containing all members of the sales team, and then used entities mapped to individual sales team members to split printing machine sales and weaving machine sales.  However, another approach would be to use a group hierarchy to represent this... i.e. make the individual staff members of separate 'WeavingMachineSales' and 'PrintingMachineSales' groups, and then have both these groups mapped to a parent 'Sales' group.
 
 ### Generic Type Choices
 

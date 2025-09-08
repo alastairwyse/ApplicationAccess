@@ -1,0 +1,22 @@
+﻿syntax = "proto3";
+
+// Holds a string key/value pair.
+message KeyValuePair {
+  string key = 1;
+  string value = 2;
+}
+
+// Holds error data returned from a gRPC procedure call when an exception occurs.
+//
+// gRPC already supports returning of rich errors via the standard error payloads (https://google.aip.dev/193#error_model).
+// However these aren't a great match for standard .NET exceptions.  ApplicationAccess already defines a mechanism for 
+// serializing and deserializing .NET exceptions (including the exception stack) via the 
+// ApplicationAccess.Hosting.Models.HttpErrorResponse class, which has been proven to allow reliable serialization and
+// re-hydration/re-throwing of .NET exceptions.  Hence this message replicates that class.
+message GrpcError {
+  string code = 1;
+  string message = 2;
+  string target = 3;
+  repeated KeyValuePair attributes = 4;
+  GrpcError inner_error = 5;
+}
