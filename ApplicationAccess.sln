@@ -167,6 +167,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Persistence.UnitTests", "ApplicationAccess.Hosting.Persistence.UnitTests\ApplicationAccess.Hosting.Persistence.UnitTests.csproj", "{A66D5C51-42F4-40D2-87EC-C11B7EB1C186}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Grpc", "ApplicationAccess.Hosting.Grpc\ApplicationAccess.Hosting.Grpc.csproj", "{41E946F0-C9AD-4EE9-A7AF-77F1667FF8F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Persistence.MongoDb", "ApplicationAccess.Persistence.MongoDb\ApplicationAccess.Persistence.MongoDb.csproj", "{22B5BB1E-6678-439C-AAF7-93BF963FC146}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Grpc.UnitTests", "ApplicationAccess.Hosting.Grpc.UnitTests\ApplicationAccess.Hosting.Grpc.UnitTests.csproj", "{42C7840A-3AEC-4A24-BF1F-40CB518811F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -501,6 +507,18 @@ Global
 		{A66D5C51-42F4-40D2-87EC-C11B7EB1C186}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A66D5C51-42F4-40D2-87EC-C11B7EB1C186}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A66D5C51-42F4-40D2-87EC-C11B7EB1C186}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41E946F0-C9AD-4EE9-A7AF-77F1667FF8F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41E946F0-C9AD-4EE9-A7AF-77F1667FF8F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41E946F0-C9AD-4EE9-A7AF-77F1667FF8F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41E946F0-C9AD-4EE9-A7AF-77F1667FF8F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22B5BB1E-6678-439C-AAF7-93BF963FC146}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22B5BB1E-6678-439C-AAF7-93BF963FC146}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22B5BB1E-6678-439C-AAF7-93BF963FC146}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22B5BB1E-6678-439C-AAF7-93BF963FC146}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42C7840A-3AEC-4A24-BF1F-40CB518811F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42C7840A-3AEC-4A24-BF1F-40CB518811F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42C7840A-3AEC-4A24-BF1F-40CB518811F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42C7840A-3AEC-4A24-BF1F-40CB518811F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

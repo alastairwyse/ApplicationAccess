@@ -309,7 +309,7 @@ namespace ApplicationAccess.Hosting.Rest.Utilities.UnitTests
                         exception.Message,
                         new List<Tuple<String, String>>()
                         {
-                        new Tuple<String, String>("Int32 Value", genericException.GenericParameter.ToString())
+                            new Tuple<String, String>("Int32 Value", genericException.GenericParameter.ToString())
                         }
                     );
                 }
@@ -322,7 +322,7 @@ namespace ApplicationAccess.Hosting.Rest.Utilities.UnitTests
                         exception.TargetSite.Name,
                         new List<Tuple<String, String>>()
                         {
-                        new Tuple<String, String>("Int32 Value", genericException.GenericParameter.ToString())
+                            new Tuple<String, String>("Int32 Value", genericException.GenericParameter.ToString())
                         }
                     );
                 }
@@ -406,7 +406,7 @@ namespace ApplicationAccess.Hosting.Rest.Utilities.UnitTests
                         exception.Message,
                         new List<Tuple<String, String>>()
                         {
-                        new Tuple<String, String>(nameof(derivedException.NumericProperty), derivedException.NumericProperty.ToString())
+                            new Tuple<String, String>(nameof(derivedException.NumericProperty), derivedException.NumericProperty.ToString())
                         }
                     );
                 }
@@ -419,7 +419,7 @@ namespace ApplicationAccess.Hosting.Rest.Utilities.UnitTests
                         exception.TargetSite.Name,
                         new List<Tuple<String, String>>()
                         {
-                        new Tuple<String, String>(nameof(derivedException.NumericProperty), derivedException.NumericProperty.ToString())
+                            new Tuple<String, String>(nameof(derivedException.NumericProperty), derivedException.NumericProperty.ToString())
                         }
                     );
                 }

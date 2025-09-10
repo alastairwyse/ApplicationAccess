@@ -1,12 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
-    <Description>Unit tests for classes in the ApplicationAccess.Hosting.Rest.Utilities namespace.</Description>
+    <Description>Unit tests for classes in the ApplicationAccess.Hosting.Grpc namespace.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Utilities\ApplicationAccess.Hosting.Rest.Utilities.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Grpc\ApplicationAccess.Hosting.Grpc.csproj" />
   </ItemGroup>
-
+  
 </Project>
