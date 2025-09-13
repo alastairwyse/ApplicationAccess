@@ -19,8 +19,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using Google.Protobuf.Collections;
 using Google.Rpc;
 using ApplicationAccess.Hosting.Grpc;
+using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using NUnit.Framework;
@@ -195,8 +197,7 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Assert.AreEqual("Test argument exception message. (Parameter 'TestArgumentName')", unpackedDetail.Message);
             Assert.AreEqual("Convert_ArgumentException", unpackedDetail.Target);
             Assert.AreEqual(1, unpackedDetail.Attributes.Count);
-            Assert.AreEqual("ParameterName", unpackedDetail.Attributes[0].Key);
-            Assert.AreEqual("TestArgumentName", unpackedDetail.Attributes[0].Value);
+            Assert.AreEqual("TestArgumentName", unpackedDetail.Attributes["ParameterName"]);
             Assert.IsNull(unpackedDetail.InnerError);
         }
 
@@ -222,8 +223,7 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Assert.AreEqual("Test argument out of range exception message. (Parameter 'TestArgumentName')", unpackedDetail.Message);
             Assert.AreEqual("Convert_ArgumentOutOfRangeException", unpackedDetail.Target);
             Assert.AreEqual(1, unpackedDetail.Attributes.Count);
-            Assert.AreEqual("ParameterName", unpackedDetail.Attributes[0].Key);
-            Assert.AreEqual("TestArgumentName", unpackedDetail.Attributes[0].Value);
+            Assert.AreEqual("TestArgumentName", unpackedDetail.Attributes["ParameterName"]);
             Assert.IsNull(unpackedDetail.InnerError);
         }
 
@@ -249,8 +249,7 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Assert.AreEqual("Test argument null exception message. (Parameter 'TestArgumentName')", unpackedDetail.Message);
             Assert.AreEqual("Convert_ArgumentNullException", unpackedDetail.Target);
             Assert.AreEqual(1, unpackedDetail.Attributes.Count);
-            Assert.AreEqual("ParameterName", unpackedDetail.Attributes[0].Key);
-            Assert.AreEqual("TestArgumentName", unpackedDetail.Attributes[0].Value);
+            Assert.AreEqual("TestArgumentName", unpackedDetail.Attributes["ParameterName"]);
             Assert.IsNull(unpackedDetail.InnerError);
         }
 
@@ -320,8 +319,7 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Assert.AreEqual("Test argument exception message. (Parameter 'testParameterName')", unpackedDetail.InnerError.Message);
             Assert.AreEqual("Convert_InnerExceptionStack", unpackedDetail.InnerError.Target);
             Assert.AreEqual(1, unpackedDetail.InnerError.Attributes.Count());
-            Assert.AreEqual("ParameterName", unpackedDetail.InnerError.Attributes[0].Key);
-            Assert.AreEqual("testParameterName", unpackedDetail.InnerError.Attributes[0].Value);
+            Assert.AreEqual("testParameterName", unpackedDetail.InnerError.Attributes["ParameterName"]);
             Assert.IsNotNull(unpackedDetail.InnerError.InnerError);
             Assert.AreEqual("IndexOutOfRangeException", unpackedDetail.InnerError.InnerError.Code);
             Assert.AreEqual("Test index out of range exception message.", unpackedDetail.InnerError.InnerError.Message);
@@ -336,11 +334,8 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Func<Exception, Status> genericExceptionConversionFunction = (Exception exception) =>
             {
                 var genericException = (GenericException<Int32>)exception;
-                var attributes = new KeyValuePair
-                {
-                    Key = "Int32 Value",
-                    Value = genericException.GenericParameter.ToString()
-                };
+                var attributes = new MapField<String, String>();
+                attributes.Add("Int32 Value", genericException.GenericParameter.ToString());
                 var grpcError = new GrpcError
                 {
                     Code = exception.GetType().Name,
@@ -379,8 +374,7 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Assert.AreEqual("Test generic string type exception message.", unpackedDetail.Message);
             Assert.AreEqual("Convert_GenericException", unpackedDetail.Target);
             Assert.AreEqual(1, unpackedDetail.Attributes.Count);
-            Assert.AreEqual("Int32 Value", unpackedDetail.Attributes[0].Key);
-            Assert.AreEqual("123", unpackedDetail.Attributes[0].Value);
+            Assert.AreEqual("123", unpackedDetail.Attributes["Int32 Value"]);
             Assert.IsNull(unpackedDetail.InnerError);
 
 
@@ -437,11 +431,8 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Func<Exception, Status> derivedExceptionConversionFunction = (Exception exception) =>
             {
                 var derivedException = (DerivedException)exception;
-                var attributes = new KeyValuePair
-                {
-                    Key = nameof(derivedException.NumericProperty),
-                    Value = derivedException.NumericProperty.ToString()
-                };
+                var attributes = new MapField<String, String>();
+                attributes.Add(nameof(derivedException.NumericProperty), derivedException.NumericProperty.ToString());
                 var grpcError = new GrpcError
                 {
                     Code = exception.GetType().Name,
@@ -480,8 +471,7 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Assert.AreEqual("Second level derived exception message.", unpackedDetail.Message);
             Assert.AreEqual("Convert_ConversionFunctionDefinedForBaseClass", unpackedDetail.Target);
             Assert.AreEqual(1, unpackedDetail.Attributes.Count);
-            Assert.AreEqual("NumericProperty", unpackedDetail.Attributes[0].Key);
-            Assert.AreEqual("456", unpackedDetail.Attributes[0].Value);
+            Assert.AreEqual("456", unpackedDetail.Attributes["NumericProperty"]);
             Assert.IsNull(unpackedDetail.InnerError);
         }
 
@@ -515,18 +505,12 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Assert.AreEqual(testException.Message, unpackedDetail.Message);
             Assert.AreEqual("Convert_AggregateException", unpackedDetail.Target);
             Assert.AreEqual(6, unpackedDetail.Attributes.Count);
-            Assert.AreEqual("InnerException1Code", unpackedDetail.Attributes[0].Key);
-            Assert.AreEqual("Exception", unpackedDetail.Attributes[0].Value);
-            Assert.AreEqual("InnerException1Message", unpackedDetail.Attributes[1].Key);
-            Assert.AreEqual("Plain exception inner exception.", unpackedDetail.Attributes[1].Value);
-            Assert.AreEqual("InnerException2Code", unpackedDetail.Attributes[2].Key);
-            Assert.AreEqual("ArgumentException", unpackedDetail.Attributes[2].Value);
-            Assert.AreEqual("InnerException2Message", unpackedDetail.Attributes[3].Key);
-            Assert.AreEqual("Argument exception inner exception. (Parameter 'ArgumentExceptionParameterName')", unpackedDetail.Attributes[3].Value);
-            Assert.AreEqual("InnerException3Code", unpackedDetail.Attributes[4].Key);
-            Assert.AreEqual("ArgumentNullException", unpackedDetail.Attributes[4].Value);
-            Assert.AreEqual("InnerException3Message", unpackedDetail.Attributes[5].Key);
-            Assert.AreEqual("Argument null exception inner exception. (Parameter 'ArgumentNullExceptionParameterName')", unpackedDetail.Attributes[5].Value);
+            Assert.AreEqual("Exception", unpackedDetail.Attributes["InnerException1Code"]);
+            Assert.AreEqual("Plain exception inner exception.", unpackedDetail.Attributes["InnerException1Message"]);
+            Assert.AreEqual("ArgumentException", unpackedDetail.Attributes["InnerException2Code"]);
+            Assert.AreEqual("Argument exception inner exception. (Parameter 'ArgumentExceptionParameterName')", unpackedDetail.Attributes["InnerException2Message"]);
+            Assert.AreEqual("ArgumentNullException", unpackedDetail.Attributes["InnerException3Code"]);
+            Assert.AreEqual("Argument null exception inner exception. (Parameter 'ArgumentNullExceptionParameterName')", unpackedDetail.Attributes["InnerException3Message"]);
             Assert.IsNotNull(unpackedDetail.InnerError);
             Assert.AreEqual("Exception", unpackedDetail.InnerError.Code);
             Assert.AreEqual("Plain exception inner exception.", unpackedDetail.InnerError.Message);
@@ -557,8 +541,7 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Assert.AreEqual("Test not found exception message.", unpackedDetail.Message);
             Assert.AreEqual("Convert_NotFoundException", unpackedDetail.Target);
             Assert.AreEqual(1, unpackedDetail.Attributes.Count);
-            Assert.AreEqual("ResourceId", unpackedDetail.Attributes[0].Key);
-            Assert.AreEqual("ABC", unpackedDetail.Attributes[0].Value);
+            Assert.AreEqual("ABC", unpackedDetail.Attributes["ResourceId"]);
             Assert.IsNull(unpackedDetail.InnerError);
         }
 
@@ -604,8 +587,7 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
             Assert.AreEqual("Test argument exception message. (Parameter 'testParameterName')", unpackedDetail.InnerError.Message);
             Assert.AreEqual("Convert_InnerExceptionDepthLimitSet", unpackedDetail.InnerError.Target);
             Assert.AreEqual(1, unpackedDetail.InnerError.Attributes.Count());
-            Assert.AreEqual("ParameterName", unpackedDetail.InnerError.Attributes[0].Key);
-            Assert.AreEqual("testParameterName", unpackedDetail.InnerError.Attributes[0].Value);
+            Assert.AreEqual("testParameterName", unpackedDetail.InnerError.Attributes["ParameterName"]);
             Assert.IsNull(unpackedDetail.InnerError.InnerError);
 
 

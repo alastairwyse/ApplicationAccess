@@ -1,10 +1,6 @@
 ﻿syntax = "proto3";
 
-// Holds a string key/value pair.
-message KeyValuePair {
-  string key = 1;
-  string value = 2;
-}
+option csharp_namespace = "ApplicationAccess.Hosting.Grpc.Models";
 
 // Holds error data returned from a gRPC procedure call when an exception occurs.
 //
@@ -17,6 +13,6 @@ message GrpcError {
   string code = 1;
   string message = 2;
   string target = 3;
-  repeated KeyValuePair attributes = 4;
+  map<string, string> attributes = 4;
   GrpcError inner_error = 5;
 }

@@ -15,7 +15,9 @@
  */
 
 using System;
+using Google.Protobuf.Collections;
 using Google.Rpc;
+using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Grpc
@@ -25,6 +27,9 @@ namespace ApplicationAccess.Hosting.Grpc
     /// </summary>
     public class ExceptionToGrpcStatusConverter
     {
+        // Command to generate the GrpcError class from its .proto file...
+        //   protoc --proto_path=[path to ApplicationAccess]\ApplicationAccess.Hosting.Grpc\Protos --csharp_out=[path to ApplicationAccess]\ApplicationAccess.Hosting.Grpc grpc_error.proto
+
         // TODO: This class has a lot of overlap with ApplicationAccess.Hosting.Rest.Utilities.ExceptionToHttpErrorResponseConverter
         //   Could derive both from an abstract base class similar to ExceptionToErrorConverter<T>, where the T is the type to convert to
         //   i.e. Google.Rpc.Status or HttpErrorResponse
@@ -174,11 +179,8 @@ namespace ApplicationAccess.Hosting.Grpc
                 (Exception exception) =>
                 {
                     var argumentException = (ArgumentException)exception;
-                    var attributes = new KeyValuePair
-                    {
-                        Key = "ParameterName", 
-                        Value = $"{argumentException.ParamName}"
-                    };
+                    var attributes = new MapField<String, String>();
+                    attributes.Add("ParameterName", $"{argumentException.ParamName}");
                     var grpcError = new GrpcError
                     {
                         Code = exception.GetType().Name,
@@ -203,11 +205,8 @@ namespace ApplicationAccess.Hosting.Grpc
                 (Exception exception) =>
                 {
                     var argumentOutOfRangeException = (ArgumentOutOfRangeException)exception;
-                    var attributes = new KeyValuePair
-                    {
-                        Key = "ParameterName",
-                        Value = $"{argumentOutOfRangeException.ParamName}"
-                    };
+                    var attributes = new MapField<String, String>();
+                    attributes.Add("ParameterName", $"{argumentOutOfRangeException.ParamName}");
                     var grpcError = new GrpcError
                     {
                         Code = exception.GetType().Name,
@@ -232,11 +231,8 @@ namespace ApplicationAccess.Hosting.Grpc
                 (Exception exception) =>
                 {
                     var argumentNullException = (ArgumentNullException)exception;
-                    var attributes = new KeyValuePair
-                    {
-                        Key = "ParameterName",
-                        Value = $"{argumentNullException.ParamName}"
-                    };
+                    var attributes = new MapField<String, String>();
+                    attributes.Add("ParameterName", $"{argumentNullException.ParamName}");
                     var grpcError = new GrpcError
                     {
                         Code = exception.GetType().Name,
@@ -292,8 +288,8 @@ namespace ApplicationAccess.Hosting.Grpc
                     Int32 innerExceptionNumber = 1;
                     foreach (Exception currentInnerException in aggregateException.InnerExceptions)
                     {
-                        grpcError.Attributes.Add(new KeyValuePair { Key = $"InnerException{innerExceptionNumber}Code", Value = currentInnerException.GetType().Name });
-                        grpcError.Attributes.Add(new KeyValuePair { Key = $"InnerException{innerExceptionNumber}Message", Value = currentInnerException.Message });
+                        grpcError.Attributes.Add($"InnerException{innerExceptionNumber}Code", currentInnerException.GetType().Name);
+                        grpcError.Attributes.Add($"InnerException{innerExceptionNumber}Message", currentInnerException.Message);
                         innerExceptionNumber++;
                     }
                     if (exception.TargetSite != null)
@@ -314,11 +310,8 @@ namespace ApplicationAccess.Hosting.Grpc
                 (Exception exception) =>
                 {
                     var notFoundException = (NotFoundException)exception;
-                    var attributes = new KeyValuePair
-                    {
-                        Key = nameof(notFoundException.ResourceId),
-                        Value = $"{notFoundException.ResourceId}"
-                    };
+                    var attributes = new MapField<String, String>();
+                    attributes.Add(nameof(notFoundException.ResourceId), $"{notFoundException.ResourceId}");
                     var grpcError = new GrpcError
                     {
                         Code = exception.GetType().Name,
