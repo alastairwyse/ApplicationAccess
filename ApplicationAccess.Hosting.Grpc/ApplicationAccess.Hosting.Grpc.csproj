@@ -14,4 +14,12 @@
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Utilities\ApplicationAccess.Hosting.Rest.Utilities.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Models\Protos\temporal_event_buffer_items.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>temporal_event_buffer_items.proto</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
