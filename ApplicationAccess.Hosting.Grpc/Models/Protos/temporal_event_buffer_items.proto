@@ -15,11 +15,13 @@
  */
 
  // This file defines messages for all events which represent a historic change in the structure of an AccessManager implementation.
- // The messages contained are the equivalent of those that derive from ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase
+ // The messages contained are the equivalent of those that derive from ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase.
 
 syntax = "proto3";
 
 option csharp_namespace = "ApplicationAccess.Hosting.Grpc.Models";
+
+import "google/protobuf/timestamp.proto";
 
 // The type of action associated with events which change the structure of an AccessManager class.
 enum EventAction {
@@ -27,20 +29,101 @@ enum EventAction {
 	REMOVE = 1;
 }
 
-// Represents an event relating to a user.
-message UserEventBufferItem {
+message TemporalEventBufferItem {
 	bytes event_id = 1;
 	EventAction event_action = 2;
-	string user = 3;
-	Timestamp occurred_time = 4;
-	int32 hash_code = 5;
+	google.protobuf.Timestamp occurred_time = 3;
+	int32 hash_code = 4;
+}
+
+// Represents an event relating to a user.
+message UserEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string user = 2;
 }
 
 // Represents an event relating to a group.
-message UserEventBufferItem {
-	bytes event_id = 1;
-	EventAction event_action = 2;
+message GroupEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string group = 2;
+}
+
+// Represents an event relating to a user to group mapping.
+message UserToGroupMappingEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string user = 2;
 	string group = 3;
-	Timestamp occurred_time = 4;
-	int32 hash_code = 5;
+}
+
+// Represents an event relating to a group to group mapping.
+message GroupToGroupMappingEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string from_group = 2;
+	string to_group = 3;
+}
+
+// Represents an event relating to a user to application component and access level mapping.
+message UserToApplicationComponentAndAccessLevelMappingEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string user = 2;
+	string application_component = 3;
+	string access_level = 4;
+}
+
+// Represents an event relating to a group to application component and access level mapping.
+message GroupToApplicationComponentAndAccessLevelMappingEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string group = 2;
+	string application_component = 3;
+	string access_level = 4;
+}
+
+// Represents an event relating to an entity type.
+message EntityTypeEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string entity_type = 2;
+}
+
+// Represents an event relating to an entity.
+message EntityEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string entity_type = 2;
+	string entity = 3;
+}
+
+// Represents an event relating to a user to entity mapping.
+message UserToEntityMappingEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string user = 2;
+	string entity_type = 3;
+	string entity = 4;
+}
+
+// Represents an event relating to a group to entity mapping.
+message GroupToEntityMappingEventBufferItem {
+	TemporalEventBufferItem base_properties = 1;
+	string group = 2;
+	string entity_type = 3;
+	string entity = 4;
+}
+
+// Represents a single event within a list of events.
+message TemporalEventBufferItemListItem {
+	oneof item {
+		UserEventBufferItem user_event_buffer_item = 1;
+		GroupEventBufferItem group_event_buffer_item = 2;
+		UserToGroupMappingEventBufferItem  user_to_group_mapping_event_buffer_item = 3;
+		GroupToGroupMappingEventBufferItem group_to_group_mapping_event_buffer_item = 4;
+		UserToApplicationComponentAndAccessLevelMappingEventBufferItem user_to_application_component_and_access_level_mapping_event_buffer_item = 5;
+		GroupToApplicationComponentAndAccessLevelMappingEventBufferItem group_to_application_component_and_access_level_mapping_event_buffer_item = 6;
+		EntityTypeEventBufferItem entity_type_event_buffer_item = 7;
+		EntityEventBufferItem entity_event_buffer_item = 8;
+		UserToEntityMappingEventBufferItem user_to_entity_mapping_event_buffer_item = 9;
+		GroupToEntityMappingEventBufferItem group_to_entity_mapping_event_buffer_item = 10;
+	}
+}
+
+// A list of events which change the structure of an AccessManager implementation.
+message TemporalEventBufferItemList {
+	repeated TemporalEventBufferItemListItem events = 1;
 }
