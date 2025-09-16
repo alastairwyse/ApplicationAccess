@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using Google.Protobuf.Collections;
 using Google.Rpc;
 using ApplicationAccess.Hosting.Grpc.Models;

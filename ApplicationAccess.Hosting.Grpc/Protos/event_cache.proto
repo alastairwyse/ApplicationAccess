@@ -1,0 +1,43 @@
+/*
+ * Copyright 2025 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// This file defines messages and a service for the event cache node in a distributed AccessManager instance.
+// Equivalent to the REST service in the ApplicationAccess.Hosting.Rest.EventCache namespace.
+
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "Models/Protos/temporal_event_buffer_items.proto"; 
+
+option csharp_namespace = "ApplicationAccess.Hosting.Grpc";
+
+message GetAllEventsSinceRequest {
+	bytes prior_event_id = 1;
+}
+
+message GetAllEventsSinceReply {
+	TemporalEventBufferItemList events = 1;
+}
+
+message CacheEventsRequest {
+	TemporalEventBufferItemList events = 1;
+}
+
+service EventCache {
+	rpc GetAllEventsSince (GetAllEventsSinceRequest) returns (GetAllEventsSinceReply);
+
+	rpc CacheEvents (CacheEventsRequest) returns (google.protobuf.Empty);
+}

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
- // This file defines messages for all events which represent a historic change in the structure of an AccessManager implementation.
- // The messages contained are the equivalent of those that derive from ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase.
+// This file defines messages for all events which represent a historic change in the structure of an AccessManager implementation.
+// The messages contained are the equivalent of those that derive from ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase.
 
 syntax = "proto3";
 
