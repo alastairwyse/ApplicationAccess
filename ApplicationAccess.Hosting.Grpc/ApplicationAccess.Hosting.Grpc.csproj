@@ -10,10 +10,16 @@
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
     <PackageReference Include="Grpc.StatusProto" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.72.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\event_cache.proto" GrpcServices="Server" />
+    <Protobuf Include="Models\Protos\grpc_error.proto" GrpcServices="None" />
+    <Protobuf Include="Models\Protos\temporal_event_buffer_items.proto" GrpcServices="None" />
+    <Protobuf Include="Protos\event_cache.proto" GrpcServices="Both" />
   </ItemGroup>
   
   <ItemGroup>

@@ -28,9 +28,6 @@ namespace ApplicationAccess.Hosting.Grpc
     /// </summary>
     public class ExceptionToGrpcStatusConverter
     {
-        // Command to generate the GrpcError class from its .proto file...
-        //   protoc --proto_path=[path to ApplicationAccess]\ApplicationAccess.Hosting.Grpc\Protos --csharp_out=[path to ApplicationAccess]\ApplicationAccess.Hosting.Grpc grpc_error.proto
-
         // TODO: This class has a lot of overlap with ApplicationAccess.Hosting.Rest.Utilities.ExceptionToHttpErrorResponseConverter
         //   Could derive both from an abstract base class similar to ExceptionToErrorConverter<T>, where the T is the type to convert to
         //   i.e. Google.Rpc.Status or HttpErrorResponse
