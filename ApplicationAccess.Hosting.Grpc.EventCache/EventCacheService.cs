@@ -15,11 +15,46 @@
  */
 
 using System;
-using Grpc = ApplicationAccess.Hosting.Grpc;
+using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
+using Microsoft.Extensions.Logging;
+using ApplicationAccess.Hosting.Grpc;
+using ApplicationAccess.Hosting.Rest.EventCache;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Grpc.EventCache
 {
-    public class EventCacheService
+    public class EventCacheService : EventCacheRpc.EventCacheRpcBase
     {
+        protected IAccessManagerTemporalEventBulkPersister<String, String, String, String> eventPersister;
+        protected IAccessManagerTemporalEventQueryProcessor<String, String, String, String> eventQueryProcessor;
+        protected ILogger<EventCacheService> logger;
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.EventCache.Controllers.EventCacheController class.
+        /// </summary>
+        public EventCacheService(TemporalEventBulkPersisterHolder temporalEventBulkPersisterHolder, TemporalEventQueryProcessorHolder temporalEventQueryProcessorHolder, ILogger<EventCacheService> logger)
+        {
+            eventPersister = temporalEventBulkPersisterHolder.TemporalEventBulkPersister;
+            eventQueryProcessor = temporalEventQueryProcessorHolder.TemporalEventQueryProcessor;
+            this.logger = logger;
+        }
+
+        /// <summary>
+        /// Adds the specified events to the cache.
+        /// </summary>
+        public override Task<Empty> CacheEvents(CacheEventsRequest request, ServerCallContext context)
+        {
+            return base.CacheEvents(request, context);
+        }
+
+        /// <summary>
+        /// Retrieves all events from the cache, which occurred since the event with the specified id.
+        /// </summary>
+        public override Task<GetAllEventsSinceReply> GetAllEventsSince(GetAllEventsSinceRequest request, ServerCallContext context)
+        {
+            return base.GetAllEventsSince(request, context);
+        }
     }
 }

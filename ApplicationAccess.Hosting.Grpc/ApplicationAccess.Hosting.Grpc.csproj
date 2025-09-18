@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <Description>Utilities for hosting ApplicationAccess nodes as gRPC services.</Description>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
@@ -18,8 +19,6 @@
 
   <ItemGroup>
     <Protobuf Include="Models\Protos\grpc_error.proto" GrpcServices="None" />
-    <Protobuf Include="Models\Protos\temporal_event_buffer_items.proto" GrpcServices="None" />
-    <Protobuf Include="Protos\event_cache.proto" GrpcServices="Both" />
   </ItemGroup>
   
   <ItemGroup>

@@ -24,8 +24,15 @@ namespace ApplicationAccess.Persistence.MongoDb.Models.Dtos
     /// <summary>
     /// Base for DTO container classes which represent a change in the structure of an AccessManager implementation, and are stored in MongoDB.
     /// </summary>
+    /// <remarks>DTO equivalent of <see cref="ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase"/>.</remarks>
     public abstract class TemporalEventBufferItemBase
     {
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
+        public Guid _id
+        {
+            get { return EventId; }
+        }
+
         /// <summary>The time that the event originally occurred.</summary>
         public DateTime OccurredTime { get; protected set; }
 
