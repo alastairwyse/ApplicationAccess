@@ -44,7 +44,7 @@
         </member>
         <member name="T:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4">
             <summary>
-            An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> and <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> which persists access manager events in bulk to, and allows reading of <see cref="T:ApplicationAccess.AccessManagerBase`4"/> objects from a Microsoft SQL Server database.
+            An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> which persists access manager events in bulk to, and allows reading of <see cref="T:ApplicationAccess.AccessManagerBase`4"/> objects from a Microsoft SQL Server database.
             </summary>
             <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
             <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>

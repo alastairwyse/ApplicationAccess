@@ -20,26 +20,26 @@ using ApplicationAccess.Persistence.Models;
 namespace ApplicationAccess.Persistence.MongoDb.Models.Dtos
 {
     /// <summary>
-    /// DTO container class for a buffered/cached user event.
+    /// DTO container class for a buffered/cached group event.
     /// </summary>
-    /// <remarks>DTO equivalent of <see cref="ApplicationAccess.Persistence.Models.UserEventBufferItem{TUser}"/>.</remarks>
-    public class UserEventBufferItem : TemporalEventBufferItemBase
+    /// <remarks>DTO equivalent of <see cref="ApplicationAccess.Persistence.Models.GroupEventBufferItem{TGroup}"/>.</remarks>
+    public class GroupEventBufferItem : TemporalEventBufferItemBase
     {
-        /// <summary>The user the event occured for.</summary>
-        public String User { get; protected set; }
+        /// <summary>The group the event occured for.</summary>
+        public String Group { get; protected set; }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.Models.Dtos.UserEventBufferItem class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.Models.Dtos.GroupEventBufferItem class.
         /// </summary>
         /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
-        /// <param name="user">The user the event occured for.</param>
+        /// <param name="group">The group the event occured for.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
         /// <param name="hashCode">The hash code for the user.</param>
-        public UserEventBufferItem(Guid eventId, EventAction eventAction, String user, DateTime occurredTime, Int32 hashCode)
+        public GroupEventBufferItem(Guid eventId, EventAction eventAction, String group, DateTime occurredTime, Int32 hashCode)
             : base(eventId, eventAction, occurredTime, hashCode)
         {
-            this.User = user;
+            this.Group = group;
         }
     }
 }

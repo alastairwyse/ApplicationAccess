@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Grpc\ApplicationAccess.Hosting.Grpc.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.EventCache\ApplicationAccess.Hosting.Rest.EventCache.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>

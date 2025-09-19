@@ -20,26 +20,31 @@ using ApplicationAccess.Persistence.Models;
 namespace ApplicationAccess.Persistence.MongoDb.Models.Dtos
 {
     /// <summary>
-    /// DTO container class for a buffered/cached user event.
+    /// DTO container class for a buffered/cached user to group mapping event event.
     /// </summary>
-    /// <remarks>DTO equivalent of <see cref="ApplicationAccess.Persistence.Models.UserEventBufferItem{TUser}"/>.</remarks>
-    public class UserEventBufferItem : TemporalEventBufferItemBase
+    /// <remarks>DTO equivalent of <see cref="ApplicationAccess.Persistence.Models.UserToGroupMappingEventBufferItem{TUser, TGroup}"/>.</remarks>
+    public class UserToGroupMappingEventBufferItem : TemporalEventBufferItemBase
     {
-        /// <summary>The user the event occured for.</summary>
+        /// <summary>The user in the mapping.</summary>
         public String User { get; protected set; }
 
+        /// <summary>The group in the mapping.</summary>
+        public String Group { get; protected set; }
+
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.Models.Dtos.UserEventBufferItem class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.Models.Dtos.UserToGroupMappingEventBufferItem class.
         /// </summary>
         /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
-        /// <param name="user">The user the event occured for.</param>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="group">The group in the mapping.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
         /// <param name="hashCode">The hash code for the user.</param>
-        public UserEventBufferItem(Guid eventId, EventAction eventAction, String user, DateTime occurredTime, Int32 hashCode)
+        public UserToGroupMappingEventBufferItem(Guid eventId, EventAction eventAction, String user, String group, DateTime occurredTime, Int32 hashCode)
             : base(eventId, eventAction, occurredTime, hashCode)
         {
             this.User = user;
+            this.Group = group;
         }
     }
 }

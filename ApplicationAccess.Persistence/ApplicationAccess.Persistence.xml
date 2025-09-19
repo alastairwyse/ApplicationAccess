@@ -1996,7 +1996,7 @@
         </member>
         <member name="T:ApplicationAccess.Persistence.Models.EventBufferItemBase">
             <summary>
-            Base class for container classes which represent a change in the structure of an AccessManager implementation, and are stored in an AccessManager event buffer or cache.
+            Base for container classes which represent a change in the structure of an AccessManager implementation, and are stored in an AccessManager event buffer or cache.
             </summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Models.EventBufferItemBase.eventId">
