@@ -42,7 +42,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationT
             {
 
                 JObject jsonResponse = ConvertHttpContentToJson(response.Content);
-                AssertJsonIsHttpErrorResponse(jsonResponse, "ServiceUnavailableException", "The service is unavailable due to an interal error.");
+                AssertJsonIsHttpErrorResponse(jsonResponse, "ServiceUnavailableException", "The service is unavailable due to an internal error.");
                 Assert.AreEqual(HttpStatusCode.ServiceUnavailable, response.StatusCode);
             }
         }

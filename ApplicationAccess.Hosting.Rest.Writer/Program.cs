@@ -81,7 +81,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     typeof(ServiceUnavailableException)
                 },
                 // Setup TripSwitchMiddleware 
-                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."), 
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an internal error."), 
             };
 
             var initializer = new ApplicationInitializer();

@@ -17,9 +17,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.Grpc;
 using ApplicationAccess.Hosting.Rest.EventCache;
 using ApplicationAccess.Hosting.Rest.Utilities;

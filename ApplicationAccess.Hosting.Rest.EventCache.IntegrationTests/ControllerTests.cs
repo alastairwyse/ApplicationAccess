@@ -330,7 +330,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
         {
             // 503 is returned by both EventCacheEmptyException and ServiceUnavailableException, so test that the client handles both cases correctly
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
-            var exceptionMessage = "The service is unavailable due to an interal error.";
+            var exceptionMessage = "The service is unavailable due to an internal error.";
             var mockException = new ServiceUnavailableException(exceptionMessage);
             mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
             mockTemporalEventQueryProcessor.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
