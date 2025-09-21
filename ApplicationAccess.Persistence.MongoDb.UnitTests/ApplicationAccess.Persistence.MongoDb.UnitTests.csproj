@@ -1,18 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
-    <Description>Unit tests for classes in the ApplicationAccess.Persistence.Sql.SqlServer namespace.</Description>
+    <Description>Unit tests for classes in the ApplicationAccess.Persistence.MongoDb namespace.</Description>
     <Authors>Alastair Wyse</Authors>
-    <Company />
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApplicationLogging" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="NSubstitute" Version="5.1.0" />
     <PackageReference Include="NUnit" Version="3.14.0" />
@@ -20,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence.MongoDb\ApplicationAccess.Persistence.MongoDb.csproj" />
   </ItemGroup>
-
+  
 </Project>

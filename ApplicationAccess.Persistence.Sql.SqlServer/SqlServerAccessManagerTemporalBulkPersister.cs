@@ -113,7 +113,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <param name="logger">The logger for general logging.</param>
         public SqlServerAccessManagerTemporalBulkPersister
         (
-            string connectionString,
+            String connectionString,
             Int32 retryCount,
             Int32 retryInterval,
             Int32 operationTimeout,

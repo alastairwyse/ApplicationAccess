@@ -18,6 +18,8 @@ using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
+using Grpc.AspNetCore.Server;
+
 namespace ApplicationAccess.Hosting.Grpc.EventCache
 {
     public class Program
@@ -28,6 +30,9 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
 
             // Add services to the container.
             builder.Services.AddGrpc();
+
+            GrpcServiceOptions options = new();
+            //options.
 
             var app = builder.Build();
 

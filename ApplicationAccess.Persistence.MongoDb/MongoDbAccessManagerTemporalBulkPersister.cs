@@ -29,6 +29,68 @@ namespace ApplicationAccess.Persistence.MongoDb
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public class MongoDbAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
     {
+        #pragma warning disable 1591
+
+        protected const String eventIdToTransactionTimeMapCollectionName = "EventIdToTransactionTimeMap";
+        protected const String usersCollectionName = "Users";
+        protected const String groupsCollectionName = "Groups";
+        protected const String userToGroupMappingsCollectionName = "UserToGroupMappings";
+        protected const String groupToGroupMappingsCollectionName = "GroupToGroupMappings";
+        protected const String userToApplicationComponentAndAccessLevelMappingsCollectionName = "UserToApplicationComponentAndAccessLevelMappings";
+        protected const String groupToApplicationComponentAndAccessLevelMappingsCollectionName = "GroupToApplicationComponentAndAccessLevelMappings";
+        protected const String entityTypesCollectionName = "EntityTypes";
+        protected const String entitiesCollectionName = "Entities";
+        protected const String userToEntityMappingsCollectionName = "UserToEntityMappings";
+        protected const String groupToEntityMappingsCollectionName = "GroupToEntityMappings";
+
+        #pragma warning restore 1591
+
+        /// <summary>The string to use to connect to MongoDB.</summary>
+        protected String connectionString;
+        /// <summary>The name of the database.</summary>
+        protected String databaseName;
+        /// <summary>A string converter for users.</summary>
+        protected IUniqueStringifier<TUser> userStringifier;
+        /// <summary>A string converter for groups.</summary>
+        protected IUniqueStringifier<TGroup> groupStringifier;
+        /// <summary>A string converter for application components.</summary>
+        protected IUniqueStringifier<TComponent> applicationComponentStringifier;
+        /// <summary>A string converter for access levels.</summary>
+        protected IUniqueStringifier<TAccess> accessLevelStringifier;
+        /// <summary>Indicates whether the object has been disposed.</summary>
+        protected Boolean disposed;
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.MongoDbAccessManagerTemporalBulkPersister class.
+        /// </summary>
+        /// <param name="connectionString">The string to use to connect to the MongoDB database.</param>
+        /// <param name="databaseName">The name of the database.</param>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        public MongoDbAccessManagerTemporalBulkPersister
+        (
+            String connectionString,
+            String databaseName,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier
+        )
+        {
+            ThrowExceptionIfStringParameterNullOrWhitespace(nameof(connectionString), connectionString);
+            ThrowExceptionIfStringParameterNullOrWhitespace(nameof(databaseName), databaseName);
+
+            this.connectionString = connectionString;
+            this.databaseName = databaseName;
+            this.userStringifier = userStringifier;
+            this.groupStringifier = groupStringifier;
+            this.applicationComponentStringifier = applicationComponentStringifier;
+            this.accessLevelStringifier = accessLevelStringifier;
+            disposed = false;
+        }
+
         /// <inheritdoc/>
         public void PersistEvents(IList<TemporalEventBufferItemBase> events)
         {
@@ -59,11 +121,60 @@ namespace ApplicationAccess.Persistence.MongoDb
             throw new NotImplementedException();
         }
 
+        #region Private/Protected Methods
+
+        #pragma warning disable 1591
+
+        protected void ThrowExceptionIfStringParameterNullOrWhitespace(String parameterName, String parameterValue)
+        {
+            if (String.IsNullOrWhiteSpace(parameterValue))
+            {
+                throw new ArgumentNullException(parameterName, $"Parameter '{parameterName}' must contain a value.");
+            }
+        }
+
+        #pragma warning restore 1591
+
+        #endregion
+
         #region Finalize / Dispose Methods
 
+        /// <summary>
+        /// Releases the unmanaged resources used by the MongoDbAccessManagerTemporalBulkPersister.
+        /// </summary>
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #pragma warning disable 1591
+
+        ~MongoDbAccessManagerTemporalBulkPersister()
+        {
+            Dispose(false);
+        }
+
+        #pragma warning restore 1591
+
+        /// <summary>
+        /// Provides a method to free unmanaged resources used by this class.
+        /// </summary>
+        /// <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    // Free other state (managed objects).
+                }
+                // Free your own state (unmanaged objects).
+
+                // Set large fields to null.
+
+                disposed = true;
+            }
         }
 
         #endregion
