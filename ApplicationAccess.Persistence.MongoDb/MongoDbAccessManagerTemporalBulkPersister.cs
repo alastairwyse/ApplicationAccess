@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+
 using System;
+using MongoDB.Driver;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
+using ApplicationAccess.Persistence.MongoDb.Models.Documents;
 
 namespace ApplicationAccess.Persistence.MongoDb
 {
@@ -124,6 +127,22 @@ namespace ApplicationAccess.Persistence.MongoDb
         #region Private/Protected Methods
 
         #pragma warning disable 1591
+
+        #region MongoDb Event Persistence Methods
+
+        protected void CreateEvent(Guid eventId, DateTime transactionTime, IMongoDatabase database)
+        {
+            IMongoCollection<EventIdToTransactionTimeMappingDocument> eventIdToTransactionTimeMappingCollection = database.GetCollection<EventIdToTransactionTimeMappingDocument>(eventIdToTransactionTimeMapCollectionName);
+
+            // Get the last transaction time and sequence
+            var maxTransactionTimeDocuments = eventIdToTransactionTimeMappingCollection.Find(Builders<EventIdToTransactionTimeMappingDocument>.Filter.Empty)
+                .SortByDescending(document => document.TransactionTime);
+            var maxTransactionTimeAndSequenceDocument = maxTransactionTimeDocuments.SortByDescending(document => document.TransactionSequence)
+                .Limit(1)
+                .FirstOrDefault();
+        }
+
+        #endregion
 
         protected void ThrowExceptionIfStringParameterNullOrWhitespace(String parameterName, String parameterValue)
         {
