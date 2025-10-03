@@ -70,7 +70,7 @@ namespace ApplicationAccess.Persistence.Sql.UnitTests
                 testSqlServerPersisterUtilities.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>());
             });
 
-            Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' will value '{DateTime.MaxValue.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff")}' is greater than the current time '"));
+            Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' with value '{DateTime.MaxValue.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff")}' is greater than the current time '"));
             Assert.AreEqual("stateTime", e.ParamName);
         }
 

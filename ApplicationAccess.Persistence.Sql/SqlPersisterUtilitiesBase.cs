@@ -131,7 +131,7 @@ namespace ApplicationAccess.Persistence.Sql
                 throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
             DateTime now = DateTime.UtcNow;
             if (stateTime > now)
-                throw new ArgumentException($"Parameter '{nameof(stateTime)}' will value '{stateTime.ToString(TimestampColumnFormatString)}' is greater than the current time '{now.ToString(TimestampColumnFormatString)}'.", nameof(stateTime));
+                throw new ArgumentException($"Parameter '{nameof(stateTime)}' with value '{stateTime.ToString(TimestampColumnFormatString)}' is greater than the current time '{now.ToString(TimestampColumnFormatString)}'.", nameof(stateTime));
 
             // Get the event id and transaction time equal to or immediately before the specified state time
             String query = ReadQueryGenerator.GenerateGetEventCorrespondingToStateTimeQuery(stateTime);

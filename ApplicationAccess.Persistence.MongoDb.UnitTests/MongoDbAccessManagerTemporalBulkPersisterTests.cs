@@ -15,12 +15,11 @@
  */
 
 using System;
-using ApplicationAccess.Persistence.Models;
 using System.Collections.Generic;
-using ApplicationAccess.Persistence.MongoDb;
+using MongoDB.Driver;
+using NSubstitute;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
-using MongoDB.Driver.Core.Configuration;
 
 namespace ApplicationAccess.Persistence.MongoDb.UnitTests
 {
@@ -29,19 +28,22 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
     /// </summary>
     public class MongoDbAccessManagerTemporalBulkPersisterTests
     {
-        private MongoDbAccessManagerTemporalBulkPersister<String, String, String, String> testMongoDbAccessManagerTemporalBulkPersister;
+        private IMongoCollectionShim mockMongoCollectionShim;
+        private MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<String, String, String, String> testMongoDbAccessManagerTemporalBulkPersister;
 
         [SetUp]
         protected void SetUp()
         {
-            testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>
+            mockMongoCollectionShim = Substitute.For<IMongoCollectionShim>();
+            testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<String, String, String, String>
             (
                 "mongodb://testServer:27017", 
                 "ApplicationAccess",
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
-                new StringUniqueStringifier()
+                new StringUniqueStringifier(),
+                mockMongoCollectionShim
             );
         }
 
@@ -50,7 +52,7 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
         {
             var e = Assert.Throws<ArgumentNullException>(delegate
             {
-                testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>
+                testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<String, String, String, String>
                 (
                     null,
                     "ApplicationAccess",
@@ -70,7 +72,7 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
         {
             var e = Assert.Throws<ArgumentNullException>(delegate
             {
-                testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>
+                testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<String, String, String, String>
                 (
                     " ",
                     "ApplicationAccess",
@@ -90,7 +92,7 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
         {
             var e = Assert.Throws<ArgumentNullException>(delegate
             {
-                testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>
+                testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<String, String, String, String>
                 (
                     "mongodb://testServer:27017",
                     null,
@@ -110,7 +112,7 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
         {
             var e = Assert.Throws<ArgumentNullException>(delegate
             {
-                testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>
+                testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<String, String, String, String>
                 (
                     "mongodb://testServer:27017",
                     " ",
@@ -124,5 +126,79 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
             Assert.That(e.Message, Does.StartWith($"Parameter 'databaseName' must contain a value."));
             Assert.AreEqual("databaseName", e.ParamName);
         }
+
+        [Test]
+        public void CreateEvent_TransactionTimeParameterLessThanLastTransactionTime()
+        {
+            throw new NotImplementedException();
+        }
+
+        #region Nested Classes
+
+        /// <summary>
+        /// Version of the <see cref="MongoDbAccessManagerTemporalBulkPersister{TUser, TGroup, TComponent, TAccess}""> class where protected members are exposed as public so that they can be unit tested.
+        /// </summary>
+        /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+        /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+        /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+        /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        private class MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : MongoDbAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+        {
+            /// <summary>
+            /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.UnitTests.MongoDbAccessManagerTemporalBulkPersisterTests+MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers class.
+            /// </summary>
+            /// <param name="connectionString">The string to use to connect to the MongoDB database.</param>
+            /// <param name="databaseName">The name of the database.</param>
+            /// <param name="userStringifier">A string converter for users.</param>
+            /// <param name="groupStringifier">A string converter for groups.</param>
+            /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+            /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+            public MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers
+            (
+                String connectionString,
+                String databaseName,
+                IUniqueStringifier<TUser> userStringifier,
+                IUniqueStringifier<TGroup> groupStringifier,
+                IUniqueStringifier<TComponent> applicationComponentStringifier,
+                IUniqueStringifier<TAccess> accessLevelStringifier
+            ) : base(connectionString, databaseName, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier)
+            {
+            }
+
+            /// <summary>
+            /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.UnitTests.MongoDbAccessManagerTemporalBulkPersisterTests+MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers class.
+            /// </summary>
+            /// <param name="connectionString">The string to use to connect to the MongoDB database.</param>
+            /// <param name="databaseName">The name of the database.</param>
+            /// <param name="userStringifier">A string converter for users.</param>
+            /// <param name="groupStringifier">A string converter for groups.</param>
+            /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+            /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+            /// <param name="mongoCollectionShim">Acts as a <see href="https://en.wikipedia.org/wiki/Shim_(computing)">shim</see> to <see cref="IMongoCollection{TDocument}"/> instances.</param>
+            /// <remarks>This constructor is included to facilitate unit testing.</remarks>
+            public MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers
+            (
+                String connectionString,
+                String databaseName,
+                IUniqueStringifier<TUser> userStringifier,
+                IUniqueStringifier<TGroup> groupStringifier,
+                IUniqueStringifier<TComponent> applicationComponentStringifier,
+                IUniqueStringifier<TAccess> accessLevelStringifier,
+                IMongoCollectionShim mongoCollectionShim
+            ) : base(connectionString, databaseName, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, mongoCollectionShim)
+            {
+            }
+
+            #pragma warning disable 1591
+
+            public new void CreateEvent(Guid eventId, DateTime transactionTime, IMongoDatabase database)
+            {
+                base.CreateEvent(eventId, transactionTime, database);
+            }
+
+            #pragma warning restore 1591
+        }
+
+        #endregion
     }
 }

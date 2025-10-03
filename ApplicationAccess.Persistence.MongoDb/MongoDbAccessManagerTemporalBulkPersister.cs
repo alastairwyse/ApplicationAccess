@@ -45,6 +45,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected const String entitiesCollectionName = "Entities";
         protected const String userToEntityMappingsCollectionName = "UserToEntityMappings";
         protected const String groupToEntityMappingsCollectionName = "GroupToEntityMappings";
+        protected const String dateTimeExceptionMessageFormatString = "yyyy-MM-ddTHH:mm:ss.fffffff";
 
         #pragma warning restore 1591
 
@@ -60,6 +61,8 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
         /// <summary>A string converter for access levels.</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
+        /// <summary>Acts as a <see href="https://en.wikipedia.org/wiki/Shim_(computing)">shim</see> to <see cref="IMongoCollection{TDocument}"/> instances.</summary>
+        protected IMongoCollectionShim mongoCollectionShim;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected Boolean disposed;
 
@@ -91,7 +94,33 @@ namespace ApplicationAccess.Persistence.MongoDb
             this.groupStringifier = groupStringifier;
             this.applicationComponentStringifier = applicationComponentStringifier;
             this.accessLevelStringifier = accessLevelStringifier;
+            mongoCollectionShim = new DefaultMongoCollectionShim();
             disposed = false;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.MongoDbAccessManagerTemporalBulkPersister class.
+        /// </summary>
+        /// <param name="connectionString">The string to use to connect to the MongoDB database.</param>
+        /// <param name="databaseName">The name of the database.</param>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="mongoCollectionShim">Acts as a <see href="https://en.wikipedia.org/wiki/Shim_(computing)">shim</see> to <see cref="IMongoCollection{TDocument}"/> instances.</param>
+        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
+        public MongoDbAccessManagerTemporalBulkPersister
+        (
+            String connectionString,
+            String databaseName,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            IMongoCollectionShim mongoCollectionShim
+        ) : this(connectionString, databaseName, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier)
+        {
+            this.mongoCollectionShim = mongoCollectionShim;
         }
 
         /// <inheritdoc/>
@@ -135,11 +164,43 @@ namespace ApplicationAccess.Persistence.MongoDb
             IMongoCollection<EventIdToTransactionTimeMappingDocument> eventIdToTransactionTimeMappingCollection = database.GetCollection<EventIdToTransactionTimeMappingDocument>(eventIdToTransactionTimeMapCollectionName);
 
             // Get the last transaction time and sequence
-            var maxTransactionTimeDocuments = eventIdToTransactionTimeMappingCollection.Find(Builders<EventIdToTransactionTimeMappingDocument>.Filter.Empty)
+            DateTime lastTransactionTime = DateTime.MinValue;
+            Int32 lastTransactionSequence = 0;
+            Int32 transactionSequence = 0;
+            var maxTransactionTimeDocuments = mongoCollectionShim.Find(eventIdToTransactionTimeMappingCollection, Builders<EventIdToTransactionTimeMappingDocument>.Filter.Empty)
                 .SortByDescending(document => document.TransactionTime);
-            var maxTransactionTimeAndSequenceDocument = maxTransactionTimeDocuments.SortByDescending(document => document.TransactionSequence)
-                .Limit(1)
-                .FirstOrDefault();
+            if (maxTransactionTimeDocuments.CountDocuments() != 0)
+            {
+                var maxTransactionTimeAndSequenceDocument = maxTransactionTimeDocuments.SortByDescending(document => document.TransactionSequence)
+                    .Limit(1)
+                    .FirstOrDefault();
+                lastTransactionTime = maxTransactionTimeAndSequenceDocument.TransactionTime;
+                lastTransactionSequence = maxTransactionTimeAndSequenceDocument.TransactionSequence;
+            }
+
+            if (transactionTime < lastTransactionTime)
+            {
+                throw new ArgumentException($"Parameter '{nameof(transactionTime)}' with value '{transactionTime.ToString(dateTimeExceptionMessageFormatString)} must be greater than or equal to last transaction time '{transactionTime.ToString(dateTimeExceptionMessageFormatString)}'.", nameof(lastTransactionTime));
+            }
+            else if (transactionTime == lastTransactionTime)
+            {
+                transactionSequence = lastTransactionSequence + 1;
+            }
+
+            EventIdToTransactionTimeMappingDocument newDocument = new()
+            { 
+                EventId = eventId, 
+                TransactionTime = transactionTime, 
+                TransactionSequence = transactionSequence 
+            };
+            try
+            {
+                mongoCollectionShim.InsertOne(eventIdToTransactionTimeMappingCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{eventIdToTransactionTimeMapCollectionName}'.", e);
+            }
         }
 
         #endregion
