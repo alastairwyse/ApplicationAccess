@@ -9335,7 +9335,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         /// </summary>
         /// <param name="expected">The collection of strings the predicate compares to.</param>
         /// <returns>The <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/>.</returns>
-        /// <remarks>Designed to be passed to the 'predicate' parameter of the <see cref="Arg.Any{T}"/> argument matcher.</remarks>
+        /// <remarks>Designed to be passed to the 'predicate' parameter of the <see cref="Arg.Is{T}(Expression{Predicate{T}})"/> argument matcher.</remarks>
         protected Expression<Predicate<IEnumerable<String>>> EqualIgnoringOrder(IEnumerable<String> expected)
         {
             return testUtilities.EqualIgnoringOrder(expected);

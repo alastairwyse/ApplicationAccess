@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <Description>Integration tests for classes in the ApplicationAccess.Persistence.MongoDb namespace, utilising the EphemeralMongo NuGet package.</Description>
+    <Authors>Alastair Wyse</Authors>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="EphemeralMongo" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Persistence.MongoDb\ApplicationAccess.Persistence.MongoDb.csproj" />
+  </ItemGroup>
+  
+</Project>

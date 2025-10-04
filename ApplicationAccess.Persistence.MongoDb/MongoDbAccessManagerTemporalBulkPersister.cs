@@ -45,7 +45,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected const String entitiesCollectionName = "Entities";
         protected const String userToEntityMappingsCollectionName = "UserToEntityMappings";
         protected const String groupToEntityMappingsCollectionName = "GroupToEntityMappings";
-        protected const String dateTimeExceptionMessageFormatString = "yyyy-MM-ddTHH:mm:ss.fffffff";
+        protected const String dateTimeExceptionMessageFormatString = "yyyy-MM-dd HH:mm:ss.fffffff";
 
         #pragma warning restore 1591
 
@@ -61,8 +61,10 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
         /// <summary>A string converter for access levels.</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
-        /// <summary>Acts as a <see href="https://en.wikipedia.org/wiki/Shim_(computing)">shim</see> to <see cref="IMongoCollection{TDocument}"/> instances.</summary>
-        protected IMongoCollectionShim mongoCollectionShim;
+        /// <summary>The client to connect to MongoDB.</summary>
+        protected IMongoClient mongoClient;
+        /// <summary>The MongoDB database.</summary>
+        protected IMongoDatabase database;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected Boolean disposed;
 
@@ -94,33 +96,9 @@ namespace ApplicationAccess.Persistence.MongoDb
             this.groupStringifier = groupStringifier;
             this.applicationComponentStringifier = applicationComponentStringifier;
             this.accessLevelStringifier = accessLevelStringifier;
-            mongoCollectionShim = new DefaultMongoCollectionShim();
+            mongoClient = new MongoClient(this.connectionString);
+            database = mongoClient.GetDatabase(databaseName);
             disposed = false;
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.MongoDbAccessManagerTemporalBulkPersister class.
-        /// </summary>
-        /// <param name="connectionString">The string to use to connect to the MongoDB database.</param>
-        /// <param name="databaseName">The name of the database.</param>
-        /// <param name="userStringifier">A string converter for users.</param>
-        /// <param name="groupStringifier">A string converter for groups.</param>
-        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
-        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
-        /// <param name="mongoCollectionShim">Acts as a <see href="https://en.wikipedia.org/wiki/Shim_(computing)">shim</see> to <see cref="IMongoCollection{TDocument}"/> instances.</param>
-        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public MongoDbAccessManagerTemporalBulkPersister
-        (
-            String connectionString,
-            String databaseName,
-            IUniqueStringifier<TUser> userStringifier,
-            IUniqueStringifier<TGroup> groupStringifier,
-            IUniqueStringifier<TComponent> applicationComponentStringifier,
-            IUniqueStringifier<TAccess> accessLevelStringifier,
-            IMongoCollectionShim mongoCollectionShim
-        ) : this(connectionString, databaseName, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier)
-        {
-            this.mongoCollectionShim = mongoCollectionShim;
         }
 
         /// <inheritdoc/>
@@ -159,28 +137,38 @@ namespace ApplicationAccess.Persistence.MongoDb
 
         #region MongoDb Event Persistence Methods
 
-        protected void CreateEvent(Guid eventId, DateTime transactionTime, IMongoDatabase database)
+        protected void CreateEvent(Guid eventId, DateTime transactionTime)
         {
             IMongoCollection<EventIdToTransactionTimeMappingDocument> eventIdToTransactionTimeMappingCollection = database.GetCollection<EventIdToTransactionTimeMappingDocument>(eventIdToTransactionTimeMapCollectionName);
-
-            // Get the last transaction time and sequence
             DateTime lastTransactionTime = DateTime.MinValue;
             Int32 lastTransactionSequence = 0;
             Int32 transactionSequence = 0;
-            var maxTransactionTimeDocuments = mongoCollectionShim.Find(eventIdToTransactionTimeMappingCollection, Builders<EventIdToTransactionTimeMappingDocument>.Filter.Empty)
-                .SortByDescending(document => document.TransactionTime);
-            if (maxTransactionTimeDocuments.CountDocuments() != 0)
+
+            // Get the most recent transaction time
+            try
             {
-                var maxTransactionTimeAndSequenceDocument = maxTransactionTimeDocuments.SortByDescending(document => document.TransactionSequence)
-                    .Limit(1)
+                EventIdToTransactionTimeMappingDocument lastTransactionTimeDocument = eventIdToTransactionTimeMappingCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                    .SortByDescending(document => document.TransactionTime)
                     .FirstOrDefault();
-                lastTransactionTime = maxTransactionTimeAndSequenceDocument.TransactionTime;
-                lastTransactionSequence = maxTransactionTimeAndSequenceDocument.TransactionSequence;
+                if (lastTransactionTimeDocument != null)
+                {
+                    // Get the largest transaction sequence within the most recent transaction time
+                    FilterDefinition<EventIdToTransactionTimeMappingDocument> lastTransactionTimeFilter = Builders<EventIdToTransactionTimeMappingDocument>.Filter.Eq(document => document.TransactionTime, lastTransactionTimeDocument.TransactionTime);
+                    EventIdToTransactionTimeMappingDocument lastTransactionSequenceDocument = eventIdToTransactionTimeMappingCollection.Find(lastTransactionTimeFilter)
+                        .SortByDescending(document => document.TransactionSequence)
+                        .FirstOrDefault();
+                    lastTransactionTime = lastTransactionSequenceDocument.TransactionTime;
+                    lastTransactionSequence = lastTransactionSequenceDocument.TransactionSequence;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to retrieve most recent transaction time and sequence from collection '{eventIdToTransactionTimeMapCollectionName}' when persisting a new event to MongoDB.", e);
             }
 
             if (transactionTime < lastTransactionTime)
             {
-                throw new ArgumentException($"Parameter '{nameof(transactionTime)}' with value '{transactionTime.ToString(dateTimeExceptionMessageFormatString)} must be greater than or equal to last transaction time '{transactionTime.ToString(dateTimeExceptionMessageFormatString)}'.", nameof(lastTransactionTime));
+                throw new ArgumentException($"Parameter '{nameof(transactionTime)}' with value '{transactionTime.ToString(dateTimeExceptionMessageFormatString)}' must be greater than or equal to last transaction time '{lastTransactionTime.ToString(dateTimeExceptionMessageFormatString)}'.", nameof(transactionTime));
             }
             else if (transactionTime == lastTransactionTime)
             {
@@ -195,7 +183,7 @@ namespace ApplicationAccess.Persistence.MongoDb
             };
             try
             {
-                mongoCollectionShim.InsertOne(eventIdToTransactionTimeMappingCollection, newDocument);
+                eventIdToTransactionTimeMappingCollection.InsertOne(newDocument);
             }
             catch (Exception e)
             {
@@ -248,6 +236,7 @@ namespace ApplicationAccess.Persistence.MongoDb
                 if (disposing)
                 {
                     // Free other state (managed objects).
+                    mongoClient.Dispose();
                 }
                 // Free your own state (unmanaged objects).
 
