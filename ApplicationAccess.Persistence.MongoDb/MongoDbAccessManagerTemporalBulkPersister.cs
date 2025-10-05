@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 using System;
 using MongoDB.Driver;
 using ApplicationAccess.Persistence;
@@ -48,6 +47,9 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected const String dateTimeExceptionMessageFormatString = "yyyy-MM-dd HH:mm:ss.fffffff";
 
         #pragma warning restore 1591
+
+        /// <summary>The maximum date allowed in the temporal model.</summary>
+        protected readonly DateTime temporalMaxDate = DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc);
 
         /// <summary>The string to use to connect to MongoDB.</summary>
         protected String connectionString;
@@ -188,6 +190,37 @@ namespace ApplicationAccess.Persistence.MongoDb
             catch (Exception e)
             {
                 throw new Exception($"Failed to insert document into collection '{eventIdToTransactionTimeMapCollectionName}'.", e);
+            }
+        }
+
+        protected void AddUser(TUser user, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<UserDocument> usersCollection = database.GetCollection<UserDocument>(usersCollectionName);
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) => 
+                {
+                    CreateEvent(eventId, transactionTime);
+                    UserDocument newDocument = new()
+                    {
+                        User = userStringifier.ToString(user), 
+                        TransactionFrom = transactionTime, 
+                        TransactionTo = temporalMaxDate
+                    };
+                    try
+                    {
+                        usersCollection.InsertOne(newDocument);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception($"Failed to insert document into collection '{usersCollectionName}'.", e);
+                    }
+
+                    // TODO: Test on BeeLink that WithTransaction() actually does a transaction... and what happens if it fails (2nd command is bogus??)
+                    //   Figure out what to do with this return type
+
+                    return new Object();
+                });
             }
         }
 
