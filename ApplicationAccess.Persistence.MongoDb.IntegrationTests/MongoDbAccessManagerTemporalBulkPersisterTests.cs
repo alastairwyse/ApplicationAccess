@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 using ApplicationAccess.Persistence.MongoDb.Models.Documents;
 using EphemeralMongo;
 using MongoDB.Driver;
@@ -45,6 +46,8 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
 
         #pragma warning restore 1591
 
+        protected readonly DateTime temporalMaxDate = DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc);
+
         private IMongoRunner mongoRunner;
         private IMongoClient mongoClient;
         private IMongoDatabase mongoDatabase;
@@ -59,12 +62,18 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         private IMongoCollection<EntityDocument> entitiesCollection;
         private IMongoCollection<UserToEntityMappingDocument> userToEntityMappingsCollection;
         private IMongoCollection<GroupToEntityMappingDocument> groupToEntityMappingsCollection;
+        private MethodCallCountingStringUniqueStringifier userStringifier;
+        private MethodCallCountingStringUniqueStringifier groupStringifier;
+        private MethodCallCountingStringUniqueStringifier applicationComponentStringifier;
+        private MethodCallCountingStringUniqueStringifier accessLevelStringifier;
         private MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<String, String, String, String> testMongoDbAccessManagerTemporalBulkPersister;
 
         [OneTimeSetUp]
         protected void OneTimeSetUp()
         {
-            mongoRunner = MongoRunner.Run();
+            var mongoRunnerOptions = new MongoRunnerOptions();
+            mongoRunnerOptions.UseSingleNodeReplicaSet = true;
+            mongoRunner = MongoRunner.Run(mongoRunnerOptions);
             mongoClient = new MongoClient(mongoRunner.ConnectionString);
             mongoDatabase = mongoClient.GetDatabase("ApplicationAccess");
         }
@@ -94,14 +103,18 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             entitiesCollection = mongoDatabase.GetCollection<EntityDocument>(entitiesCollectionName);
             userToEntityMappingsCollection = mongoDatabase.GetCollection<UserToEntityMappingDocument>(userToEntityMappingsCollectionName);
             groupToEntityMappingsCollection = mongoDatabase.GetCollection<GroupToEntityMappingDocument>(groupToEntityMappingsCollectionName);
+            userStringifier = new MethodCallCountingStringUniqueStringifier();
+            groupStringifier = new MethodCallCountingStringUniqueStringifier();
+            applicationComponentStringifier = new MethodCallCountingStringUniqueStringifier();
+            accessLevelStringifier = new MethodCallCountingStringUniqueStringifier();
             testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<String, String, String, String>
             (
                 mongoRunner.ConnectionString,
                 "ApplicationAccess",
-                new StringUniqueStringifier(),
-                new StringUniqueStringifier(),
-                new StringUniqueStringifier(),
-                new StringUniqueStringifier()
+                userStringifier,
+                groupStringifier,
+                applicationComponentStringifier,
+                accessLevelStringifier
             );
         }
 
@@ -130,11 +143,11 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             };
             eventIdToTransactionTimeMapCollection.InsertMany(initialDocuments);
             var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            var transactionTime = CreateDataTimeFromString("2025-10-04 17:33:54.0000000");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-04 17:33:54.0000000");
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testMongoDbAccessManagerTemporalBulkPersister.CreateEvent(eventId, transactionTime);
+                testMongoDbAccessManagerTemporalBulkPersister.CreateEvent(null, eventId, transactionTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'transactionTime' with value '2025-10-04 17:33:54.0000000' must be greater than or equal to last transaction time '2025-10-04 17:33:55.0000000'."));
@@ -145,9 +158,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         public void CreateEvent_CollectionEmpty()
         {
             var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            var transactionTime = CreateDataTimeFromString("2025-10-04 17:33:54.0000000");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-04 17:33:54.0000000");
 
-            testMongoDbAccessManagerTemporalBulkPersister.CreateEvent(eventId, transactionTime);
+            testMongoDbAccessManagerTemporalBulkPersister.CreateEvent(null, eventId, transactionTime);
 
             List<EventIdToTransactionTimeMappingDocument> allDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty).ToList();
             Assert.AreEqual(1, allDocuments.Count);
@@ -166,9 +179,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             };
             eventIdToTransactionTimeMapCollection.InsertMany(initialDocuments);
             var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            var transactionTime = CreateDataTimeFromString("2025-10-04 17:33:55.0000000");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-04 17:33:55.0000000");
 
-            testMongoDbAccessManagerTemporalBulkPersister.CreateEvent(eventId, transactionTime);
+            testMongoDbAccessManagerTemporalBulkPersister.CreateEvent(null, eventId, transactionTime);
 
             List<EventIdToTransactionTimeMappingDocument> allDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
                 .SortBy(document => document.TransactionSequence)
@@ -191,9 +204,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             };
             eventIdToTransactionTimeMapCollection.InsertMany(initialDocuments);
             var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            var transactionTime = CreateDataTimeFromString("2025-10-04 17:33:56.0000000");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-04 17:33:56.0000000");
 
-            testMongoDbAccessManagerTemporalBulkPersister.CreateEvent(eventId, transactionTime);
+            testMongoDbAccessManagerTemporalBulkPersister.CreateEvent(null, eventId, transactionTime);
 
             List<EventIdToTransactionTimeMappingDocument> allDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
                 .SortBy(document => document.TransactionTime)
@@ -202,6 +215,86 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             Assert.AreEqual(eventId, allDocuments[4].EventId);
             Assert.AreEqual(transactionTime, allDocuments[4].TransactionTime);
             Assert.AreEqual(0, allDocuments[4].TransactionSequence);
+        }
+
+        [Test]
+        public void CreateEvent_WithTransaction()
+        {
+            List<EventIdToTransactionTimeMappingDocument> initialDocuments = new()
+            {
+                new EventIdToTransactionTimeMappingDocument() { EventId = Guid.NewGuid(), TransactionTime = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionSequence = 0 },
+                new EventIdToTransactionTimeMappingDocument() { EventId = Guid.NewGuid(), TransactionTime = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionSequence = 1 },
+                new EventIdToTransactionTimeMappingDocument() { EventId = Guid.NewGuid(), TransactionTime = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionSequence = 0 },
+                new EventIdToTransactionTimeMappingDocument() { EventId = Guid.NewGuid(), TransactionTime = CreateDataTimeFromString("2025-10-04 17:33:55.0000000"), TransactionSequence = 0 }
+            };
+            eventIdToTransactionTimeMapCollection.InsertMany(initialDocuments);
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-04 17:33:56.0000000");
+
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    testMongoDbAccessManagerTemporalBulkPersister.CreateEvent(s, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+
+            List<EventIdToTransactionTimeMappingDocument> allDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .SortBy(document => document.TransactionTime)
+                .ToList();
+            Assert.AreEqual(5, allDocuments.Count);
+            Assert.AreEqual(eventId, allDocuments[4].EventId);
+            Assert.AreEqual(transactionTime, allDocuments[4].TransactionTime);
+            Assert.AreEqual(0, allDocuments[4].TransactionSequence);
+        }
+
+        [Test]
+        public void AddUser()
+        {
+            String user = "user";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-06 23:13:26.0000000");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddUser(null, user, eventId, transactionTime);
+
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            List<UserDocument> allUserDocuments = usersCollection.Find(FilterDefinition<UserDocument>.Empty)
+               .ToList();
+            Assert.AreEqual(1, allUserDocuments.Count);
+            Assert.AreEqual(user, allUserDocuments[0].User);
+            Assert.AreEqual(transactionTime, allUserDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allUserDocuments[0].TransactionTo);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddUserWithTransaction()
+        {
+            String user = "user";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-06 23:13:26.0000000");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddUserWithTransaction(user, eventId, transactionTime);
+
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            List<UserDocument> allUserDocuments = usersCollection.Find(FilterDefinition<UserDocument>.Empty)
+               .ToList();
+            Assert.AreEqual(1, allUserDocuments.Count);
+            Assert.AreEqual(user, allUserDocuments[0].User);
+            Assert.AreEqual(transactionTime, allUserDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allUserDocuments[0].TransactionTo);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
         }
 
         #region Private/Protected Methods
@@ -254,12 +347,61 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
 
             #pragma warning disable 1591
 
-            public new void CreateEvent(Guid eventId, DateTime transactionTime)
+            public new void CreateEvent(IClientSessionHandle session, Guid eventId, DateTime transactionTime)
             {
-                base.CreateEvent(eventId, transactionTime);
+                base.CreateEvent(session, eventId, transactionTime);
+            }
+
+            public new void AddUser(IClientSessionHandle session, TUser user, Guid eventId, DateTime transactionTime)
+            {
+                base.AddUser(session, user, eventId, transactionTime);
+            }
+
+            public new void AddUserWithTransaction(TUser user, Guid eventId, DateTime transactionTime)
+            {
+                base.AddUserWithTransaction(user, eventId, transactionTime);
             }
 
             #pragma warning restore 1591
+        }
+
+        /// <summary>
+        /// Implementation of <see cref="IUniqueStringifier{T}"/> which counts the number of calls to the FromString() and ToString() methods.
+        /// </summary>
+        private class MethodCallCountingStringUniqueStringifier : IUniqueStringifier<String>
+        {
+            public Int32 FromStringCallCount { get; protected set; }
+            public Int32 ToStringCallCount { get; protected set; }
+
+            public MethodCallCountingStringUniqueStringifier()
+            {
+                Reset();
+            }
+
+            /// <inheritdoc/>
+            public String FromString(String stringifiedObject)
+            {
+                FromStringCallCount++;
+
+                return stringifiedObject;
+            }
+
+            /// <inheritdoc/>
+            public String ToString(String inputObject)
+            {
+                ToStringCallCount++;
+
+                return inputObject;
+            }
+
+            /// <summary>
+            /// Resets the method call counts to 0.
+            /// </summary>
+            public void Reset()
+            {
+                FromStringCallCount = 0;
+                ToStringCallCount = 0;
+            }
         }
 
         #endregion
