@@ -252,42 +252,113 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         [Test]
         public void AddUser()
         {
-            String user = "user";
+            String user = "user1";
             var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DateTime transactionTime = CreateDataTimeFromString("2025-10-06 23:13:26.0000000");
 
             testMongoDbAccessManagerTemporalBulkPersister.AddUser(null, user, eventId, transactionTime);
 
+            List<UserDocument> allUserDocuments = usersCollection.Find(FilterDefinition<UserDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allUserDocuments.Count);
+            Assert.AreEqual(user, allUserDocuments[0].User);
+            Assert.AreEqual(transactionTime, allUserDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allUserDocuments[0].TransactionTo);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
             List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
                 .ToList();
             Assert.AreEqual(1, allEventDocuments.Count);
             Assert.AreEqual(eventId, allEventDocuments[0].EventId);
             Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
             Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
-            List<UserDocument> allUserDocuments = usersCollection.Find(FilterDefinition<UserDocument>.Empty)
-               .ToList();
-            Assert.AreEqual(1, allUserDocuments.Count);
-            Assert.AreEqual(user, allUserDocuments[0].User);
-            Assert.AreEqual(transactionTime, allUserDocuments[0].TransactionFrom);
-            Assert.AreEqual(temporalMaxDate, allUserDocuments[0].TransactionTo);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
         }
 
         [Test]
         public void AddUserWithTransaction()
         {
-            String user = "user";
+            String user = "user1";
             var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DateTime transactionTime = CreateDataTimeFromString("2025-10-06 23:13:26.0000000");
 
             testMongoDbAccessManagerTemporalBulkPersister.AddUserWithTransaction(user, eventId, transactionTime);
 
+            List<UserDocument> allUserDocuments = usersCollection.Find(FilterDefinition<UserDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allUserDocuments.Count);
+            Assert.AreEqual(user, allUserDocuments[0].User);
+            Assert.AreEqual(transactionTime, allUserDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allUserDocuments[0].TransactionTo);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
             List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
                 .ToList();
             Assert.AreEqual(1, allEventDocuments.Count);
             Assert.AreEqual(eventId, allEventDocuments[0].EventId);
             Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
             Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+        }
+
+        [Test]
+        public void RemoveUser_UserDoesntExist()
+        {
+            String user = "user1";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-06 23:13:26.0000000");
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testMongoDbAccessManagerTemporalBulkPersister.RemoveUser(null, user, eventId, transactionTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"No document exists for user 'user1' and transaction time '2025-10-06 23:13:26.0000000'."));
+        }
+
+        [Test]
+        public void RemoveUser()
+        {
+            List<UserToGroupMappingDocument> initialUserToGroupMappingDocuments = new()
+            {
+                new UserToGroupMappingDocument() {  User = "user1", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new UserToGroupMappingDocument() {  User = "user2", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToGroupMappingDocument() {  User = "user1", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue},
+            };
+            userToGroupMappingsCollection.InsertMany(initialUserToGroupMappingDocuments);
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> initialUserToApplicationComponentAndAccessLevelMappingDocuments = new()
+            {
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user2", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue},
+            };
+            userToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialUserToApplicationComponentAndAccessLevelMappingDocuments);
+            List<UserToEntityMappingDocument> initialUserToEntityMappingDocuments = new()
+            {
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new UserToEntityMappingDocument() {  User = "user2", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue},
+            };
+            userToEntityMappingsCollection.InsertMany(initialUserToEntityMappingDocuments);
+            List<UserDocument> initialUserDocuments = new()
+            {
+                new UserDocument() {  User = "user1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new UserDocument() {  User = "user2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserDocument() {  User = "user1", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue},
+            };
+            usersCollection.InsertMany(initialUserDocuments);
+            String user = "user1";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-09 08:34:55.0000000");
+
+            testMongoDbAccessManagerTemporalBulkPersister.RemoveUser(null, user, eventId, transactionTime);
+
+            List<UserToGroupMappingDocument> allUserToGroupMappingDocuments = userToGroupMappingsCollection.Find(FilterDefinition<UserToGroupMappingDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(3, allUserToGroupMappingDocuments.Count);
+            Assert.AreEqual("2025-10-09 07:53:28.0000000", allUserToGroupMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToGroupMappingDocuments[1].TransactionTo);
+            Assert.AreEqual("2025-10-09 08:34:54.9999999", allUserToGroupMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+
+            /*
             List<UserDocument> allUserDocuments = usersCollection.Find(FilterDefinition<UserDocument>.Empty)
                .ToList();
             Assert.AreEqual(1, allUserDocuments.Count);
@@ -295,6 +366,13 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             Assert.AreEqual(transactionTime, allUserDocuments[0].TransactionFrom);
             Assert.AreEqual(temporalMaxDate, allUserDocuments[0].TransactionTo);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            */
         }
 
         #region Private/Protected Methods
@@ -309,6 +387,16 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             DateTime returnDateTime = DateTime.ParseExact(stringifiedDateTime, "yyyy-MM-dd HH:mm:ss.fffffff", DateTimeFormatInfo.InvariantInfo);
 
             return DateTime.SpecifyKind(returnDateTime, DateTimeKind.Utc);
+        }
+
+        /// <summary>
+        /// Subtracts the most granular supported time unit in the data's temporal model from the specified <see cref="DateTime" />.
+        /// </summary>
+        /// <param name="inputDateTime">The <see cref="DateTime" /> to subtract from.</param>
+        /// <returns>The <see cref="DateTime" /> after the subtraction.</returns>
+        protected DateTime SubtractTemporalMinimumTimeUnit(DateTime inputDateTime)
+        {
+            return inputDateTime.Subtract(TimeSpan.FromMicroseconds(0.1));
         }
 
         #endregion
@@ -362,7 +450,17 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
                 base.AddUserWithTransaction(user, eventId, transactionTime);
             }
 
-            #pragma warning restore 1591
+            public new void RemoveUser(IClientSessionHandle session, TUser user, Guid eventId, DateTime transactionTime)
+            {
+                base.RemoveUser(session, user, eventId, transactionTime);
+            }
+
+            public new void RemoveUserWithTransaction(TUser user, Guid eventId, DateTime transactionTime)
+            {
+                base.RemoveUserWithTransaction(user, eventId, transactionTime);
+            }
+
+#pragma warning restore 1591
         }
 
         /// <summary>

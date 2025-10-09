@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections;
 using MongoDB.Driver;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
@@ -144,94 +145,6 @@ namespace ApplicationAccess.Persistence.MongoDb
 
         #region Private/Protected Methods
 
-        /// <summary>
-        /// Begins a find fluent interface, optionally within a specified session.
-        /// </summary>
-        /// <typeparam name="T">The type of document(s) to return.</typeparam>
-        /// <param name="session">The (optional) session to execute the find in.  Set to null to not run in a session.</param>
-        /// <param name="collection">The collection to read from.</param>
-        /// <param name="filter">The filter to apply to execute the find.</param>
-        /// <returns>A find fluent interface.</returns>
-        protected IFindFluent<T, T> Find<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filter)
-        {
-            if (session == null)
-            {
-                return collection.Find(filter);
-            }
-            else
-            {
-                return collection.Find(session, filter);
-            }
-        }
-
-        /// <summary>
-        /// Inserts a single document, optionally within a specified session.
-        /// </summary>
-        /// <typeparam name="T">The type of document to insert.</typeparam>
-        /// <param name="session">The (optional) session to execute the insert in.  Set to null to not run in a session.</param>
-        /// <param name="collection">The collection to insert into.</param>
-        /// <param name="document">The document to insert.</param>
-        protected void InsertOne<T>(IClientSessionHandle session, IMongoCollection<T> collection, T document)
-        {
-            if (session == null)
-            {
-                collection.InsertOne(document);
-            }
-            else
-            {
-                collection.InsertOne(session, document);
-            }
-        }
-
-        /// <summary>
-        /// Updates multiple documents, optionally within a specified session.
-        /// </summary>
-        /// <typeparam name="T">The type of documents to update.</typeparam>
-        /// <param name="session">The (optional) session to execute the update in.  Set to null to not run in a session.</param>
-        /// <param name="collection">The collection to update.</param>
-        /// <param name="filterDefinition">The filter.</param>
-        /// <param name="updateDefinition">The update.</param>
-        protected void UpdateMany<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
-        {
-            if (session == null)
-            {
-                collection.UpdateMany(filterDefinition, updateDefinition);
-            }
-            else
-            {
-                collection.UpdateMany(session, filterDefinition, updateDefinition);
-            }
-        }
-
-        /// <summary>
-        /// Adds a timestamp filter (following the data's temporal model) to the <see cref="DocumentBase.TransactionFrom"/> and <see cref="DocumentBase.TransactionTo"/> of the data being filtered.
-        /// </summary>
-        /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/> being filtered).</typeparam>
-        /// <param name="transactionTime">The timestamp of the temporal filter.</param>
-        /// <param name="existingFilters">The existing filters to add to.</param>
-        /// <returns>The appended <see cref="FilterDefinition{TDocument}"/>.</returns>
-        protected FilterDefinition<T> AddTemporalTimestampFilter<T>(DateTime transactionTime, params FilterDefinition<T>[] existingFilters)
-            where T : DocumentBase
-        {
-            IEnumerable<FilterDefinition<T>> allFilters = new List<FilterDefinition<T>>(existingFilters);
-            allFilters.Append(Builders<T>.Filter.Lte(document => document.TransactionFrom, transactionTime));
-            allFilters.Append(Builders<T>.Filter.Gte(document => document.TransactionTo, transactionTime));
-
-            return Builders<T>.Filter.And(allFilters);
-        }
-
-        /// <summary>
-        /// Subtracts the most granular supported time unit in the data's temporal model from the specified <see cref="DateTime" />.
-        /// </summary>
-        /// <param name="inputDateTime">The <see cref="DateTime" /> to subtract from.</param>
-        /// <returns>The <see cref="DateTime" /> after the subtraction.</returns>
-        protected DateTime SubtractTemporalMinimumTimeUnit(DateTime inputDateTime)
-        {
-            return inputDateTime.Subtract(TimeSpan.FromMicroseconds(0.1));
-        }
-
-        #pragma warning disable 1591
-
         #region MongoDb Event Persistence Methods
 
         protected void CreateEvent(IClientSessionHandle session, Guid eventId, DateTime transactionTime)
@@ -273,10 +186,10 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
 
             EventIdToTransactionTimeMappingDocument newDocument = new()
-            { 
-                EventId = eventId, 
-                TransactionTime = transactionTime, 
-                TransactionSequence = transactionSequence 
+            {
+                EventId = eventId,
+                TransactionTime = transactionTime,
+                TransactionSequence = transactionSequence
             };
             try
             {
@@ -291,11 +204,10 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected void AddUser(IClientSessionHandle session, TUser user, Guid eventId, DateTime transactionTime)
         {
             IMongoCollection<UserDocument> usersCollection = database.GetCollection<UserDocument>(usersCollectionName);
-            CreateEvent(session, eventId, transactionTime);
             UserDocument newDocument = new()
             {
-                User = userStringifier.ToString(user), 
-                TransactionFrom = transactionTime, 
+                User = userStringifier.ToString(user),
+                TransactionFrom = transactionTime,
                 TransactionTo = temporalMaxDate
             };
             try
@@ -306,6 +218,7 @@ namespace ApplicationAccess.Persistence.MongoDb
             {
                 throw new Exception($"Failed to insert document into collection '{usersCollectionName}'.", e);
             }
+            CreateEvent(session, eventId, transactionTime);
         }
 
         protected void AddUserWithTransaction(TUser user, Guid eventId, DateTime transactionTime)
@@ -316,7 +229,7 @@ namespace ApplicationAccess.Persistence.MongoDb
                 {
                     AddUser(session, user, eventId, transactionTime);
                     return new Object();
-                });          
+                });
             }
         }
 
@@ -339,24 +252,173 @@ namespace ApplicationAccess.Persistence.MongoDb
 
             // Invalidate any UserToGroupMapping documents
             FilterDefinition<UserToGroupMappingDocument> userToGroupMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToGroupMappingDocument>.Filter.Eq(document => document.User, stringifiedUser));
+            InvalidateDocuments(session, userToGroupMappingFilter, transactionTime, userToGroupMappingsCollectionName, "user to group mapping", "user");
+            // Invalidate any UserToApplicationComponentAndAccessLevelMapping documents
+            FilterDefinition<UserToApplicationComponentAndAccessLevelMappingDocument> userToApplicationComponentAndAccessLevelMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.Filter.Eq(document => document.User, stringifiedUser));
+            InvalidateDocuments(session, userToApplicationComponentAndAccessLevelMappingFilter, transactionTime, userToApplicationComponentAndAccessLevelMappingsCollectionName, "user to application component and access level mapping", "user");
+            // Invalidate any UserToEntityMapping documents
+            FilterDefinition<UserToEntityMappingDocument> userToEntityMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToEntityMappingDocument>.Filter.Eq(document => document.User, stringifiedUser));
+            InvalidateDocuments(session, userToEntityMappingFilter, transactionTime, userToEntityMappingsCollectionName, "user to entity mapping", "user");
+
+            // Invalidate the user
+            UpdateDefinition<UserDocument> invalidationUpdate = Builders<UserDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
             try
             {
-                // TODO: Create this in protected method
-
-                UpdateDefinition<UserToGroupMappingDocument> invalidationUpdate = Builders<UserToGroupMappingDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+                UpdateOne(session, usersCollection, existingUserFilter, invalidationUpdate);
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to retrieve existing user document from collecion '{usersCollection}' when removing user from MongoDB.", e);
+                throw new Exception($"Failed to invalidate user document in collecion '{usersCollectionName}' when removing user from MongoDB.", e);
             }
+            CreateEvent(session, eventId, transactionTime);
         }
 
         protected void RemoveUserWithTransaction(TUser user, Guid eventId, DateTime transactionTime)
         {
-            throw new NotImplementedException();
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveUser(session, user, eventId, transactionTime);
+                    return new Object();
+                });
+            }
         }
 
         #endregion
+
+        /// <summary>
+        /// Begins a find fluent interface, optionally within a specified session.
+        /// </summary>
+        /// <typeparam name="T">The type of document(s) to return.</typeparam>
+        /// <param name="session">The (optional) session to execute the find in.  Set to null to not run in a session.</param>
+        /// <param name="collection">The collection to read from.</param>
+        /// <param name="filter">The filter to apply to execute the find.</param>
+        /// <returns>A find fluent interface.</returns>
+        protected IFindFluent<T, T> Find<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filter)
+        {
+            if (session == null)
+            {
+                return collection.Find(filter);
+            }
+            else
+            {
+                return collection.Find(session, filter);
+            }
+        }
+
+        /// <summary>
+        /// Inserts a single document, optionally within a specified session.
+        /// </summary>
+        /// <typeparam name="T">The type of document to insert.</typeparam>
+        /// <param name="session">The (optional) session to execute the insert in.  Set to null to not run in a session.</param>
+        /// <param name="collection">The collection to insert into.</param>
+        /// <param name="document">The document to insert.</param>
+        protected void InsertOne<T>(IClientSessionHandle session, IMongoCollection<T> collection, T document)
+        {
+            if (session == null)
+            {
+                collection.InsertOne(document);
+            }
+            else
+            {
+                collection.InsertOne(session, document);
+            }
+        }
+
+        /// <summary>
+        /// Updates a single document, optionally within a specified session.
+        /// </summary>
+        /// <typeparam name="T">The type of document to update.</typeparam>
+        /// <param name="session">The (optional) session to execute the update in.  Set to null to not run in a session.</param>
+        /// <param name="collection">The collection to update.</param>
+        /// <param name="filterDefinition">The filter.</param>
+        /// <param name="updateDefinition">The update.</param>
+        protected void UpdateOne<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
+        {
+            if (session == null)
+            {
+                collection.UpdateOne(filterDefinition, updateDefinition);
+            }
+            else
+            {
+                collection.UpdateOne(session, filterDefinition, updateDefinition);
+            }
+        }
+
+        /// <summary>
+        /// Updates multiple documents, optionally within a specified session.
+        /// </summary>
+        /// <typeparam name="T">The type of documents to update.</typeparam>
+        /// <param name="session">The (optional) session to execute the update in.  Set to null to not run in a session.</param>
+        /// <param name="collection">The collection to update.</param>
+        /// <param name="filterDefinition">The filter.</param>
+        /// <param name="updateDefinition">The update.</param>
+        protected void UpdateMany<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
+        {
+            if (session == null)
+            {
+                collection.UpdateMany(filterDefinition, updateDefinition);
+            }
+            else
+            {
+                collection.UpdateMany(session, filterDefinition, updateDefinition);
+            }
+        }
+
+        /// <summary>
+        /// Adds a timestamp filter (following the data's temporal model) to the <see cref="DocumentBase.TransactionFrom"/> and <see cref="DocumentBase.TransactionTo"/> of the data being filtered.
+        /// </summary>
+        /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/> being filtered).</typeparam>
+        /// <param name="transactionTime">The timestamp of the temporal filter.</param>
+        /// <param name="existingFilters">The existing filters to add to.</param>
+        /// <returns>The appended <see cref="FilterDefinition{TDocument}"/>.</returns>
+        protected FilterDefinition<T> AddTemporalTimestampFilter<T>(DateTime transactionTime, params FilterDefinition<T>[] existingFilters)
+            where T : DocumentBase
+        {
+            IEnumerable<FilterDefinition<T>> allFilters = new List<FilterDefinition<T>>(existingFilters);
+            allFilters.Append(Builders<T>.Filter.Lte(document => document.TransactionFrom, transactionTime));
+            allFilters.Append(Builders<T>.Filter.Gte(document => document.TransactionTo, transactionTime));
+
+            return Builders<T>.Filter.And(allFilters);
+        }
+
+        /// <summary>
+        /// Invalidates a set of documents by setting their temporal <see cref="DocumentBase.TransactionTo"/> field to a historic value.  Designed to be used as part of an element remove/delete operation.
+        /// </summary>
+        /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/> being invalidated).</typeparam>
+        /// <param name="session">The (optional) session to execute the update in.  Set to null to not run in a session.</param>
+        /// <param name="filterDefinition">A filter definition which identifies the documents to be invalidated.</param>
+        /// <param name="transactionTime">The time that the invalidation (i.e. remove/delete operation) occurred.</param>
+        /// <param name="collectionName">The name of the collection to apply the invalidation to.</param>
+        /// <param name="documentDescription">A description of the documents being invalidated.  To use in exception messages (e.g. 'user to group mapping').</param>
+        /// <param name="removedElementDescription">The type of element being removed/deleted (e.g. 'user').</param>
+        protected void InvalidateDocuments<T>(IClientSessionHandle session, FilterDefinition<T> filterDefinition, DateTime transactionTime, String collectionName, String documentDescription, String removedElementDescription)
+            where T : DocumentBase
+        {
+            try
+            {
+                UpdateDefinition<T> invalidationUpdate = Builders<T>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+                IMongoCollection<T> collection = database.GetCollection<T>(collectionName);
+                UpdateMany(session, collection, filterDefinition, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate {documentDescription} document(s) in collecion '{collectionName}' when removing {removedElementDescription} from MongoDB.", e);
+            }
+        }
+
+        /// <summary>
+        /// Subtracts the most granular supported time unit in the data's temporal model from the specified <see cref="DateTime" />.
+        /// </summary>
+        /// <param name="inputDateTime">The <see cref="DateTime" /> to subtract from.</param>
+        /// <returns>The <see cref="DateTime" /> after the subtraction.</returns>
+        protected DateTime SubtractTemporalMinimumTimeUnit(DateTime inputDateTime)
+        {
+            return inputDateTime.Subtract(TimeSpan.FromMicroseconds(0.1));
+        }
+
+        #pragma warning disable 1591
 
         protected void ThrowExceptionIfStringParameterNullOrWhitespace(String parameterName, String parameterValue)
         {
