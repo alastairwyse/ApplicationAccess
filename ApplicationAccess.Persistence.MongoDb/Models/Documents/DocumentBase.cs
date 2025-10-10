@@ -16,6 +16,7 @@
 
 using System;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace ApplicationAccess.Persistence.MongoDb.Models.Documents
 {
@@ -28,8 +29,10 @@ namespace ApplicationAccess.Persistence.MongoDb.Models.Documents
 
         public ObjectId _id;
 
+        [BsonDateTimeOptions(Representation = BsonType.Document)]
         public required DateTime TransactionFrom { get; init; }
 
+        [BsonDateTimeOptions(Representation = BsonType.Document)]
         public required DateTime TransactionTo { get; init; }
 
         #pragma warning restore 1591

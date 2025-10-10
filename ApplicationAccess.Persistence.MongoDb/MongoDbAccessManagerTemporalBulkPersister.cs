@@ -33,6 +33,7 @@ namespace ApplicationAccess.Persistence.MongoDb
     public class MongoDbAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
     {
         // TODO: 
+        // Should I check the contents of UpdateResult after updates?
         // Figure out how I'm going to create indexes... e.g. on first call to PersistEvents()
         //   Assume you can't create indexes if collections don't exist...
         //   Hence can I idempotently create all collections aswell, and then idempotently create the indexes??
@@ -238,17 +239,15 @@ namespace ApplicationAccess.Persistence.MongoDb
             String stringifiedUser = userStringifier.ToString(user);
             IMongoCollection<UserDocument> usersCollection = database.GetCollection<UserDocument>(usersCollectionName);
             FilterDefinition<UserDocument> existingUserFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserDocument>.Filter.Eq(document => document.User, stringifiedUser));
-            UserDocument existingUser;
-            try
-            {
-                existingUser = Find(session, usersCollection, existingUserFilter).FirstOrDefault();
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to retrieve existing user document from collecion '{usersCollection}' when removing user from MongoDB.", e);
-            }
-            if (existingUser == null)
-                throw new Exception($"No document exists for user '{stringifiedUser}' and transaction time '{transactionTime.ToString(dateTimeExceptionMessageFormatString)}'.");
+            GetExistingDocument
+            (
+                session,
+                usersCollection,
+                existingUserFilter, 
+                transactionTime,
+                $"Failed to retrieve existing user document from collecion '{usersCollection}' when removing user from MongoDB.", 
+                $"No document exists for user '{stringifiedUser}' and transaction time '{transactionTime.ToString(dateTimeExceptionMessageFormatString)}'."
+            );
 
             // Invalidate any UserToGroupMapping documents
             FilterDefinition<UserToGroupMappingDocument> userToGroupMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToGroupMappingDocument>.Filter.Eq(document => document.User, stringifiedUser));
@@ -334,15 +333,16 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="collection">The collection to update.</param>
         /// <param name="filterDefinition">The filter.</param>
         /// <param name="updateDefinition">The update.</param>
-        protected void UpdateOne<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
+        /// <returns>The result of the update operation.</returns>
+        protected UpdateResult UpdateOne<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
         {
             if (session == null)
             {
-                collection.UpdateOne(filterDefinition, updateDefinition);
+                return collection.UpdateOne(filterDefinition, updateDefinition);
             }
             else
             {
-                collection.UpdateOne(session, filterDefinition, updateDefinition);
+                return collection.UpdateOne(session, filterDefinition, updateDefinition);
             }
         }
 
@@ -369,16 +369,16 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <summary>
         /// Adds a timestamp filter (following the data's temporal model) to the <see cref="DocumentBase.TransactionFrom"/> and <see cref="DocumentBase.TransactionTo"/> of the data being filtered.
         /// </summary>
-        /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/> being filtered).</typeparam>
+        /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/>) being filtered.</typeparam>
         /// <param name="transactionTime">The timestamp of the temporal filter.</param>
         /// <param name="existingFilters">The existing filters to add to.</param>
         /// <returns>The appended <see cref="FilterDefinition{TDocument}"/>.</returns>
         protected FilterDefinition<T> AddTemporalTimestampFilter<T>(DateTime transactionTime, params FilterDefinition<T>[] existingFilters)
             where T : DocumentBase
         {
-            IEnumerable<FilterDefinition<T>> allFilters = new List<FilterDefinition<T>>(existingFilters);
-            allFilters.Append(Builders<T>.Filter.Lte(document => document.TransactionFrom, transactionTime));
-            allFilters.Append(Builders<T>.Filter.Gte(document => document.TransactionTo, transactionTime));
+            IEnumerable<FilterDefinition<T>> allFilters = new List<FilterDefinition<T>>(existingFilters)
+                .Append(Builders<T>.Filter.Lte(document => document.TransactionFrom, transactionTime))
+                .Append(Builders<T>.Filter.Gte(document => document.TransactionTo, transactionTime));
 
             return Builders<T>.Filter.And(allFilters);
         }
@@ -386,7 +386,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <summary>
         /// Invalidates a set of documents by setting their temporal <see cref="DocumentBase.TransactionTo"/> field to a historic value.  Designed to be used as part of an element remove/delete operation.
         /// </summary>
-        /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/> being invalidated).</typeparam>
+        /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/>) being invalidated.</typeparam>
         /// <param name="session">The (optional) session to execute the update in.  Set to null to not run in a session.</param>
         /// <param name="filterDefinition">A filter definition which identifies the documents to be invalidated.</param>
         /// <param name="transactionTime">The time that the invalidation (i.e. remove/delete operation) occurred.</param>
@@ -407,6 +407,44 @@ namespace ApplicationAccess.Persistence.MongoDb
                 throw new Exception($"Failed to invalidate {documentDescription} document(s) in collecion '{collectionName}' when removing {removedElementDescription} from MongoDB.", e);
             }
         }
+        
+        /// <summary>
+        /// Retrieves an existing document as part of an element remove/delete operation.
+        /// </summary>
+        /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/>) being removed/deleted.</typeparam>
+        /// <param name="session">The (optional) session to execute the get/find operation in.  Set to null to not run in a session.</param>
+        /// <param name="collection">The collection to retrieve the data from.</param>
+        /// <param name="baseFilterDefinition">The filter definition to retrieve the document (excluding the temporal model timestamp filter).</param>
+        /// <param name="transactionTime">The time that the remove/delete operation occurred.</param>
+        /// <param name="findFailedExceptionDescription">The description/message to use in an exception if the get/find operation against MongoDB fails.</param>
+        /// <param name="noDocumentExistsExceptionDescription">The description/message to use in an exception if the existing document was not found.</param>
+        /// <returns>The document.</returns>
+        protected T GetExistingDocument<T>
+        (
+            IClientSessionHandle session,
+            IMongoCollection<T> collection, 
+            FilterDefinition<T> baseFilterDefinition, 
+            DateTime transactionTime, 
+            String findFailedExceptionDescription, 
+            String noDocumentExistsExceptionDescription
+        )
+            where T : DocumentBase
+        {
+            FilterDefinition<T> filterDefinition = AddTemporalTimestampFilter(transactionTime, baseFilterDefinition);
+            T existingDocument;
+            try
+            {
+                existingDocument = Find(session, collection, filterDefinition).FirstOrDefault();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(findFailedExceptionDescription, e);
+            }
+            if (existingDocument == null)
+                throw new Exception(noDocumentExistsExceptionDescription);
+
+            return existingDocument;
+        }
 
         /// <summary>
         /// Subtracts the most granular supported time unit in the data's temporal model from the specified <see cref="DateTime" />.
@@ -415,7 +453,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <returns>The <see cref="DateTime" /> after the subtraction.</returns>
         protected DateTime SubtractTemporalMinimumTimeUnit(DateTime inputDateTime)
         {
-            return inputDateTime.Subtract(TimeSpan.FromMicroseconds(0.1));
+            return inputDateTime.Subtract(TimeSpan.FromTicks(1));
         }
 
         #pragma warning disable 1591
