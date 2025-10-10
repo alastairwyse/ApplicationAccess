@@ -18,9 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
-using ApplicationAccess.Persistence.MongoDb.Models.Documents;
 using EphemeralMongo;
 using MongoDB.Driver;
+using ApplicationAccess.Persistence.MongoDb.Models.Documents;
 using NUnit.Framework;
 
 namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
@@ -309,7 +309,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
                 testMongoDbAccessManagerTemporalBulkPersister.RemoveUser(null, user, eventId, transactionTime);
             });
 
-            Assert.That(e.Message, Does.StartWith($"No document exists for user 'user1' and transaction time '2025-10-06 23:13:26.0000000'."));
+            Assert.That(e.Message, Does.StartWith($"No document exists for user 'user1', and transaction time '2025-10-06 23:13:26.0000000'."));
         }
 
         [Test]

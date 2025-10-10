@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections;
+using System.Text;
 using MongoDB.Driver;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
@@ -243,10 +244,10 @@ namespace ApplicationAccess.Persistence.MongoDb
             (
                 session,
                 usersCollection,
-                existingUserFilter, 
+                existingUserFilter,
                 transactionTime,
-                $"Failed to retrieve existing user document from collecion '{usersCollection}' when removing user from MongoDB.", 
-                $"No document exists for user '{stringifiedUser}' and transaction time '{transactionTime.ToString(dateTimeExceptionMessageFormatString)}'."
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage("user", usersCollectionName, "user"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("user", stringifiedUser))
             );
 
             // Invalidate any UserToGroupMapping documents
@@ -354,15 +355,16 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="collection">The collection to update.</param>
         /// <param name="filterDefinition">The filter.</param>
         /// <param name="updateDefinition">The update.</param>
-        protected void UpdateMany<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
+        /// <returns>The result of the update operation.</returns>
+        protected UpdateResult UpdateMany<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
         {
             if (session == null)
             {
-                collection.UpdateMany(filterDefinition, updateDefinition);
+                return collection.UpdateMany(filterDefinition, updateDefinition);
             }
             else
             {
-                collection.UpdateMany(session, filterDefinition, updateDefinition);
+                return collection.UpdateMany(session, filterDefinition, updateDefinition);
             }
         }
 
@@ -392,7 +394,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="transactionTime">The time that the invalidation (i.e. remove/delete operation) occurred.</param>
         /// <param name="collectionName">The name of the collection to apply the invalidation to.</param>
         /// <param name="documentDescription">A description of the documents being invalidated.  To use in exception messages (e.g. 'user to group mapping').</param>
-        /// <param name="removedElementDescription">The type of element being removed/deleted (e.g. 'user').</param>
+        /// <param name="removedElementDescription">The type of element being removed/deleted. To use in exception messages (e.g. 'user').</param>
         protected void InvalidateDocuments<T>(IClientSessionHandle session, FilterDefinition<T> filterDefinition, DateTime transactionTime, String collectionName, String documentDescription, String removedElementDescription)
             where T : DocumentBase
         {
@@ -414,7 +416,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/>) being removed/deleted.</typeparam>
         /// <param name="session">The (optional) session to execute the get/find operation in.  Set to null to not run in a session.</param>
         /// <param name="collection">The collection to retrieve the data from.</param>
-        /// <param name="baseFilterDefinition">The filter definition to retrieve the document (excluding the temporal model timestamp filter).</param>
+        /// <param name="baseFilterDefinition">The filter definition which retrieves the document (excluding the temporal model timestamp filter).</param>
         /// <param name="transactionTime">The time that the remove/delete operation occurred.</param>
         /// <param name="findFailedExceptionDescription">The description/message to use in an exception if the get/find operation against MongoDB fails.</param>
         /// <param name="noDocumentExistsExceptionDescription">The description/message to use in an exception if the existing document was not found.</param>
@@ -454,6 +456,44 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected DateTime SubtractTemporalMinimumTimeUnit(DateTime inputDateTime)
         {
             return inputDateTime.Subtract(TimeSpan.FromTicks(1));
+        }
+
+        /// <summary>
+        /// Generates an exception message for the case that an attempt to retrieve the existing document failed, as part of an element remove/delete operation.
+        /// </summary>
+        /// <param name="documentDescription">A description of the documents being invalidated (e.g. 'user to group mapping').</param>
+        /// <param name="collectionName">The name of the collection the documents are being removed/deleted in.</param>
+        /// <param name="removedElementDescription">The type of element being removed/deleted (e.g. 'user').</param>
+        /// <returns>The exception message.</returns>
+        protected String GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(String documentDescription, String collectionName, String removedElementDescription)
+        {
+            return $"Failed to retrieve existing {documentDescription} document from collecion '{collectionName}' when removing {removedElementDescription} from MongoDB.";
+        }
+
+        /// <summary>
+        ///  Generates an exception message for the case that no document to remove/delete exists, part of an element remove/delete operation.
+        /// </summary>
+        /// <param name="transactionTime">The time that the remove/delete operation occurred.</param>
+        /// <param name="keyDocumentProperties">The name value pairs of the properties that uniquely identify the document being removed/deleted.  Each tuple contains: the name of the key property, and the value of the key property.</param>
+        /// <returns>The exception message.</returns>
+        protected String GenerateRemoveElementNoDocumentExistsExceptionMessage(DateTime transactionTime, params Tuple<String, String>[] keyDocumentProperties)
+        {
+            StringBuilder keyDocumentPropertiesBuilder = new();
+            Boolean firstKeyDocumentProperty = true;
+            foreach (Tuple<String, String> currentKeyDocumentProperty in keyDocumentProperties)
+            {
+                if (firstKeyDocumentProperty == false)
+                {
+                    keyDocumentPropertiesBuilder.Append(",");
+                }
+                else
+                {
+                    firstKeyDocumentProperty = false;
+                }
+                keyDocumentPropertiesBuilder.Append($" {currentKeyDocumentProperty.Item1} '{currentKeyDocumentProperty.Item2}'");
+            }
+
+            return $"No document exists for{keyDocumentPropertiesBuilder.ToString()}, and transaction time '{transactionTime.ToString(dateTimeExceptionMessageFormatString)}'.";
         }
 
         #pragma warning disable 1591
