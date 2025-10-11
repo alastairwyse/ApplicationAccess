@@ -285,6 +285,105 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
         }
 
+        protected void AddGroup(IClientSessionHandle session, TGroup group, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<GroupDocument> groupsCollection = database.GetCollection<GroupDocument>(groupsCollectionName);
+            GroupDocument newDocument = new()
+            {
+                Group = groupStringifier.ToString(group),
+                TransactionFrom = transactionTime,
+                TransactionTo = temporalMaxDate
+            };
+            try
+            {
+                InsertOne(session, groupsCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{groupsCollectionName}'.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void AddGroupWithTransaction(TGroup group, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    AddGroup(session, group, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void RemoveGroup(IClientSessionHandle session, TGroup group, Guid eventId, DateTime transactionTime)
+        {
+            String stringifiedGroup = groupStringifier.ToString(group);
+            IMongoCollection<GroupDocument> groupsCollection = database.GetCollection<GroupDocument>(groupsCollectionName);
+            FilterDefinition<GroupDocument> existingGroupFilter = AddTemporalTimestampFilter(transactionTime, Builders<GroupDocument>.Filter.Eq(document => document.Group, stringifiedGroup));
+            GetExistingDocument
+            (
+                session,
+                groupsCollection,
+                existingGroupFilter,
+                transactionTime,
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage("group", groupsCollectionName, "group"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("group", stringifiedGroup))
+            );
+
+            // Invalidate any UserToGroupMapping documents
+            FilterDefinition<UserToGroupMappingDocument> userToGroupMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToGroupMappingDocument>.Filter.Eq(document => document.Group, stringifiedGroup));
+            InvalidateDocuments(session, userToGroupMappingFilter, transactionTime, userToGroupMappingsCollectionName, "user to group mapping", "group");
+            // Invalidate any GroupToGroupMapping documents
+            FilterDefinition<GroupToGroupMappingDocument> groupToGroupMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<GroupToGroupMappingDocument>.Filter.Or
+            (
+                Builders<GroupToGroupMappingDocument>.Filter.Eq(document => document.FromGroup, stringifiedGroup),
+                Builders<GroupToGroupMappingDocument>.Filter.Eq(document => document.ToGroup, stringifiedGroup)
+            ));
+            InvalidateDocuments(session, groupToGroupMappingFilter, transactionTime, groupToGroupMappingsCollectionName, "group to group mapping", "group");
+            // Invalidate any GroupToApplicationComponentAndAccessLevelMapping documents
+            FilterDefinition<GroupToApplicationComponentAndAccessLevelMappingDocument> groupToApplicationComponentAndAccessLevelMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.Filter.Eq(document => document.Group, stringifiedGroup));
+            InvalidateDocuments(session, groupToApplicationComponentAndAccessLevelMappingFilter, transactionTime, groupToApplicationComponentAndAccessLevelMappingsCollectionName, "group to application component and access level mapping", "group");
+            // Invalidate any GroupToEntityMapping documents
+            FilterDefinition<GroupToEntityMappingDocument> groupToEntityMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<GroupToEntityMappingDocument>.Filter.Eq(document => document.Group, stringifiedGroup));
+            InvalidateDocuments(session, groupToEntityMappingFilter, transactionTime, groupToEntityMappingsCollectionName, "group to entity mapping", "group");
+
+            // Invalidate the group
+            UpdateDefinition<GroupDocument> invalidationUpdate = Builders<GroupDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+            try
+            {
+                UpdateOne(session, groupsCollection, existingGroupFilter, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate group document in collecion '{groupsCollectionName}' when removing group from MongoDB.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void RemoveGroupWithTransaction(TGroup group, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveGroup(session, group, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime transactionTime)
+        {
+
+        }
+
+        protected void AddUserToGroupMappingWithTransaction(TUser user, TGroup group, Guid eventId, DateTime transactionTime)
+        {
+
+        }
+
         #endregion
 
         /// <summary>
