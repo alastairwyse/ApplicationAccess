@@ -246,7 +246,7 @@ namespace ApplicationAccess.Persistence.MongoDb
                 usersCollection,
                 existingUserFilter,
                 transactionTime,
-                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage("user", usersCollectionName, "user"),
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(usersCollectionName, "user"),
                 GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("user", stringifiedUser))
             );
 
@@ -328,7 +328,7 @@ namespace ApplicationAccess.Persistence.MongoDb
                 groupsCollection,
                 existingGroupFilter,
                 transactionTime,
-                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage("group", groupsCollectionName, "group"),
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(groupsCollectionName, "group"),
                 GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("group", stringifiedGroup))
             );
 
@@ -374,14 +374,194 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
         }
 
-        protected void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime transactionTime)
+        protected void AddUserToGroupMapping(IClientSessionHandle session, TUser user, TGroup group, Guid eventId, DateTime transactionTime)
         {
-
+            IMongoCollection<UserToGroupMappingDocument> userToGroupMappingCollection = database.GetCollection<UserToGroupMappingDocument>(userToGroupMappingsCollectionName);
+            UserToGroupMappingDocument newDocument = new()
+            {
+                User = userStringifier.ToString(user),
+                Group = groupStringifier.ToString(group),
+                TransactionFrom = transactionTime,
+                TransactionTo = temporalMaxDate
+            };
+            try
+            {
+                InsertOne(session, userToGroupMappingCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{userToGroupMappingsCollectionName}'.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
         }
 
         protected void AddUserToGroupMappingWithTransaction(TUser user, TGroup group, Guid eventId, DateTime transactionTime)
         {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    AddUserToGroupMapping(session, user, group, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
 
+        protected void RemoveUserToGroupMapping(IClientSessionHandle session, TUser user, TGroup group, Guid eventId, DateTime transactionTime)
+        {
+            String stringifiedUser = userStringifier.ToString(user);
+            String stringifiedGroup = groupStringifier.ToString(group);
+            IMongoCollection<UserToGroupMappingDocument> userToGroupMappingCollection = database.GetCollection<UserToGroupMappingDocument>(userToGroupMappingsCollectionName);
+            FilterDefinition<UserToGroupMappingDocument> existingUserToGroupMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToGroupMappingDocument>.Filter.And
+            (
+                Builders<UserToGroupMappingDocument>.Filter.Eq(document => document.User, stringifiedUser),
+                Builders<UserToGroupMappingDocument>.Filter.Eq(document => document.Group, stringifiedGroup)
+            ));
+            GetExistingDocument
+            (
+                session,
+                userToGroupMappingCollection,
+                existingUserToGroupMappingFilter,
+                transactionTime,
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(userToGroupMappingsCollectionName, "user to group mapping"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("user", stringifiedUser), Tuple.Create("group", stringifiedGroup))
+            );
+
+            // Invalidate the user to group mapping
+            UpdateDefinition<UserToGroupMappingDocument> invalidationUpdate = Builders<UserToGroupMappingDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+            try
+            {
+                UpdateOne(session, userToGroupMappingCollection, existingUserToGroupMappingFilter, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate user to group mapping document in collecion '{userToGroupMappingsCollectionName}' when removing user to group mapping from MongoDB.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void RemoveUserToGroupMappingWithTransaction(TUser user, TGroup group, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveUserToGroupMapping(session, user, group, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void AddGroupToGroupMapping(IClientSessionHandle session, TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<GroupToGroupMappingDocument> groupToGroupMappingCollection = database.GetCollection<GroupToGroupMappingDocument>(groupToGroupMappingsCollectionName);
+            GroupToGroupMappingDocument newDocument = new()
+            {
+                FromGroup = groupStringifier.ToString(fromGroup),
+                ToGroup = groupStringifier.ToString(toGroup),
+                TransactionFrom = transactionTime,
+                TransactionTo = temporalMaxDate
+            };
+            try
+            {
+                InsertOne(session, groupToGroupMappingCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{groupToGroupMappingsCollectionName}'.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void AddGroupToGroupMappingWithTransaction(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    AddGroupToGroupMapping(session, fromGroup, toGroup, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void RemoveGroupToGroupMapping(IClientSessionHandle session, TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime transactionTime)
+        {
+            String stringifiedFromGroup = groupStringifier.ToString(fromGroup);
+            String stringifiedToGroup = groupStringifier.ToString(toGroup);
+            IMongoCollection<GroupToGroupMappingDocument> groupToGroupMappingCollection = database.GetCollection<GroupToGroupMappingDocument>(groupToGroupMappingsCollectionName);
+            FilterDefinition<GroupToGroupMappingDocument> existingGroupToGroupMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<GroupToGroupMappingDocument>.Filter.And
+            (
+                Builders<GroupToGroupMappingDocument>.Filter.Eq(document => document.FromGroup, stringifiedFromGroup),
+                Builders<GroupToGroupMappingDocument>.Filter.Eq(document => document.ToGroup, stringifiedToGroup)
+            ));
+            GetExistingDocument
+            (
+                session,
+                groupToGroupMappingCollection,
+                existingGroupToGroupMappingFilter,
+                transactionTime,
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(groupToGroupMappingsCollectionName, "group to group mapping"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("from group", stringifiedFromGroup), Tuple.Create("to group", stringifiedToGroup))
+            );
+
+            // Invalidate the group to group mapping
+            UpdateDefinition<GroupToGroupMappingDocument> invalidationUpdate = Builders<GroupToGroupMappingDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+            try
+            {
+                UpdateOne(session, groupToGroupMappingCollection, existingGroupToGroupMappingFilter, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate group to group mapping document in collecion '{groupToGroupMappingsCollectionName}' when removing group to group mapping from MongoDB.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void RemoveGroupToGroupMappingWithTransaction(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveGroupToGroupMapping(session, fromGroup, toGroup, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void AddUserToApplicationComponentAndAccessLevelMapping(IClientSessionHandle session, TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<UserToApplicationComponentAndAccessLevelMappingDocument> userToApplicationComponentAndAccessLevelMappingCollection = database.GetCollection<UserToApplicationComponentAndAccessLevelMappingDocument>(userToApplicationComponentAndAccessLevelMappingsCollectionName);
+            UserToApplicationComponentAndAccessLevelMappingDocument newDocument = new()
+            {
+                User = userStringifier.ToString(user),
+                ApplicationComponent = applicationComponentStringifier.ToString(applicationComponent),
+                AccessLevel = accessLevelStringifier.ToString(accessLevel),
+                TransactionFrom = transactionTime,
+                TransactionTo = temporalMaxDate
+            };
+            try
+            {
+                InsertOne(session, userToApplicationComponentAndAccessLevelMappingCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{userToApplicationComponentAndAccessLevelMappingsCollectionName}'.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void AddUserToApplicationComponentAndAccessLevelMappingWithTransaction(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    AddUserToApplicationComponentAndAccessLevelMapping(session, user, applicationComponent, accessLevel, eventId, transactionTime);
+                    return new Object();
+                });
+            }
         }
 
         #endregion
@@ -560,13 +740,12 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <summary>
         /// Generates an exception message for the case that an attempt to retrieve the existing document failed, as part of an element remove/delete operation.
         /// </summary>
-        /// <param name="documentDescription">A description of the documents being invalidated (e.g. 'user to group mapping').</param>
         /// <param name="collectionName">The name of the collection the documents are being removed/deleted in.</param>
         /// <param name="removedElementDescription">The type of element being removed/deleted (e.g. 'user').</param>
         /// <returns>The exception message.</returns>
-        protected String GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(String documentDescription, String collectionName, String removedElementDescription)
+        protected String GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(String collectionName, String removedElementDescription)
         {
-            return $"Failed to retrieve existing {documentDescription} document from collecion '{collectionName}' when removing {removedElementDescription} from MongoDB.";
+            return $"Failed to retrieve existing document from collecion '{collectionName}' when removing {removedElementDescription} from MongoDB.";
         }
 
         /// <summary>
