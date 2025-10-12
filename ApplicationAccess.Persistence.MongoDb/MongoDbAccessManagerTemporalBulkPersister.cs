@@ -564,6 +564,53 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
         }
 
+        protected void RemoveUserToApplicationComponentAndAccessLevelMapping(IClientSessionHandle session, TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+        {
+            String stringifiedUser = userStringifier.ToString(user);
+            String stringifiedApplicationComponent = applicationComponentStringifier.ToString(applicationComponent);
+            String stringifiedAccessLevel = accessLevelStringifier.ToString(accessLevel);
+            IMongoCollection<UserToApplicationComponentAndAccessLevelMappingDocument> userToApplicationComponentAndAccessLevelMappingCollection = database.GetCollection<UserToApplicationComponentAndAccessLevelMappingDocument>(userToApplicationComponentAndAccessLevelMappingsCollectionName);
+            FilterDefinition<UserToApplicationComponentAndAccessLevelMappingDocument> existingUserToApplicationComponentAndAccessLevelMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.Filter.And
+            (
+                Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.Filter.Eq(document => document.User, stringifiedUser),
+                Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.Filter.Eq(document => document.ApplicationComponent, stringifiedApplicationComponent),
+                Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.Filter.Eq(document => document.AccessLevel, stringifiedAccessLevel)
+            ));
+            GetExistingDocument
+            (
+                session,
+                userToApplicationComponentAndAccessLevelMappingCollection,
+                existingUserToApplicationComponentAndAccessLevelMappingFilter,
+                transactionTime,
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(userToApplicationComponentAndAccessLevelMappingsCollectionName, "user to application component and access level mapping"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("user", stringifiedUser), Tuple.Create("application component", stringifiedApplicationComponent), Tuple.Create("access level", stringifiedAccessLevel))
+            );
+
+            // Invalidate the user to application component and access level mapping
+            UpdateDefinition<UserToApplicationComponentAndAccessLevelMappingDocument> invalidationUpdate = Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+            try
+            {
+                UpdateOne(session, userToApplicationComponentAndAccessLevelMappingCollection, existingUserToApplicationComponentAndAccessLevelMappingFilter, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate user to application component and access level mapping document in collecion '{userToApplicationComponentAndAccessLevelMappingsCollectionName}' when removing user to application component and access level mapping from MongoDB.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void RemoveUserToApplicationComponentAndAccessLevelMappingWithTransaction(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveUserToApplicationComponentAndAccessLevelMapping(session, user, applicationComponent, accessLevel, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
         #endregion
 
         /// <summary>

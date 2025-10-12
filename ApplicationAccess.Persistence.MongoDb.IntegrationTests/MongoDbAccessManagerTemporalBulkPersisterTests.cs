@@ -958,11 +958,111 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         [Test]
         public void AddUserToApplicationComponentAndAccessLevelMapping()
         {
-            throw new NotImplementedException();
+            String user = "user1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed38");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-12 23:34:48.0000012");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddUserToApplicationComponentAndAccessLevelMapping(null, user, applicationComponent, accessLevel, eventId, transactionTime);
+
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> allUserToApplicationComponentAndAccessLevelMappingDocuments = userToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<UserToApplicationComponentAndAccessLevelMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allUserToApplicationComponentAndAccessLevelMappingDocuments.Count);
+            Assert.AreEqual(user, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].User);
+            Assert.AreEqual(applicationComponent, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].ApplicationComponent);
+            Assert.AreEqual(accessLevel, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].AccessLevel);
+            Assert.AreEqual(transactionTime, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
         }
 
         [Test]
         public void AddUserToApplicationComponentAndAccessLevelMappingWithTransaction()
+        {
+            String user = "user1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed38");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-12 23:34:48.0000012");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddUserToApplicationComponentAndAccessLevelMappingWithTransaction(user, applicationComponent, accessLevel, eventId, transactionTime);
+
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> allUserToApplicationComponentAndAccessLevelMappingDocuments = userToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<UserToApplicationComponentAndAccessLevelMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allUserToApplicationComponentAndAccessLevelMappingDocuments.Count);
+            Assert.AreEqual(user, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].User);
+            Assert.AreEqual(applicationComponent, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].ApplicationComponent);
+            Assert.AreEqual(accessLevel, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].AccessLevel);
+            Assert.AreEqual(transactionTime, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allUserToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void RemoveUserToApplicationComponentAndAccessLevelMapping_UserToGroupMappingDoesntExist()
+        {
+            String user = "user1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed39");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-12 23:51:56.0000013");
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testMongoDbAccessManagerTemporalBulkPersister.RemoveUserToApplicationComponentAndAccessLevelMapping(null, user, applicationComponent, accessLevel, eventId, transactionTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"No document exists for user 'user1', application component 'OrderScreen', access level 'Create', and transaction time '2025-10-12 23:51:56.0000013'."));
+        }
+
+        [Test]
+        public void RemoveUserToApplicationComponentAndAccessLevelMapping()
+        {
+            throw new NotImplementedException();
+
+            List<GroupToGroupMappingDocument> initialGroupToGroupMappingDocuments = new()
+            {
+                new GroupToGroupMappingDocument() {  FromGroup = "group1", ToGroup = "group2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new GroupToGroupMappingDocument() {  FromGroup = "group3", ToGroup = "group2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToGroupMappingDocument() {  FromGroup = "group1", ToGroup = "group2", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            groupToGroupMappingsCollection.InsertMany(initialGroupToGroupMappingDocuments);
+            String fromGroup = "group1";
+            String toGroup = "group2";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed37");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-11 09:26:31.0000011");
+
+            testMongoDbAccessManagerTemporalBulkPersister.RemoveGroupToGroupMapping(null, fromGroup, toGroup, eventId, transactionTime);
+
+            List<GroupToGroupMappingDocument> allGroupToGroupMappingDocuments = groupToGroupMappingsCollection.Find(FilterDefinition<GroupToGroupMappingDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(3, allGroupToGroupMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allGroupToGroupMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allGroupToGroupMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-11 09:26:31.0000010"), allGroupToGroupMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void RemoveUserToApplicationComponentAndAccessLevelMappingWithTransaction()
         {
             throw new NotImplementedException();
         }
@@ -1120,6 +1220,16 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             public new void AddUserToApplicationComponentAndAccessLevelMappingWithTransaction(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
             {
                 base.AddUserToApplicationComponentAndAccessLevelMappingWithTransaction(user, applicationComponent, accessLevel, eventId, transactionTime);
+            }
+
+            public new void RemoveUserToApplicationComponentAndAccessLevelMapping(IClientSessionHandle session, TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+            {
+                base.RemoveUserToApplicationComponentAndAccessLevelMapping(session, user, applicationComponent, accessLevel, eventId, transactionTime);
+            }
+
+            public new void RemoveUserToApplicationComponentAndAccessLevelMappingWithTransaction(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+            {
+                base.RemoveUserToApplicationComponentAndAccessLevelMappingWithTransaction(user, applicationComponent, accessLevel, eventId, transactionTime);
             }
 
             #pragma warning restore 1591
