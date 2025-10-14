@@ -886,7 +886,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         }
 
         [Test]
-        public void RemoveGroupToGroupMapping_UserToGroupMappingDoesntExist()
+        public void RemoveGroupToGroupMapping_GroupToGroupMappingDoesntExist()
         {
             String fromGroup = "group1";
             String toGroup = "group2";
@@ -1016,7 +1016,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         }
 
         [Test]
-        public void RemoveUserToApplicationComponentAndAccessLevelMapping_UserToGroupMappingDoesntExist()
+        public void RemoveUserToApplicationComponentAndAccessLevelMapping_UserToApplicationComponentAndAccessLevelMappingDoesntExist()
         {
             String user = "user1";
             String applicationComponent = "OrderScreen";
@@ -1035,34 +1035,355 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         [Test]
         public void RemoveUserToApplicationComponentAndAccessLevelMapping()
         {
-            throw new NotImplementedException();
-
-            List<GroupToGroupMappingDocument> initialGroupToGroupMappingDocuments = new()
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> initialUserToApplicationComponentAndAccessLevelMappingDocuments = new()
             {
-                new GroupToGroupMappingDocument() {  FromGroup = "group1", ToGroup = "group2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
-                new GroupToGroupMappingDocument() {  FromGroup = "group3", ToGroup = "group2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
-                new GroupToGroupMappingDocument() {  FromGroup = "group1", ToGroup = "group2", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user2", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "StatusScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "View", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
             };
-            groupToGroupMappingsCollection.InsertMany(initialGroupToGroupMappingDocuments);
-            String fromGroup = "group1";
-            String toGroup = "group2";
-            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed37");
-            DateTime transactionTime = CreateDataTimeFromString("2025-10-11 09:26:31.0000011");
+            userToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialUserToApplicationComponentAndAccessLevelMappingDocuments);
+            String user = "user1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3a");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-11 09:26:31.0000014");
 
-            testMongoDbAccessManagerTemporalBulkPersister.RemoveGroupToGroupMapping(null, fromGroup, toGroup, eventId, transactionTime);
+            testMongoDbAccessManagerTemporalBulkPersister.RemoveUserToApplicationComponentAndAccessLevelMapping(null, user, applicationComponent, accessLevel, eventId, transactionTime);
 
-            List<GroupToGroupMappingDocument> allGroupToGroupMappingDocuments = groupToGroupMappingsCollection.Find(FilterDefinition<GroupToGroupMappingDocument>.Empty)
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> allUserToApplicationComponentAndAccessLevelMappingDocuments = userToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<UserToApplicationComponentAndAccessLevelMappingDocument>.Empty)
                 .SortBy(document => document.TransactionFrom)
                 .ToList();
-            Assert.AreEqual(3, allGroupToGroupMappingDocuments.Count);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allGroupToGroupMappingDocuments[0].TransactionTo);
-            Assert.AreEqual(DateTime.MaxValue, allGroupToGroupMappingDocuments[1].TransactionTo);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-11 09:26:31.0000010"), allGroupToGroupMappingDocuments[2].TransactionTo);
-            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(5, allUserToApplicationComponentAndAccessLevelMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allUserToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToApplicationComponentAndAccessLevelMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToApplicationComponentAndAccessLevelMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToApplicationComponentAndAccessLevelMappingDocuments[3].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-11 09:26:31.0000013"), allUserToApplicationComponentAndAccessLevelMappingDocuments[4].TransactionTo);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
         }
 
         [Test]
         public void RemoveUserToApplicationComponentAndAccessLevelMappingWithTransaction()
+        {
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> initialUserToApplicationComponentAndAccessLevelMappingDocuments = new()
+            {
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user2", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "StatusScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "View", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            userToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialUserToApplicationComponentAndAccessLevelMappingDocuments);
+            String user = "user1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3a");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-11 09:26:31.0000014");
+
+            testMongoDbAccessManagerTemporalBulkPersister.RemoveUserToApplicationComponentAndAccessLevelMappingWithTransaction(user, applicationComponent, accessLevel, eventId, transactionTime);
+
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> allUserToApplicationComponentAndAccessLevelMappingDocuments = userToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<UserToApplicationComponentAndAccessLevelMappingDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(5, allUserToApplicationComponentAndAccessLevelMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allUserToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToApplicationComponentAndAccessLevelMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToApplicationComponentAndAccessLevelMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToApplicationComponentAndAccessLevelMappingDocuments[3].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-11 09:26:31.0000013"), allUserToApplicationComponentAndAccessLevelMappingDocuments[4].TransactionTo);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddGroupToApplicationComponentAndAccessLevelMapping()
+        {
+            String group = "group1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3b");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-12 23:34:48.0000015");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddGroupToApplicationComponentAndAccessLevelMapping(null, group, applicationComponent, accessLevel, eventId, transactionTime);
+
+            List<GroupToApplicationComponentAndAccessLevelMappingDocument> allGroupToApplicationComponentAndAccessLevelMappingDocuments = groupToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<GroupToApplicationComponentAndAccessLevelMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allGroupToApplicationComponentAndAccessLevelMappingDocuments.Count);
+            Assert.AreEqual(group, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].Group);
+            Assert.AreEqual(applicationComponent, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].ApplicationComponent);
+            Assert.AreEqual(accessLevel, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].AccessLevel);
+            Assert.AreEqual(transactionTime, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddGroupToApplicationComponentAndAccessLevelMappingWithTransaction()
+        {
+            String group = "group1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3b");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-12 23:34:48.0000015");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddGroupToApplicationComponentAndAccessLevelMappingWithTransaction(group, applicationComponent, accessLevel, eventId, transactionTime);
+
+            List<GroupToApplicationComponentAndAccessLevelMappingDocument> allGroupToApplicationComponentAndAccessLevelMappingDocuments = groupToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<GroupToApplicationComponentAndAccessLevelMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allGroupToApplicationComponentAndAccessLevelMappingDocuments.Count);
+            Assert.AreEqual(group, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].Group);
+            Assert.AreEqual(applicationComponent, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].ApplicationComponent);
+            Assert.AreEqual(accessLevel, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].AccessLevel);
+            Assert.AreEqual(transactionTime, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void RemoveGroupToApplicationComponentAndAccessLevelMapping_GroupToApplicationComponentAndAccessLevelMappingDoesntExist()
+        {
+            String group = "group1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3c");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-14 21:54:50.0000016");
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testMongoDbAccessManagerTemporalBulkPersister.RemoveGroupToApplicationComponentAndAccessLevelMapping(null, group, applicationComponent, accessLevel, eventId, transactionTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"No document exists for group 'group1', application component 'OrderScreen', access level 'Create', and transaction time '2025-10-14 21:54:50.0000016'."));
+        }
+
+        [Test]
+        public void RemoveGroupToApplicationComponentAndAccessLevelMapping()
+        {
+            List<GroupToApplicationComponentAndAccessLevelMappingDocument> initialGroupToApplicationComponentAndAccessLevelMappingDocuments = new()
+            {
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group2", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group1", ApplicationComponent = "StatusScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group1", ApplicationComponent = "OrderScreen", AccessLevel = "View", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            groupToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialGroupToApplicationComponentAndAccessLevelMappingDocuments);
+            String group = "group1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3c");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-14 21:54:50.0000016");
+
+            testMongoDbAccessManagerTemporalBulkPersister.RemoveGroupToApplicationComponentAndAccessLevelMapping(null, group, applicationComponent, accessLevel, eventId, transactionTime);
+
+            List<GroupToApplicationComponentAndAccessLevelMappingDocument> allGroupToApplicationComponentAndAccessLevelMappingDocuments = groupToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<GroupToApplicationComponentAndAccessLevelMappingDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(5, allGroupToApplicationComponentAndAccessLevelMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allGroupToApplicationComponentAndAccessLevelMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allGroupToApplicationComponentAndAccessLevelMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allGroupToApplicationComponentAndAccessLevelMappingDocuments[3].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-14 21:54:50.0000015"), allGroupToApplicationComponentAndAccessLevelMappingDocuments[4].TransactionTo);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void RemoveGroupToApplicationComponentAndAccessLevelMappingWithTransaction()
+        {
+            List<GroupToApplicationComponentAndAccessLevelMappingDocument> initialGroupToApplicationComponentAndAccessLevelMappingDocuments = new()
+            {
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group2", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group1", ApplicationComponent = "StatusScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group1", ApplicationComponent = "OrderScreen", AccessLevel = "View", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            groupToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialGroupToApplicationComponentAndAccessLevelMappingDocuments);
+            String group = "group1";
+            String applicationComponent = "OrderScreen";
+            String accessLevel = "Create";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3c");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-14 21:54:50.0000016");
+
+            testMongoDbAccessManagerTemporalBulkPersister.RemoveGroupToApplicationComponentAndAccessLevelMappingWithTransaction(group, applicationComponent, accessLevel, eventId, transactionTime);
+
+            List<GroupToApplicationComponentAndAccessLevelMappingDocument> allGroupToApplicationComponentAndAccessLevelMappingDocuments = groupToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<GroupToApplicationComponentAndAccessLevelMappingDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(5, allGroupToApplicationComponentAndAccessLevelMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allGroupToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allGroupToApplicationComponentAndAccessLevelMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allGroupToApplicationComponentAndAccessLevelMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allGroupToApplicationComponentAndAccessLevelMappingDocuments[3].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-14 21:54:50.0000015"), allGroupToApplicationComponentAndAccessLevelMappingDocuments[4].TransactionTo);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddEntityType()
+        {
+            String entityType = "Clients";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3d");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-14 22:08:57.0000017");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddEntityType(null, entityType, eventId, transactionTime);
+
+            List<EntityTypeDocument> allUserDocuments = entityTypesCollection.Find(FilterDefinition<EntityTypeDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allUserDocuments.Count);
+            Assert.AreEqual(entityType, allUserDocuments[0].EntityType);
+            Assert.AreEqual(transactionTime, allUserDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allUserDocuments[0].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+        }
+
+        [Test]
+        public void AddEntityTypeWithTransaction()
+        {
+            String entityType = "Clients";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3d");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-14 22:08:57.0000017");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddEntityTypeWithTransaction(entityType, eventId, transactionTime);
+
+            List<EntityTypeDocument> allUserDocuments = entityTypesCollection.Find(FilterDefinition<EntityTypeDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allUserDocuments.Count);
+            Assert.AreEqual(entityType, allUserDocuments[0].EntityType);
+            Assert.AreEqual(transactionTime, allUserDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allUserDocuments[0].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+        }
+
+        [Test]
+        public void RemoveEntityType_EntityTypeDoesntExist()
+        {
+            String entityType = "Clients";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3e");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-14 22:27:56.0000018");
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testMongoDbAccessManagerTemporalBulkPersister.RemoveEntityType(null, entityType, eventId, transactionTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"No document exists for entity type 'Clients', and transaction time '2025-10-14 22:27:56.0000018'."));
+        }
+
+        [Test]
+        public void RemoveEntityType()
+        {
+            throw new NotImplementedException();
+
+            List<UserToGroupMappingDocument> initialUserToGroupMappingDocuments = new()
+            {
+                new UserToGroupMappingDocument() {  User = "user1", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new UserToGroupMappingDocument() {  User = "user2", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToGroupMappingDocument() {  User = "user1", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            userToGroupMappingsCollection.InsertMany(initialUserToGroupMappingDocuments);
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> initialUserToApplicationComponentAndAccessLevelMappingDocuments = new()
+            {
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000001")},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user2", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            userToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialUserToApplicationComponentAndAccessLevelMappingDocuments);
+            List<UserToEntityMappingDocument> initialUserToEntityMappingDocuments = new()
+            {
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000002")},
+                new UserToEntityMappingDocument() {  User = "user2", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            userToEntityMappingsCollection.InsertMany(initialUserToEntityMappingDocuments);
+            List<UserDocument> initialUserDocuments = new()
+            {
+                new UserDocument() {  User = "user1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000003")},
+                new UserDocument() {  User = "user2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserDocument() {  User = "user1", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            usersCollection.InsertMany(initialUserDocuments);
+            String user = "user1";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-09 08:34:55.0000000");
+
+            testMongoDbAccessManagerTemporalBulkPersister.RemoveUser(null, user, eventId, transactionTime);
+
+            List<UserToGroupMappingDocument> allUserToGroupMappingDocuments = userToGroupMappingsCollection.Find(FilterDefinition<UserToGroupMappingDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(3, allUserToGroupMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allUserToGroupMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToGroupMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 08:34:54.9999999"), allUserToGroupMappingDocuments[2].TransactionTo);
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> allUserToApplicationComponentAndAccessLevelMappingDocuments = userToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<UserToApplicationComponentAndAccessLevelMappingDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(3, allUserToApplicationComponentAndAccessLevelMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000001"), allUserToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToApplicationComponentAndAccessLevelMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 08:34:54.9999999"), allUserToApplicationComponentAndAccessLevelMappingDocuments[2].TransactionTo);
+            List<UserToEntityMappingDocument> allUserToEntityMappingDocuments = userToEntityMappingsCollection.Find(FilterDefinition<UserToEntityMappingDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(3, allUserToEntityMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000002"), allUserToEntityMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToEntityMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 08:34:54.9999999"), allUserToEntityMappingDocuments[2].TransactionTo);
+            List<UserDocument> allUserDocuments = usersCollection.Find(FilterDefinition<UserDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(3, allUserDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000003"), allUserDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserDocuments[1].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 08:34:54.9999999"), allUserDocuments[2].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void RemoveEntityTypeWithTransaction()
         {
             throw new NotImplementedException();
         }
@@ -1230,6 +1551,46 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             public new void RemoveUserToApplicationComponentAndAccessLevelMappingWithTransaction(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
             {
                 base.RemoveUserToApplicationComponentAndAccessLevelMappingWithTransaction(user, applicationComponent, accessLevel, eventId, transactionTime);
+            }
+
+            public new void AddGroupToApplicationComponentAndAccessLevelMapping(IClientSessionHandle session, TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+            {
+                base.AddGroupToApplicationComponentAndAccessLevelMapping(session, group, applicationComponent, accessLevel, eventId, transactionTime);
+            }
+
+            public new void AddGroupToApplicationComponentAndAccessLevelMappingWithTransaction(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+            {
+                base.AddGroupToApplicationComponentAndAccessLevelMappingWithTransaction(group, applicationComponent, accessLevel, eventId, transactionTime);
+            }
+
+            public new void RemoveGroupToApplicationComponentAndAccessLevelMapping(IClientSessionHandle session, TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+            {
+                base.RemoveGroupToApplicationComponentAndAccessLevelMapping(session, group, applicationComponent, accessLevel, eventId, transactionTime);
+            }
+
+            public new void RemoveGroupToApplicationComponentAndAccessLevelMappingWithTransaction(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+            {
+                base.RemoveGroupToApplicationComponentAndAccessLevelMappingWithTransaction(group, applicationComponent, accessLevel, eventId, transactionTime);
+            }
+
+            public new void AddEntityType(IClientSessionHandle session, String entityType, Guid eventId, DateTime transactionTime)
+            {
+                base.AddEntityType(session, entityType, eventId, transactionTime);
+            }
+
+            public new void AddEntityTypeWithTransaction(String entityType, Guid eventId, DateTime transactionTime)
+            {
+                base.AddEntityTypeWithTransaction(entityType, eventId, transactionTime);
+            }
+
+            public new void RemoveEntityType(IClientSessionHandle session, String entityType, Guid eventId, DateTime transactionTime)
+            {
+                base.RemoveEntityType(session, entityType, eventId, transactionTime);
+            }
+
+            public new void RemoveEntityTypeWithTransaction(String entityType, Guid eventId, DateTime transactionTime)
+            {
+                base.RemoveEntityTypeWithTransaction(entityType, eventId, transactionTime);
             }
 
             #pragma warning restore 1591

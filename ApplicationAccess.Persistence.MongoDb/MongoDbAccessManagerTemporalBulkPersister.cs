@@ -611,6 +611,168 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
         }
 
+        protected void AddGroupToApplicationComponentAndAccessLevelMapping(IClientSessionHandle session, TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<GroupToApplicationComponentAndAccessLevelMappingDocument> groupToApplicationComponentAndAccessLevelMappingCollection = database.GetCollection<GroupToApplicationComponentAndAccessLevelMappingDocument>(groupToApplicationComponentAndAccessLevelMappingsCollectionName);
+            GroupToApplicationComponentAndAccessLevelMappingDocument newDocument = new()
+            {
+                Group = groupStringifier.ToString(group),
+                ApplicationComponent = applicationComponentStringifier.ToString(applicationComponent),
+                AccessLevel = accessLevelStringifier.ToString(accessLevel),
+                TransactionFrom = transactionTime,
+                TransactionTo = temporalMaxDate
+            };
+            try
+            {
+                InsertOne(session, groupToApplicationComponentAndAccessLevelMappingCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{groupToApplicationComponentAndAccessLevelMappingsCollectionName}'.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void AddGroupToApplicationComponentAndAccessLevelMappingWithTransaction(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    AddGroupToApplicationComponentAndAccessLevelMapping(session, group, applicationComponent, accessLevel, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void RemoveGroupToApplicationComponentAndAccessLevelMapping(IClientSessionHandle session, TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+        {
+            String stringifiedGroup = groupStringifier.ToString(group);
+            String stringifiedApplicationComponent = applicationComponentStringifier.ToString(applicationComponent);
+            String stringifiedAccessLevel = accessLevelStringifier.ToString(accessLevel);
+            IMongoCollection<GroupToApplicationComponentAndAccessLevelMappingDocument> groupToApplicationComponentAndAccessLevelMappingCollection = database.GetCollection<GroupToApplicationComponentAndAccessLevelMappingDocument>(groupToApplicationComponentAndAccessLevelMappingsCollectionName);
+            FilterDefinition<GroupToApplicationComponentAndAccessLevelMappingDocument> existingGroupToApplicationComponentAndAccessLevelMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.Filter.And
+            (
+                Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.Filter.Eq(document => document.Group, stringifiedGroup),
+                Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.Filter.Eq(document => document.ApplicationComponent, stringifiedApplicationComponent),
+                Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.Filter.Eq(document => document.AccessLevel, stringifiedAccessLevel)
+            ));
+            GetExistingDocument
+            (
+                session,
+                groupToApplicationComponentAndAccessLevelMappingCollection,
+                existingGroupToApplicationComponentAndAccessLevelMappingFilter,
+                transactionTime,
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(groupToApplicationComponentAndAccessLevelMappingsCollectionName, "group to application component and access level mapping"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("group", stringifiedGroup), Tuple.Create("application component", stringifiedApplicationComponent), Tuple.Create("access level", stringifiedAccessLevel))
+            );
+
+            // Invalidate the group to application component and access level mapping
+            UpdateDefinition<GroupToApplicationComponentAndAccessLevelMappingDocument> invalidationUpdate = Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+            try
+            {
+                UpdateOne(session, groupToApplicationComponentAndAccessLevelMappingCollection, existingGroupToApplicationComponentAndAccessLevelMappingFilter, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate group to application component and access level mapping document in collecion '{groupToApplicationComponentAndAccessLevelMappingsCollectionName}' when removing group to application component and access level mapping from MongoDB.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void RemoveGroupToApplicationComponentAndAccessLevelMappingWithTransaction(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveGroupToApplicationComponentAndAccessLevelMapping(session, group, applicationComponent, accessLevel, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void AddEntityType(IClientSessionHandle session, String entityType, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<EntityTypeDocument> entityTypesCollection = database.GetCollection<EntityTypeDocument>(entityTypesCollectionName);
+            EntityTypeDocument newDocument = new()
+            {
+                EntityType = entityType,
+                TransactionFrom = transactionTime,
+                TransactionTo = temporalMaxDate
+            };
+            try
+            {
+                InsertOne(session, entityTypesCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{entityTypesCollectionName}'.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void AddEntityTypeWithTransaction(String entityType, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    AddEntityType(session, entityType, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void RemoveEntityType(IClientSessionHandle session, String entityType, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<EntityTypeDocument> entityTypesCollection = database.GetCollection<EntityTypeDocument>(entityTypesCollectionName);
+            FilterDefinition<EntityTypeDocument> existingEntityTypeFilter = AddTemporalTimestampFilter(transactionTime, Builders<EntityTypeDocument>.Filter.Eq(document => document.EntityType, entityType));
+            GetExistingDocument
+            (
+                session,
+                entityTypesCollection,
+                existingEntityTypeFilter,
+                transactionTime,
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(entityTypesCollectionName, "entity type"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("entity type", entityType))
+            );
+
+            // Invalidate any UserToEntityMapping documents
+            FilterDefinition<UserToEntityMappingDocument> userToEntityMappingDocumentFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToEntityMappingDocument>.Filter.Eq(document => document.EntityType, entityType));
+            InvalidateDocuments(session, userToEntityMappingDocumentFilter, transactionTime, userToEntityMappingsCollectionName, "user to entity mapping", "entity type");
+            // Invalidate any GroupToEntityMapping documents
+            FilterDefinition<GroupToEntityMappingDocument> groupToEntityMappingDocumentFilter = AddTemporalTimestampFilter(transactionTime, Builders<GroupToEntityMappingDocument>.Filter.Eq(document => document.EntityType, entityType));
+            InvalidateDocuments(session, groupToEntityMappingDocumentFilter, transactionTime, groupToEntityMappingsCollectionName, "group to entity mapping", "entity type");
+            // Invalidate any Entity documents
+            FilterDefinition<EntityDocument> entityFilter = AddTemporalTimestampFilter(transactionTime, Builders<EntityDocument>.Filter.Eq(document => document.EntityType, entityType));
+            InvalidateDocuments(session, entityFilter, transactionTime, entitiesCollectionName, "entity", "entity type");
+
+            // Invalidate the entity type
+            UpdateDefinition<EntityTypeDocument> invalidationUpdate = Builders<EntityTypeDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+            try
+            {
+                UpdateOne(session, entityTypesCollection, existingEntityTypeFilter, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate entity type document in collecion '{entityTypesCollectionName}' when removing entity type from MongoDB.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void RemoveEntityTypeWithTransaction(String entityType, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveEntityType(session, entityType, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
         #endregion
 
         /// <summary>
