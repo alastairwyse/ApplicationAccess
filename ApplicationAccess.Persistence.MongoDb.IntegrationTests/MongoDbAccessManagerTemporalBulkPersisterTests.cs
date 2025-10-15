@@ -331,9 +331,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             userToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialUserToApplicationComponentAndAccessLevelMappingDocuments);
             List<UserToEntityMappingDocument> initialUserToEntityMappingDocuments = new()
             {
-                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000002")},
-                new UserToEntityMappingDocument() {  User = "user2", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
-                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000002")},
+                new UserToEntityMappingDocument() {  User = "user2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
             };
             userToEntityMappingsCollection.InsertMany(initialUserToEntityMappingDocuments);
             List<UserDocument> initialUserDocuments = new()
@@ -405,9 +405,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             userToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialUserToApplicationComponentAndAccessLevelMappingDocuments);
             List<UserToEntityMappingDocument> initialUserToEntityMappingDocuments = new()
             {
-                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000002")},
-                new UserToEntityMappingDocument() {  User = "user2", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
-                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000002")},
+                new UserToEntityMappingDocument() {  User = "user2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue},
             };
             userToEntityMappingsCollection.InsertMany(initialUserToEntityMappingDocuments);
             List<UserDocument> initialUserDocuments = new()
@@ -551,9 +551,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             groupToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialGroupToApplicationComponentAndAccessLevelMappingDocuments);
             List<GroupToEntityMappingDocument> initialGroupToEntityMappingDocuments = new()
             {
-                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000004")},
-                new GroupToEntityMappingDocument() {  Group = "group2", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
-                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000004")},
+                new GroupToEntityMappingDocument() {  Group = "group2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
             };
             groupToEntityMappingsCollection.InsertMany(initialGroupToEntityMappingDocuments);
             List<GroupDocument> initialGroupDocuments = new()
@@ -643,9 +643,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             groupToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialGroupToApplicationComponentAndAccessLevelMappingDocuments);
             List<GroupToEntityMappingDocument> initialGroupToEntityMappingDocuments = new()
             {
-                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000004")},
-                new GroupToEntityMappingDocument() {  Group = "group2", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
-                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000004")},
+                new GroupToEntityMappingDocument() {  Group = "group2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
             };
             groupToEntityMappingsCollection.InsertMany(initialGroupToEntityMappingDocuments);
             List<GroupDocument> initialGroupDocuments = new()
@@ -1248,7 +1248,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         [Test]
         public void AddEntityType()
         {
-            String entityType = "Clients";
+            String entityType = "ClientAccount";
             var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3d");
             DateTime transactionTime = CreateDataTimeFromString("2025-10-14 22:08:57.0000017");
 
@@ -1271,7 +1271,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         [Test]
         public void AddEntityTypeWithTransaction()
         {
-            String entityType = "Clients";
+            String entityType = "ClientAccount";
             var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3d");
             DateTime transactionTime = CreateDataTimeFromString("2025-10-14 22:08:57.0000017");
 
@@ -1294,7 +1294,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         [Test]
         public void RemoveEntityType_EntityTypeDoesntExist()
         {
-            String entityType = "Clients";
+            String entityType = "ClientAccount";
             var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3e");
             DateTime transactionTime = CreateDataTimeFromString("2025-10-14 22:27:56.0000018");
 
@@ -1309,83 +1309,169 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         [Test]
         public void RemoveEntityType()
         {
-            throw new NotImplementedException();
-
-            List<UserToGroupMappingDocument> initialUserToGroupMappingDocuments = new()
-            {
-                new UserToGroupMappingDocument() {  User = "user1", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
-                new UserToGroupMappingDocument() {  User = "user2", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
-                new UserToGroupMappingDocument() {  User = "user1", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
-            };
-            userToGroupMappingsCollection.InsertMany(initialUserToGroupMappingDocuments);
-            List<UserToApplicationComponentAndAccessLevelMappingDocument> initialUserToApplicationComponentAndAccessLevelMappingDocuments = new()
-            {
-                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000001")},
-                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user2", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
-                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
-            };
-            userToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialUserToApplicationComponentAndAccessLevelMappingDocuments);
             List<UserToEntityMappingDocument> initialUserToEntityMappingDocuments = new()
             {
-                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000002")},
-                new UserToEntityMappingDocument() {  User = "user2", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
-                new UserToEntityMappingDocument() {  User = "user1", EntityType = "Clients", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new UserToEntityMappingDocument() {  User = "user2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "BusinessUnit", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:54.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyB", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:55.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
             };
             userToEntityMappingsCollection.InsertMany(initialUserToEntityMappingDocuments);
-            List<UserDocument> initialUserDocuments = new()
+            List<GroupToEntityMappingDocument> initialGroupToEntityMappingDocuments = new()
             {
-                new UserDocument() {  User = "user1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000003")},
-                new UserDocument() {  User = "user2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
-                new UserDocument() {  User = "user1", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:56.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000001")},
+                new GroupToEntityMappingDocument() {  Group = "group2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:57.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "BusinessUnit", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:58.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyB", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:59.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
             };
-            usersCollection.InsertMany(initialUserDocuments);
-            String user = "user1";
-            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            DateTime transactionTime = CreateDataTimeFromString("2025-10-09 08:34:55.0000000");
+            groupToEntityMappingsCollection.InsertMany(initialGroupToEntityMappingDocuments);
+            List<EntityDocument> initialEntityDocuments = new()
+            {
+                new EntityDocument() {  EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:00.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000002")},
+                new EntityDocument() {  EntityType = "BusinessUnit", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:01.0000000"), TransactionTo = DateTime.MaxValue},
+                new EntityDocument() {  EntityType = "ClientAccount", Entity = "CompanyB", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:02.0000000"), TransactionTo = DateTime.MaxValue},
+                new EntityDocument() {  EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            entitiesCollection.InsertMany(initialEntityDocuments);
+            List<EntityTypeDocument> initialEntityTypeDocuments = new()
+            {
+                new EntityTypeDocument() {  EntityType = "ClientAccount", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:03.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000003")},
+                new EntityTypeDocument() {  EntityType = "BusinessUnit", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:04.0000000"), TransactionTo = DateTime.MaxValue},
+                new EntityTypeDocument() {  EntityType = "ClientAccount", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            entityTypesCollection.InsertMany(initialEntityTypeDocuments);
+            String entityType = "ClientAccount";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3f");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-15 08:00:09.0000019");
 
-            testMongoDbAccessManagerTemporalBulkPersister.RemoveUser(null, user, eventId, transactionTime);
+            testMongoDbAccessManagerTemporalBulkPersister.RemoveEntityType(null, entityType, eventId, transactionTime);
 
-            List<UserToGroupMappingDocument> allUserToGroupMappingDocuments = userToGroupMappingsCollection.Find(FilterDefinition<UserToGroupMappingDocument>.Empty)
-                .SortBy(document => document.TransactionFrom)
-                .ToList();
-            Assert.AreEqual(3, allUserToGroupMappingDocuments.Count);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allUserToGroupMappingDocuments[0].TransactionTo);
-            Assert.AreEqual(DateTime.MaxValue, allUserToGroupMappingDocuments[1].TransactionTo);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 08:34:54.9999999"), allUserToGroupMappingDocuments[2].TransactionTo);
-            List<UserToApplicationComponentAndAccessLevelMappingDocument> allUserToApplicationComponentAndAccessLevelMappingDocuments = userToApplicationComponentAndAccessLevelMappingsCollection.Find(FilterDefinition<UserToApplicationComponentAndAccessLevelMappingDocument>.Empty)
-                .SortBy(document => document.TransactionFrom)
-                .ToList();
-            Assert.AreEqual(3, allUserToApplicationComponentAndAccessLevelMappingDocuments.Count);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000001"), allUserToApplicationComponentAndAccessLevelMappingDocuments[0].TransactionTo);
-            Assert.AreEqual(DateTime.MaxValue, allUserToApplicationComponentAndAccessLevelMappingDocuments[1].TransactionTo);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 08:34:54.9999999"), allUserToApplicationComponentAndAccessLevelMappingDocuments[2].TransactionTo);
             List<UserToEntityMappingDocument> allUserToEntityMappingDocuments = userToEntityMappingsCollection.Find(FilterDefinition<UserToEntityMappingDocument>.Empty)
                 .SortBy(document => document.TransactionFrom)
                 .ToList();
-            Assert.AreEqual(3, allUserToEntityMappingDocuments.Count);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000002"), allUserToEntityMappingDocuments[0].TransactionTo);
-            Assert.AreEqual(DateTime.MaxValue, allUserToEntityMappingDocuments[1].TransactionTo);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 08:34:54.9999999"), allUserToEntityMappingDocuments[2].TransactionTo);
-            List<UserDocument> allUserDocuments = usersCollection.Find(FilterDefinition<UserDocument>.Empty)
+            Assert.AreEqual(5, allUserToEntityMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allUserToEntityMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allUserToEntityMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToEntityMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allUserToEntityMappingDocuments[3].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allUserToEntityMappingDocuments[4].TransactionTo);
+            List<GroupToEntityMappingDocument> allGroupToEntityMappingDocuments = groupToEntityMappingsCollection.Find(FilterDefinition<GroupToEntityMappingDocument>.Empty)
+                        .SortBy(document => document.TransactionFrom)
+                        .ToList();
+            Assert.AreEqual(5, allGroupToEntityMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000001"), allGroupToEntityMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allGroupToEntityMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allGroupToEntityMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allGroupToEntityMappingDocuments[3].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allGroupToEntityMappingDocuments[4].TransactionTo);
+            List<EntityDocument> allEntityDocuments = entitiesCollection.Find(FilterDefinition<EntityDocument>.Empty)
                 .SortBy(document => document.TransactionFrom)
                 .ToList();
-            Assert.AreEqual(3, allUserDocuments.Count);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000003"), allUserDocuments[0].TransactionTo);
-            Assert.AreEqual(DateTime.MaxValue, allUserDocuments[1].TransactionTo);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 08:34:54.9999999"), allUserDocuments[2].TransactionTo);
+            Assert.AreEqual(4, allEntityDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000002"), allEntityDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allEntityDocuments[1].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allEntityDocuments[2].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allEntityDocuments[3].TransactionTo);
+            List<EntityTypeDocument> allEntityTypDocuments = entityTypesCollection.Find(FilterDefinition<EntityTypeDocument>.Empty)
+                            .SortBy(document => document.TransactionFrom)
+                            .ToList();
+            Assert.AreEqual(3, allEntityTypDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000003"), allEntityTypDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allEntityTypDocuments[1].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allEntityTypDocuments[2].TransactionTo);
             List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
                 .ToList();
             Assert.AreEqual(1, allEventDocuments.Count);
             Assert.AreEqual(eventId, allEventDocuments[0].EventId);
             Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
             Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(0, userStringifier.ToStringCallCount);
         }
 
         [Test]
         public void RemoveEntityTypeWithTransaction()
         {
-            throw new NotImplementedException();
+            List<UserToEntityMappingDocument> initialUserToEntityMappingDocuments = new()
+            {
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:52.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000000")},
+                new UserToEntityMappingDocument() {  User = "user2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:53.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "BusinessUnit", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:54.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyB", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:55.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            userToEntityMappingsCollection.InsertMany(initialUserToEntityMappingDocuments);
+            List<GroupToEntityMappingDocument> initialGroupToEntityMappingDocuments = new()
+            {
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:56.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000001")},
+                new GroupToEntityMappingDocument() {  Group = "group2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:57.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "BusinessUnit", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:58.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyB", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:59.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            groupToEntityMappingsCollection.InsertMany(initialGroupToEntityMappingDocuments);
+            List<EntityDocument> initialEntityDocuments = new()
+            {
+                new EntityDocument() {  EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:00.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000002")},
+                new EntityDocument() {  EntityType = "BusinessUnit", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:01.0000000"), TransactionTo = DateTime.MaxValue},
+                new EntityDocument() {  EntityType = "ClientAccount", Entity = "CompanyB", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:02.0000000"), TransactionTo = DateTime.MaxValue},
+                new EntityDocument() {  EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            entitiesCollection.InsertMany(initialEntityDocuments);
+            List<EntityTypeDocument> initialEntityTypeDocuments = new()
+            {
+                new EntityTypeDocument() {  EntityType = "ClientAccount", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:03.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:28.0000003")},
+                new EntityTypeDocument() {  EntityType = "BusinessUnit", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:34:04.0000000"), TransactionTo = DateTime.MaxValue},
+                new EntityTypeDocument() {  EntityType = "ClientAccount", TransactionFrom = CreateDataTimeFromString("2025-10-09 08:26:41.0000000"), TransactionTo = DateTime.MaxValue}
+            };
+            entityTypesCollection.InsertMany(initialEntityTypeDocuments);
+            String entityType = "ClientAccount";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed3f");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-15 08:00:09.0000019");
+
+            testMongoDbAccessManagerTemporalBulkPersister.RemoveEntityTypeWithTransaction(entityType, eventId, transactionTime);
+
+            List<UserToEntityMappingDocument> allUserToEntityMappingDocuments = userToEntityMappingsCollection.Find(FilterDefinition<UserToEntityMappingDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(5, allUserToEntityMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000000"), allUserToEntityMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allUserToEntityMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allUserToEntityMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allUserToEntityMappingDocuments[3].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allUserToEntityMappingDocuments[4].TransactionTo);
+            List<GroupToEntityMappingDocument> allGroupToEntityMappingDocuments = groupToEntityMappingsCollection.Find(FilterDefinition<GroupToEntityMappingDocument>.Empty)
+                        .SortBy(document => document.TransactionFrom)
+                        .ToList();
+            Assert.AreEqual(5, allGroupToEntityMappingDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000001"), allGroupToEntityMappingDocuments[0].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allGroupToEntityMappingDocuments[1].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allGroupToEntityMappingDocuments[2].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allGroupToEntityMappingDocuments[3].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allGroupToEntityMappingDocuments[4].TransactionTo);
+            List<EntityDocument> allEntityDocuments = entitiesCollection.Find(FilterDefinition<EntityDocument>.Empty)
+                .SortBy(document => document.TransactionFrom)
+                .ToList();
+            Assert.AreEqual(4, allEntityDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000002"), allEntityDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allEntityDocuments[1].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allEntityDocuments[2].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allEntityDocuments[3].TransactionTo);
+            List<EntityTypeDocument> allEntityTypDocuments = entityTypesCollection.Find(FilterDefinition<EntityTypeDocument>.Empty)
+                            .SortBy(document => document.TransactionFrom)
+                            .ToList();
+            Assert.AreEqual(3, allEntityTypDocuments.Count);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-09 07:53:28.0000003"), allEntityTypDocuments[0].TransactionTo);
+            Assert.AreEqual(DateTime.MaxValue, allEntityTypDocuments[1].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-15 08:00:09.0000018"), allEntityTypDocuments[2].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            Assert.AreEqual(0, userStringifier.ToStringCallCount);
         }
 
         #region Private/Protected Methods
@@ -1591,6 +1677,16 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             public new void RemoveEntityTypeWithTransaction(String entityType, Guid eventId, DateTime transactionTime)
             {
                 base.RemoveEntityTypeWithTransaction(entityType, eventId, transactionTime);
+            }
+
+            public new void AddEntity(IClientSessionHandle session, String entityType, String entity, Guid eventId, DateTime transactionTime)
+            {
+                base.AddEntity(session, entityType, entity, eventId, transactionTime);
+            }
+
+            public new void AddEntityWithTransaction(String entityType, String entity, Guid eventId, DateTime transactionTime)
+            {
+                base.AddEntityWithTransaction(entityType, entity, eventId, transactionTime);
             }
 
             #pragma warning restore 1591
