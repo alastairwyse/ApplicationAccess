@@ -773,6 +773,97 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
         }
 
+        protected void AddEntity(IClientSessionHandle session, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<EntityDocument> entitiesCollection = database.GetCollection<EntityDocument>(entitiesCollectionName);
+            EntityDocument newDocument = new()
+            {
+                EntityType = entityType,
+                Entity = entity,
+                TransactionFrom = transactionTime,
+                TransactionTo = temporalMaxDate
+            };
+            try
+            {
+                InsertOne(session, entitiesCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{entitiesCollectionName}'.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void AddEntityWithTransaction(String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    AddEntity(session, entityType, entity, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void RemoveEntity(IClientSessionHandle session, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<EntityDocument> entitiesCollection = database.GetCollection<EntityDocument>(entitiesCollectionName);
+            FilterDefinition<EntityDocument> existingEntityFilter = AddTemporalTimestampFilter(transactionTime, Builders<EntityDocument>.Filter.And
+            (
+                Builders<EntityDocument>.Filter.Eq(document => document.EntityType, entityType),
+                Builders<EntityDocument>.Filter.Eq(document => document.Entity, entity)
+            ));
+            GetExistingDocument
+            (
+                session,
+                entitiesCollection,
+                existingEntityFilter,
+                transactionTime,
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(entitiesCollectionName, "entity"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("entity type", entityType), Tuple.Create("entity", entity))
+            );
+
+            // Invalidate any UserToEntityMapping documents
+            FilterDefinition<UserToEntityMappingDocument> userToEntityMappingDocumentFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToEntityMappingDocument>.Filter.And
+            (
+                Builders<UserToEntityMappingDocument>.Filter.Eq(document => document.EntityType, entityType),
+                Builders<UserToEntityMappingDocument>.Filter.Eq(document => document.Entity, entity)
+            ));
+            InvalidateDocuments(session, userToEntityMappingDocumentFilter, transactionTime, userToEntityMappingsCollectionName, "user to entity mapping", "entity");
+            // Invalidate any GroupToEntityMapping documents
+            FilterDefinition<GroupToEntityMappingDocument> groupToEntityMappingDocumentFilter = AddTemporalTimestampFilter(transactionTime, Builders<GroupToEntityMappingDocument>.Filter.And
+            (
+                Builders<GroupToEntityMappingDocument>.Filter.Eq(document => document.EntityType, entityType),
+                Builders<GroupToEntityMappingDocument>.Filter.Eq(document => document.Entity, entity)
+            ));
+            InvalidateDocuments(session, groupToEntityMappingDocumentFilter, transactionTime, groupToEntityMappingsCollectionName, "group to entity mapping", "entity");
+
+            // Invalidate the entity
+            UpdateDefinition<EntityDocument> invalidationUpdate = Builders<EntityDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+            try
+            {
+                UpdateOne(session, entitiesCollection, existingEntityFilter, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate entity document in collecion '{entitiesCollectionName}' when removing entity from MongoDB.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void RemoveEntityWithTransaction(String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveEntity(session, entityType, entity, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
         #endregion
 
         /// <summary>
