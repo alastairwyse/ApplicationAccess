@@ -114,7 +114,8 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
                 userStringifier,
                 groupStringifier,
                 applicationComponentStringifier,
-                accessLevelStringifier
+                accessLevelStringifier, 
+                false
             );
         }
 
@@ -1824,20 +1825,76 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         }
 
         [Test]
+        public void AddGroupToEntityMapping()
+        {
+            String group = "group1";
+            String entityType = "ClientAccount";
+            String entity = "CompanyA";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed44");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-17 22:43:20.0000024");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddGroupToEntityMapping(null, group, entityType, entity, eventId, transactionTime);
+
+            List<GroupToEntityMappingDocument> allAddGroupToEntityMappingDocuments = groupToEntityMappingsCollection.Find(FilterDefinition<GroupToEntityMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allAddGroupToEntityMappingDocuments.Count);
+            Assert.AreEqual(group, allAddGroupToEntityMappingDocuments[0].Group);
+            Assert.AreEqual(entityType, allAddGroupToEntityMappingDocuments[0].EntityType);
+            Assert.AreEqual(entity, allAddGroupToEntityMappingDocuments[0].Entity);
+            Assert.AreEqual(transactionTime, allAddGroupToEntityMappingDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allAddGroupToEntityMappingDocuments[0].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddGroupToEntityMappingWithTransaction()
+        {
+            String group = "group1";
+            String entityType = "ClientAccount";
+            String entity = "CompanyA";
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed44");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-17 22:43:20.0000024");
+
+            testMongoDbAccessManagerTemporalBulkPersister.AddGroupToEntityMappingWithTransaction(group, entityType, entity, eventId, transactionTime);
+
+            List<GroupToEntityMappingDocument> allAddGroupToEntityMappingDocuments = groupToEntityMappingsCollection.Find(FilterDefinition<GroupToEntityMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allAddGroupToEntityMappingDocuments.Count);
+            Assert.AreEqual(group, allAddGroupToEntityMappingDocuments[0].Group);
+            Assert.AreEqual(entityType, allAddGroupToEntityMappingDocuments[0].EntityType);
+            Assert.AreEqual(entity, allAddGroupToEntityMappingDocuments[0].Entity);
+            Assert.AreEqual(transactionTime, allAddGroupToEntityMappingDocuments[0].TransactionFrom);
+            Assert.AreEqual(temporalMaxDate, allAddGroupToEntityMappingDocuments[0].TransactionTo);
+            List<EventIdToTransactionTimeMappingDocument> allEventDocuments = eventIdToTransactionTimeMapCollection.Find(FilterDefinition<EventIdToTransactionTimeMappingDocument>.Empty)
+                .ToList();
+            Assert.AreEqual(1, allEventDocuments.Count);
+            Assert.AreEqual(eventId, allEventDocuments[0].EventId);
+            Assert.AreEqual(transactionTime, allEventDocuments[0].TransactionTime);
+            Assert.AreEqual(0, allEventDocuments[0].TransactionSequence);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public void RemoveGroupToEntityMapping_GroupToEntityMappingDoesntExist()
         {
             String group = "group1";
             String entityType = "ClientAccount";
             String entity = "CompanyA";
-            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed43");
-            DateTime transactionTime = CreateDataTimeFromString("2025-10-17 10:15:42.0000023");
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed45");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-17 22:43:43.0000025");
 
             var e = Assert.Throws<Exception>(delegate
             {
                 testMongoDbAccessManagerTemporalBulkPersister.RemoveGroupToEntityMapping(null, group, entityType, entity, eventId, transactionTime);
             });
 
-            Assert.That(e.Message, Does.StartWith($"No document exists for group 'group1', entity type 'ClientAccount', entity 'CompanyA', and transaction time '2025-10-17 10:15:42.0000023'."));
+            Assert.That(e.Message, Does.StartWith($"No document exists for group 'group1', entity type 'ClientAccount', entity 'CompanyA', and transaction time '2025-10-17 22:43:43.0000025'."));
         }
 
         [Test]
@@ -1855,8 +1912,8 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             String group = "group1";
             String entityType = "ClientAccount";
             String entity = "CompanyA";
-            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed43");
-            DateTime transactionTime = CreateDataTimeFromString("2025-10-17 10:15:42.0000023");
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed45");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-17 22:43:43.0000025");
 
             testMongoDbAccessManagerTemporalBulkPersister.RemoveGroupToEntityMapping(null, group, entityType, entity, eventId, transactionTime);
 
@@ -1868,7 +1925,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             Assert.AreEqual(DateTime.MaxValue, allGroupToEntityMappingDocuments[1].TransactionTo);
             Assert.AreEqual(DateTime.MaxValue, allGroupToEntityMappingDocuments[2].TransactionTo);
             Assert.AreEqual(DateTime.MaxValue, allGroupToEntityMappingDocuments[3].TransactionTo);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-17 10:15:42.0000022"), allGroupToEntityMappingDocuments[4].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-17 22:43:43.0000024"), allGroupToEntityMappingDocuments[4].TransactionTo);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -1887,8 +1944,8 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             String group = "group1";
             String entityType = "ClientAccount";
             String entity = "CompanyA";
-            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed43");
-            DateTime transactionTime = CreateDataTimeFromString("2025-10-17 10:15:42.0000023");
+            var eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed45");
+            DateTime transactionTime = CreateDataTimeFromString("2025-10-17 22:43:43.0000025");
 
             testMongoDbAccessManagerTemporalBulkPersister.RemoveGroupToEntityMappingWithTransaction(group, entityType, entity, eventId, transactionTime);
 
@@ -1900,7 +1957,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             Assert.AreEqual(DateTime.MaxValue, allGroupToEntityMappingDocuments[1].TransactionTo);
             Assert.AreEqual(DateTime.MaxValue, allGroupToEntityMappingDocuments[2].TransactionTo);
             Assert.AreEqual(DateTime.MaxValue, allGroupToEntityMappingDocuments[3].TransactionTo);
-            Assert.AreEqual(CreateDataTimeFromString("2025-10-17 10:15:42.0000022"), allGroupToEntityMappingDocuments[4].TransactionTo);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-17 22:43:43.0000024"), allGroupToEntityMappingDocuments[4].TransactionTo);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -1950,6 +2007,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             /// <param name="groupStringifier">A string converter for groups.</param>
             /// <param name="applicationComponentStringifier">A string converter for application components.</param>
             /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+            /// <param name="useTransactions">Whether to execute MongoDB changes within transactions.</param>
             public MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers
             (
                 String connectionString,
@@ -1957,8 +2015,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
                 IUniqueStringifier<TUser> userStringifier,
                 IUniqueStringifier<TGroup> groupStringifier,
                 IUniqueStringifier<TComponent> applicationComponentStringifier,
-                IUniqueStringifier<TAccess> accessLevelStringifier
-            ) : base(connectionString, databaseName, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier)
+                IUniqueStringifier<TAccess> accessLevelStringifier,
+                Boolean useTransactions
+            ) : base(connectionString, databaseName, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, useTransactions)
             {
             }
 
@@ -2147,6 +2206,16 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             public new void RemoveUserToEntityMappingWithTransaction(TUser user, String entityType, String entity, Guid eventId, DateTime transactionTime)
             {
                 base.RemoveUserToEntityMappingWithTransaction(user, entityType, entity, eventId, transactionTime);
+            }
+
+            public new void AddGroupToEntityMapping(IClientSessionHandle session, TGroup group, String entityType, String entity, Guid eventId, DateTime transactionTime)
+            {
+                base.AddGroupToEntityMapping(session, group, entityType, entity, eventId, transactionTime);
+            }
+
+            public new void AddGroupToEntityMappingWithTransaction(TGroup group, String entityType, String entity, Guid eventId, DateTime transactionTime)
+            {
+                base.AddGroupToEntityMappingWithTransaction(group, entityType, entity, eventId, transactionTime);
             }
 
             public new void RemoveGroupToEntityMapping(IClientSessionHandle session, TGroup group, String entityType, String entity, Guid eventId, DateTime transactionTime)

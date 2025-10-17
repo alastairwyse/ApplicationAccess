@@ -75,10 +75,14 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
         /// <summary>A string converter for access levels.</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
+        /// <summary>Whether to execute MongoDB changes within transactions.</summary>
+        protected Boolean useTransactions;
         /// <summary>The client to connect to MongoDB.</summary>
         protected IMongoClient mongoClient;
         /// <summary>The MongoDB database.</summary>
         protected IMongoDatabase database;
+        /// <summary>Maps a type (deriving from <see cref="TemporalEventBufferItemBase"/>) to an action which persists an event of that type.</summary>
+        protected Dictionary<Type, Action<TemporalEventBufferItemBase>> eventTypeToPersistenceActionMap;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected Boolean disposed;
 
@@ -91,6 +95,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="useTransactions">Whether to execute MongoDB changes within transactions.</param>
         public MongoDbAccessManagerTemporalBulkPersister
         (
             String connectionString,
@@ -98,7 +103,8 @@ namespace ApplicationAccess.Persistence.MongoDb
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
-            IUniqueStringifier<TAccess> accessLevelStringifier
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            Boolean useTransactions
         )
         {
             ThrowExceptionIfStringParameterNullOrWhitespace(nameof(connectionString), connectionString);
@@ -110,8 +116,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             this.groupStringifier = groupStringifier;
             this.applicationComponentStringifier = applicationComponentStringifier;
             this.accessLevelStringifier = accessLevelStringifier;
+            this.useTransactions = useTransactions;
             mongoClient = new MongoClient(this.connectionString);
             database = mongoClient.GetDatabase(databaseName);
+            eventTypeToPersistenceActionMap = new Dictionary<Type, Action<TemporalEventBufferItemBase>>();
+            PopulateEventTypeToPersistenceActionMap();
             disposed = false;
         }
 
@@ -943,6 +952,40 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
         }
 
+        protected void AddGroupToEntityMapping(IClientSessionHandle session, TGroup group, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<GroupToEntityMappingDocument> groupToEntityMappingCollection = database.GetCollection<GroupToEntityMappingDocument>(groupToEntityMappingsCollectionName);
+            GroupToEntityMappingDocument newDocument = new()
+            {
+                Group = groupStringifier.ToString(group),
+                EntityType = entityType,
+                Entity = entity,
+                TransactionFrom = transactionTime,
+                TransactionTo = temporalMaxDate
+            };
+            try
+            {
+                InsertOne(session, groupToEntityMappingCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{groupToEntityMappingsCollectionName}'.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void AddGroupToEntityMappingWithTransaction(TGroup group, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    AddGroupToEntityMapping(session, group, entityType, entity, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
         protected void RemoveGroupToEntityMapping(IClientSessionHandle session, TGroup group, String entityType, String entity, Guid eventId, DateTime transactionTime)
         {
             String stringifiedGroup = groupStringifier.ToString(group);
@@ -1196,6 +1239,313 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
 
             return $"No document exists for{keyDocumentPropertiesBuilder.ToString()}, and transaction time '{transactionTime.ToString(dateTimeExceptionMessageFormatString)}'.";
+        }
+
+        /// <summary>
+        /// Populates the dictionary in the 'eventTypeToPersistenceActionMap' field.
+        /// </summary>
+        protected void PopulateEventTypeToPersistenceActionMap()
+        {
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(UserEventBufferItem<TUser>),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    UserEventBufferItem<TUser> typedEvent = (UserEventBufferItem<TUser>)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddUserWithTransaction(typedEvent.User, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddUser(null, typedEvent.User, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveUserWithTransaction(typedEvent.User, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveUser(null, typedEvent.User, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(GroupEventBufferItem<TGroup>),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    GroupEventBufferItem<TGroup> typedEvent = (GroupEventBufferItem<TGroup>)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddGroupWithTransaction(typedEvent.Group, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddGroup(null, typedEvent.Group, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveGroupWithTransaction(typedEvent.Group, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveGroup(null, typedEvent.Group, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(UserToGroupMappingEventBufferItem<TUser, TGroup>),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    UserToGroupMappingEventBufferItem<TUser, TGroup> typedEvent = (UserToGroupMappingEventBufferItem<TUser, TGroup>)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddUserToGroupMappingWithTransaction(typedEvent.User, typedEvent.Group, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddUserToGroupMapping(null, typedEvent.User, typedEvent.Group, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveUserToGroupMappingWithTransaction(typedEvent.User, typedEvent.Group, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveUserToGroupMapping(null, typedEvent.User, typedEvent.Group, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(GroupToGroupMappingEventBufferItem<TGroup>),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    GroupToGroupMappingEventBufferItem<TGroup> typedEvent = (GroupToGroupMappingEventBufferItem<TGroup>)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddGroupToGroupMappingWithTransaction(typedEvent.FromGroup, typedEvent.ToGroup, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddGroupToGroupMapping(null, typedEvent.FromGroup, typedEvent.ToGroup, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveGroupToGroupMappingWithTransaction(typedEvent.FromGroup, typedEvent.ToGroup, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveGroupToGroupMapping(null, typedEvent.FromGroup, typedEvent.ToGroup, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess> typedEvent = (UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddUserToApplicationComponentAndAccessLevelMappingWithTransaction(typedEvent.User, typedEvent.ApplicationComponent, typedEvent.AccessLevel, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddUserToApplicationComponentAndAccessLevelMapping(null, typedEvent.User, typedEvent.ApplicationComponent, typedEvent.AccessLevel, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveUserToApplicationComponentAndAccessLevelMappingWithTransaction(typedEvent.User, typedEvent.ApplicationComponent, typedEvent.AccessLevel, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveUserToApplicationComponentAndAccessLevelMapping(null, typedEvent.User, typedEvent.ApplicationComponent, typedEvent.AccessLevel, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess> typedEvent = (GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddGroupToApplicationComponentAndAccessLevelMappingWithTransaction(typedEvent.Group, typedEvent.ApplicationComponent, typedEvent.AccessLevel, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddGroupToApplicationComponentAndAccessLevelMapping(null, typedEvent.Group, typedEvent.ApplicationComponent, typedEvent.AccessLevel, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveGroupToApplicationComponentAndAccessLevelMappingWithTransaction(typedEvent.Group, typedEvent.ApplicationComponent, typedEvent.AccessLevel, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveGroupToApplicationComponentAndAccessLevelMapping(null, typedEvent.Group, typedEvent.ApplicationComponent, typedEvent.AccessLevel, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(EntityTypeEventBufferItem),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    EntityTypeEventBufferItem typedEvent = (EntityTypeEventBufferItem)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddEntityTypeWithTransaction(typedEvent.EntityType, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddEntityType(null, typedEvent.EntityType, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveEntityTypeWithTransaction(typedEvent.EntityType, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveEntityType(null, typedEvent.EntityType, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(EntityEventBufferItem),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    EntityEventBufferItem typedEvent = (EntityEventBufferItem)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddEntityWithTransaction(typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddEntity(null, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveEntityWithTransaction(typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveEntity(null, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(UserToEntityMappingEventBufferItem<TUser>),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    UserToEntityMappingEventBufferItem<TUser> typedEvent = (UserToEntityMappingEventBufferItem<TUser>)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddUserToEntityMappingWithTransaction(typedEvent.User, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddUserToEntityMapping(null, typedEvent.User, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveUserToEntityMappingWithTransaction(typedEvent.User, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveUserToEntityMapping(null, typedEvent.User, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
+            eventTypeToPersistenceActionMap.Add
+            (
+                typeof(GroupToEntityMappingEventBufferItem<TGroup>),
+                (TemporalEventBufferItemBase eventBufferItem) =>
+                {
+                    GroupToEntityMappingEventBufferItem<TGroup> typedEvent = (GroupToEntityMappingEventBufferItem<TGroup>)eventBufferItem;
+                    if (typedEvent.EventAction == EventAction.Add)
+                    {
+                        if (useTransactions == true)
+                        {
+                            AddGroupToEntityMappingWithTransaction(typedEvent.Group, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            AddGroupToEntityMapping(null, typedEvent.Group, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                    else
+                    {
+                        if (useTransactions == true)
+                        {
+                            RemoveGroupToEntityMappingWithTransaction(typedEvent.Group, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                        else
+                        {
+                            RemoveGroupToEntityMapping(null, typedEvent.Group, typedEvent.EntityType, typedEvent.Entity, typedEvent.EventId, typedEvent.OccurredTime);
+                        }
+                    }
+                }
+            );
         }
 
         #pragma warning disable 1591
