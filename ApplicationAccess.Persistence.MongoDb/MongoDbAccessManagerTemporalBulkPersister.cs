@@ -864,6 +864,130 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
         }
 
+        protected void AddUserToEntityMapping(IClientSessionHandle session, TUser user, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            IMongoCollection<UserToEntityMappingDocument> userToEntityMappingCollection = database.GetCollection<UserToEntityMappingDocument>(userToEntityMappingsCollectionName);
+            UserToEntityMappingDocument newDocument = new()
+            {
+                User = userStringifier.ToString(user),
+                EntityType = entityType,
+                Entity = entity,
+                TransactionFrom = transactionTime,
+                TransactionTo = temporalMaxDate
+            };
+            try
+            {
+                InsertOne(session, userToEntityMappingCollection, newDocument);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to insert document into collection '{userToEntityMappingsCollectionName}'.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void AddUserToEntityMappingWithTransaction(TUser user, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    AddUserToEntityMapping(session, user, entityType, entity, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void RemoveUserToEntityMapping(IClientSessionHandle session, TUser user, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            String stringifiedUser = userStringifier.ToString(user);
+            IMongoCollection<UserToEntityMappingDocument> userToEntityMappingCollection = database.GetCollection<UserToEntityMappingDocument>(userToEntityMappingsCollectionName);
+            FilterDefinition<UserToEntityMappingDocument> existingUserToEntityMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<UserToEntityMappingDocument>.Filter.And
+            (
+                Builders<UserToEntityMappingDocument>.Filter.Eq(document => document.User, stringifiedUser),
+                Builders<UserToEntityMappingDocument>.Filter.Eq(document => document.EntityType, entityType),
+                Builders<UserToEntityMappingDocument>.Filter.Eq(document => document.Entity, entity)
+            ));
+            GetExistingDocument
+            (
+                session,
+                userToEntityMappingCollection,
+                existingUserToEntityMappingFilter,
+                transactionTime,
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(userToEntityMappingsCollectionName, "user to entity mapping"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("user", stringifiedUser), Tuple.Create("entity type", entityType), Tuple.Create("entity", entity))
+            );
+
+            // Invalidate the user to entity mapping
+            UpdateDefinition<UserToEntityMappingDocument> invalidationUpdate = Builders<UserToEntityMappingDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+            try
+            {
+                UpdateOne(session, userToEntityMappingCollection, existingUserToEntityMappingFilter, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate user to entity mapping document in collecion '{userToEntityMappingsCollectionName}' when removing user to entity mapping from MongoDB.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void RemoveUserToEntityMappingWithTransaction(TUser user, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveUserToEntityMapping(session, user, entityType, entity, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
+        protected void RemoveGroupToEntityMapping(IClientSessionHandle session, TGroup group, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            String stringifiedGroup = groupStringifier.ToString(group);
+            IMongoCollection<GroupToEntityMappingDocument> groupToEntityMappingCollection = database.GetCollection<GroupToEntityMappingDocument>(groupToEntityMappingsCollectionName);
+            FilterDefinition<GroupToEntityMappingDocument> existingGroupToEntityMappingFilter = AddTemporalTimestampFilter(transactionTime, Builders<GroupToEntityMappingDocument>.Filter.And
+            (
+                Builders<GroupToEntityMappingDocument>.Filter.Eq(document => document.Group, stringifiedGroup),
+                Builders<GroupToEntityMappingDocument>.Filter.Eq(document => document.EntityType, entityType),
+                Builders<GroupToEntityMappingDocument>.Filter.Eq(document => document.Entity, entity)
+            ));
+            GetExistingDocument
+            (
+                session,
+                groupToEntityMappingCollection,
+                existingGroupToEntityMappingFilter,
+                transactionTime,
+                GenerateRemoveElementFindExistingDocumentFailedExceptionMessage(groupToEntityMappingsCollectionName, "group to entity mapping"),
+                GenerateRemoveElementNoDocumentExistsExceptionMessage(transactionTime, Tuple.Create("group", stringifiedGroup), Tuple.Create("entity type", entityType), Tuple.Create("entity", entity))
+            );
+
+            // Invalidate the group to entity mapping
+            UpdateDefinition<GroupToEntityMappingDocument> invalidationUpdate = Builders<GroupToEntityMappingDocument>.Update.Set(document => document.TransactionTo, SubtractTemporalMinimumTimeUnit(transactionTime));
+            try
+            {
+                UpdateOne(session, groupToEntityMappingCollection, existingGroupToEntityMappingFilter, invalidationUpdate);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to invalidate group to entity mapping document in collecion '{groupToEntityMappingsCollectionName}' when removing group to entity mapping from MongoDB.", e);
+            }
+            CreateEvent(session, eventId, transactionTime);
+        }
+
+        protected void RemoveGroupToEntityMappingWithTransaction(TGroup group, String entityType, String entity, Guid eventId, DateTime transactionTime)
+        {
+            using (IClientSessionHandle session = mongoClient.StartSession())
+            {
+                session.WithTransaction<Object>((IClientSessionHandle s, CancellationToken ct) =>
+                {
+                    RemoveGroupToEntityMapping(session, group, entityType, entity, eventId, transactionTime);
+                    return new Object();
+                });
+            }
+        }
+
         #endregion
 
         /// <summary>
