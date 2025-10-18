@@ -36,7 +36,8 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
-                new StringUniqueStringifier()
+                new StringUniqueStringifier(), 
+                true
             );
         }
 
@@ -58,7 +59,8 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    new StringUniqueStringifier()
+                    new StringUniqueStringifier(),
+                    true
                 );
             });
 
@@ -78,7 +80,8 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    new StringUniqueStringifier()
+                    new StringUniqueStringifier(),
+                    true
                 );
             });
 
@@ -98,7 +101,8 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    new StringUniqueStringifier()
+                    new StringUniqueStringifier(),
+                    true
                 );
             });
 
@@ -118,7 +122,8 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    new StringUniqueStringifier()
+                    new StringUniqueStringifier(),
+                    true
                 );
             });
 
