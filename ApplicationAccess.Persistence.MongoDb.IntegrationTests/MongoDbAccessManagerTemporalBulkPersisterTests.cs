@@ -22,7 +22,10 @@ using EphemeralMongo;
 using MongoDB.Driver;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Persistence.MongoDb.Models.Documents;
+using ApplicationLogging;
+using ApplicationMetrics;
 using NUnit.Framework;
+using NSubstitute;
 
 namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
 {
@@ -49,6 +52,8 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
 
         protected readonly DateTime temporalMaxDate = DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc);
 
+        private IApplicationLogger logger;
+        private IMetricLogger metricLogger;
         private IMongoRunner mongoRunner;
         private IMongoClient mongoClient;
         private IMongoDatabase mongoDatabase;
@@ -82,6 +87,8 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         [SetUp]
         protected void SetUp()
         {
+            logger = Substitute.For<IApplicationLogger>();
+            metricLogger = Substitute.For<IMetricLogger>();
             mongoDatabase.DropCollection(eventIdToTransactionTimeMapCollectionName);
             mongoDatabase.DropCollection(usersCollectionName);
             mongoDatabase.DropCollection(groupsCollectionName);
@@ -116,7 +123,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
                 groupStringifier,
                 applicationComponentStringifier,
                 accessLevelStringifier, 
-                false
+                false, 
+                logger, 
+                metricLogger
             );
         }
 
@@ -378,7 +387,9 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
                 groupStringifier,
                 applicationComponentStringifier,
                 accessLevelStringifier,
-                true
+                true, 
+                logger,
+                metricLogger
             );
             List<TemporalEventBufferItemBase> testEvents = new()
             {
@@ -2377,8 +2388,10 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
                 IUniqueStringifier<TGroup> groupStringifier,
                 IUniqueStringifier<TComponent> applicationComponentStringifier,
                 IUniqueStringifier<TAccess> accessLevelStringifier,
-                Boolean useTransactions
-            ) : base(connectionString, databaseName, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, useTransactions)
+                Boolean useTransactions,
+                IApplicationLogger logger,
+                IMetricLogger metricLogger
+            ) : base(connectionString, databaseName, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, useTransactions, logger, metricLogger)
             {
             }
 

@@ -21,6 +21,9 @@ using MongoDB.Driver;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Persistence.MongoDb.Models.Documents;
+using ApplicationLogging;
+using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Persistence.MongoDb
 {
@@ -34,14 +37,14 @@ namespace ApplicationAccess.Persistence.MongoDb
     public class MongoDbAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
     {
         // TODO: 
-        // Should I check the contents of UpdateResult after updates?
-        // Figure out how I'm going to create indexes... e.g. on first call to PersistEvents()
-        //   Assume you can't create indexes if collections don't exist...
-        //   Hence can I idempotently create all collections aswell, and then idempotently create the indexes??
-        // For PersistEvents() will need 2x maps of event type to method to call to process (one for with trans and one for without)
+        // Start adding support for config and options 'up' the class hierarchy
         // Add metrics... number persisted etc... same as other implementations
+        //   Can mongo retries be interrogated for metrics?
         // NEED TO TEST THAT TEMPORAL INDEXES WORK PROPERLY
-        // Manually check CreateIndexes()... ensure everything is correct
+        // Should I check the contents of UpdateResult after updates?
+        // Do a 3 node test with multiple readers and small cache service to force repeated loads
+        //   Check no errors after high load testing
+        // Implement all Load() tests for SQL Server versions.... including empty database etc...
 
         #pragma warning disable 1591
 
@@ -77,6 +80,10 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
         /// <summary>Whether to execute MongoDB changes within transactions.</summary>
         protected Boolean useTransactions;
+        /// <summary>The logger for general logging.</summary>
+        protected IApplicationLogger logger;
+        /// <summary>The logger for metrics.</summary>
+        protected IMetricLogger metricLogger;
         /// <summary>The client to connect to MongoDB.</summary>
         protected IMongoClient mongoClient;
         /// <summary>The MongoDB database.</summary>
@@ -98,6 +105,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
         /// <param name="useTransactions">Whether to execute MongoDB changes within transactions.</param>
+        /// <param name="logger">The logger for general logging.</param>
         public MongoDbAccessManagerTemporalBulkPersister
         (
             String connectionString,
@@ -106,7 +114,35 @@ namespace ApplicationAccess.Persistence.MongoDb
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
-            Boolean useTransactions
+            Boolean useTransactions,
+            IApplicationLogger logger
+        ) : this (connectionString, databaseName, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, useTransactions, logger, new NullMetricLogger())
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.MongoDb.MongoDbAccessManagerTemporalBulkPersister class.
+        /// </summary>
+        /// <param name="connectionString">The string to use to connect to the MongoDB database.</param>
+        /// <param name="databaseName">The name of the database.</param>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="useTransactions">Whether to execute MongoDB changes within transactions.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public MongoDbAccessManagerTemporalBulkPersister
+        (
+            String connectionString,
+            String databaseName,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            Boolean useTransactions,
+            IApplicationLogger logger,
+            IMetricLogger metricLogger
         )
         {
             ThrowExceptionIfStringParameterNullOrWhitespace(nameof(connectionString), connectionString);
@@ -119,6 +155,8 @@ namespace ApplicationAccess.Persistence.MongoDb
             this.applicationComponentStringifier = applicationComponentStringifier;
             this.accessLevelStringifier = accessLevelStringifier;
             this.useTransactions = useTransactions;
+            this.logger = logger;
+            this.metricLogger = metricLogger;
             mongoClient = new MongoClient(this.connectionString);
             database = mongoClient.GetDatabase(databaseName);
             eventTypeToPersistenceActionMap = new Dictionary<Type, Action<TemporalEventBufferItemBase>>();
@@ -174,24 +212,44 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <inheritdoc/>
         public AccessManagerState Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            throw new NotImplementedException();
+            return Load(DateTime.UtcNow, accessManagerToLoadTo, new PersistentStorageEmptyException("The database does not contain any existing events nor data."));
         }
 
         /// <inheritdoc/>
         public AccessManagerState Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            throw new NotImplementedException();
+            // Get the AccessManager state corresponding to eventId 
+            IMongoCollection<EventIdToTransactionTimeMappingDocument> eventIdToTransactionTimeMappingCollection = database.GetCollection<EventIdToTransactionTimeMappingDocument>(eventIdToTransactionTimeMapCollectionName);
+            DateTime transactionTime = DateTime.MinValue;
+            try
+            {
+                var eventIdToTransactionTimeMappingCollectionFilterDefinition = Builders<EventIdToTransactionTimeMappingDocument>.Filter.Eq(document => document.EventId, eventId);
+                EventIdToTransactionTimeMappingDocument transactionTimeDocument = Find(null, eventIdToTransactionTimeMappingCollection, eventIdToTransactionTimeMappingCollectionFilterDefinition)
+                    .FirstOrDefault();
+                if (transactionTimeDocument != null)
+                {
+                    transactionTime = transactionTimeDocument.TransactionTime;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to retrieve access manager state from collection '{eventIdToTransactionTimeMapCollectionName}' when loading from MongoDB.", e);
+            }
+            if (transactionTime == DateTime.MinValue)
+                throw new ArgumentException($"No '{eventIdToTransactionTimeMapCollectionName}' documents were returned for EventId '{eventId.ToString()}'.", nameof(eventId));
+
+            return Load(transactionTime, accessManagerToLoadTo);
         }
 
         /// <inheritdoc/>
         public AccessManagerState Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            throw new NotImplementedException();
+            return Load(stateTime, accessManagerToLoadTo, new ArgumentException($"No '{eventIdToTransactionTimeMapCollectionName}' documents were returned with TransactionTime less than or equal to '{stateTime.ToString(dateTimeExceptionMessageFormatString)}'.", nameof(stateTime)));
         }
 
         #region Private/Protected Methods
 
-        #region MongoDb Event Persistence Methods
+        #region Event Persistence Methods
 
         protected void CreateEvent(IClientSessionHandle session, Guid eventId, DateTime transactionTime)
         {
@@ -1068,6 +1126,308 @@ namespace ApplicationAccess.Persistence.MongoDb
 
         #endregion
 
+        #region Load Methods
+
+        /// <summary>
+        /// Loads the access manager with state corresponding to the specified timestamp (and greatest sequence number if multiple states exist at the same timestamp) from persistent storage.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
+        /// <param name="eventIdToTransactionTimeMapRowDoesntExistException">An exception to throw if no rows exist in the 'EventIdToTransactionTimeMap' collection equal to or sequentially before the specified state time.</param>
+        /// <returns>The state of the access manager loaded.</returns>
+        protected AccessManagerState Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo, Exception eventIdToTransactionTimeMapRowDoesntExistException)
+        {
+            if (stateTime.Kind != DateTimeKind.Utc)
+                throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
+            DateTime now = DateTime.UtcNow;
+            if (stateTime > now)
+                throw new ArgumentException($"Parameter '{nameof(stateTime)}' with value '{stateTime.ToString(dateTimeExceptionMessageFormatString)}' is greater than the current time '{now.ToString(dateTimeExceptionMessageFormatString)}'.", nameof(stateTime));
+
+            // Get the event id and transaction time equal to or immediately before the specified state time
+            IMongoCollection<EventIdToTransactionTimeMappingDocument> eventIdToTransactionTimeMappingCollection = database.GetCollection<EventIdToTransactionTimeMappingDocument>(eventIdToTransactionTimeMapCollectionName);
+            Guid eventId = default(Guid);
+            DateTime transactionTime = DateTime.MinValue;
+            Int32 transactionSequence = 0;
+            try
+            {
+                var eventIdToTransactionTimeMappingCollectionFilterDefinition = Builders<EventIdToTransactionTimeMappingDocument>.Filter.Lte(document => document.TransactionTime, stateTime);
+                EventIdToTransactionTimeMappingDocument maxTransactionTimeDocument = Find(null, eventIdToTransactionTimeMappingCollection, eventIdToTransactionTimeMappingCollectionFilterDefinition)
+                    .SortByDescending(document => document.TransactionTime)
+                    .FirstOrDefault();
+                if (maxTransactionTimeDocument != null)
+                {
+                    // Get the largest transaction sequence within the most recent transaction time
+                    FilterDefinition<EventIdToTransactionTimeMappingDocument> maxTransactionTimeFilter = Builders<EventIdToTransactionTimeMappingDocument>.Filter.Eq(document => document.TransactionTime, maxTransactionTimeDocument.TransactionTime);
+                    EventIdToTransactionTimeMappingDocument maxTransactionSequenceDocument = Find(null, eventIdToTransactionTimeMappingCollection, maxTransactionTimeFilter)
+                        .SortByDescending(document => document.TransactionSequence)
+                        .FirstOrDefault();
+                    eventId = maxTransactionSequenceDocument.EventId;
+                    transactionTime = maxTransactionSequenceDocument.TransactionTime;
+                    transactionSequence = maxTransactionSequenceDocument.TransactionSequence;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to retrieve access manager state from collection '{eventIdToTransactionTimeMapCollectionName}' when loading from MongoDB.", e);
+            }
+            if (transactionTime == DateTime.MinValue)
+                throw eventIdToTransactionTimeMapRowDoesntExistException;
+
+            LoadToAccessManager(transactionTime, accessManagerToLoadTo);
+
+            return new AccessManagerState(eventId, transactionTime, transactionSequence);
+        }
+
+        /// <summary>
+        /// Loads the access manager with state corresponding to the specified timestamp from persistent storage into the specified AccessManager instance.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
+        protected void LoadToAccessManager(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        {
+
+            // TODO...
+            //   Implement methods like GetUsers() from SqlPersisterUtilitiesBase
+            //   Also implement this method copying same one from SqlPersisterUtilitiesBase
+
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Returns all users in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all users in the database valid at the specified time.</returns>
+        protected IEnumerable<TUser> GetUsers(DateTime stateTime)
+        {
+            var usersCollection = database.GetCollection<UserDocument>(usersCollectionName);
+            FilterDefinition<UserDocument> filterDefinition = AddTemporalTimestampFilter(stateTime, FilterDefinition<UserDocument>.Empty);
+            ProjectionDefinition<UserDocument, TUser> projection = new FindExpressionProjectionDefinition<UserDocument, TUser>(document => userStringifier.FromString(document.User));
+            try
+            {
+                return Find(null, usersCollection, filterDefinition).Project(projection).ToEnumerable();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(GenerateLoadFailedExceptionMessage("users", usersCollectionName), e);
+            }
+        }
+
+        /// <summary>
+        /// Returns all groups in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all groups in the database valid at the specified time.</returns>
+        protected IEnumerable<TGroup> GetGroups(DateTime stateTime)
+        {
+            var groupsCollection = database.GetCollection<GroupDocument>(groupsCollectionName);
+            FilterDefinition<GroupDocument> filterDefinition = AddTemporalTimestampFilter(stateTime, FilterDefinition<GroupDocument>.Empty);
+            ProjectionDefinition<GroupDocument, TGroup> projection = new FindExpressionProjectionDefinition<GroupDocument, TGroup>(document => groupStringifier.FromString(document.Group));
+            try
+            {
+                return Find(null, groupsCollection, filterDefinition).Project(projection).ToEnumerable();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(GenerateLoadFailedExceptionMessage("groups", groupsCollectionName), e);
+            }
+        }
+
+        // TODO: Implement GetGroups etc, etc...
+
+        #endregion
+
+        #region Collection and Index Creation Methods
+
+        /// <summary>
+        /// Creates all AccessManager collections in the database if they don't already exist.
+        /// </summary>
+        protected void CreateCollections()
+        {
+            List<String> allCollectionNames = new()
+            {
+                eventIdToTransactionTimeMapCollectionName,
+                usersCollectionName,
+                groupsCollectionName,
+                userToGroupMappingsCollectionName,
+                groupToGroupMappingsCollectionName,
+                userToApplicationComponentAndAccessLevelMappingsCollectionName,
+                groupToApplicationComponentAndAccessLevelMappingsCollectionName,
+                entityTypesCollectionName,
+                entitiesCollectionName,
+                userToEntityMappingsCollectionName,
+                groupToEntityMappingsCollectionName
+            };
+            foreach (String currentCollectionName in allCollectionNames)
+            {
+                CreateCollection(currentCollectionName);
+            }
+        }
+
+        /// <summary>
+        /// Creates a collection in the database if it doesn't already exist.
+        /// </summary>
+        /// <param name="collectionName">The name of the collection to create.</param>
+        protected void CreateCollection(String collectionName)
+        {
+            foreach (String currentCollectionName in database.ListCollectionNames().ToEnumerable())
+            {
+                if (currentCollectionName == collectionName)
+                {
+                    return;
+                }
+            }
+            try
+            {
+                database.CreateCollection(collectionName);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to create collection '{collectionName}' in MongoDB.", e);
+            }
+        }
+
+        /// <summary>
+        /// Creates all indexes in the database if they don't already exist.
+        /// </summary>
+        protected void CreateIndexes()
+        {
+            // 'EventIdToTransactionTimeMap' indexes
+            var eventIdToTransactionTimeMapCollection = database.GetCollection<EventIdToTransactionTimeMappingDocument>(eventIdToTransactionTimeMapCollectionName);
+            var eventIdToTransactionTimeMapCollectionEventIdIndexModel = new CreateIndexModel<EventIdToTransactionTimeMappingDocument>(Builders<EventIdToTransactionTimeMappingDocument>.IndexKeys.Ascending(document => document.EventId));
+            eventIdToTransactionTimeMapCollection.Indexes.CreateOne(eventIdToTransactionTimeMapCollectionEventIdIndexModel);
+            var eventIdToTransactionTimeMapCollectionTransactioIindexModel = new CreateIndexModel<EventIdToTransactionTimeMappingDocument>(Builders<EventIdToTransactionTimeMappingDocument>.IndexKeys
+                .Descending(document => document.TransactionTime)
+                .Descending(document => document.TransactionSequence));
+            eventIdToTransactionTimeMapCollection.Indexes.CreateOne(eventIdToTransactionTimeMapCollectionTransactioIindexModel);
+            // 'Users' indexes
+            var usersCollection = database.GetCollection<UserDocument>(usersCollectionName);
+            var usersCollectionUserIndexModel = new CreateIndexModel<UserDocument>(Builders<UserDocument>.IndexKeys
+                .Ascending(document => document.User)
+                .Ascending(document => document.TransactionTo));
+            usersCollection.Indexes.CreateOne(usersCollectionUserIndexModel);
+            CreateTransactionFieldIndex<UserDocument>(usersCollectionName);
+            // 'Groups' indexes
+            var groupsCollection = database.GetCollection<GroupDocument>(groupsCollectionName);
+            var groupsCollectionUserIndexModel = new CreateIndexModel<GroupDocument>(Builders<GroupDocument>.IndexKeys
+                .Ascending(document => document.Group)
+                .Ascending(document => document.TransactionTo));
+            groupsCollection.Indexes.CreateOne(groupsCollectionUserIndexModel);
+            CreateTransactionFieldIndex<GroupDocument>(groupsCollectionName);
+            // 'UserToGroupMappings' indexes
+            var userToGroupMappingCollection = database.GetCollection<UserToGroupMappingDocument>(userToGroupMappingsCollectionName);
+            var userToGroupMappingCollectionUserIndexModel = new CreateIndexModel<UserToGroupMappingDocument>(Builders<UserToGroupMappingDocument>.IndexKeys
+                .Ascending(document => document.User)
+                .Ascending(document => document.TransactionTo));
+            userToGroupMappingCollection.Indexes.CreateOne(userToGroupMappingCollectionUserIndexModel);
+            var userToGroupMappingCollectionGroupIndexModel = new CreateIndexModel<UserToGroupMappingDocument>(Builders<UserToGroupMappingDocument>.IndexKeys
+                .Ascending(document => document.Group)
+                .Ascending(document => document.TransactionTo));
+            userToGroupMappingCollection.Indexes.CreateOne(userToGroupMappingCollectionGroupIndexModel);
+            CreateTransactionFieldIndex<UserToGroupMappingDocument>(userToGroupMappingsCollectionName);
+            // 'GroupToGroupMappings' indexes
+            var groupToGroupMappingCollection = database.GetCollection<GroupToGroupMappingDocument>(groupToGroupMappingsCollectionName);
+            var groupToGroupMappingCollectionFromGroupIndexModel = new CreateIndexModel<GroupToGroupMappingDocument>(Builders<GroupToGroupMappingDocument>.IndexKeys
+                .Ascending(document => document.FromGroup)
+                .Ascending(document => document.TransactionTo));
+            groupToGroupMappingCollection.Indexes.CreateOne(groupToGroupMappingCollectionFromGroupIndexModel);
+            var groupToGroupMappingCollectionToGroupIndexModel = new CreateIndexModel<GroupToGroupMappingDocument>(Builders<GroupToGroupMappingDocument>.IndexKeys
+                .Ascending(document => document.ToGroup)
+                .Ascending(document => document.TransactionTo));
+            groupToGroupMappingCollection.Indexes.CreateOne(groupToGroupMappingCollectionToGroupIndexModel);
+            CreateTransactionFieldIndex<GroupToGroupMappingDocument>(groupToGroupMappingsCollectionName);
+            // 'UserToApplicationComponentAndAccessLevelMappings' indexes
+            var userToApplicationComponentAndAccessLevelMappingCollection = database.GetCollection<UserToApplicationComponentAndAccessLevelMappingDocument>(userToApplicationComponentAndAccessLevelMappingsCollectionName); 
+            var userToApplicationComponentAndAccessLevelMappingCollectionUserIndexModel = new CreateIndexModel<UserToApplicationComponentAndAccessLevelMappingDocument>(Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.IndexKeys
+                .Ascending(document => document.User)
+                .Ascending(document => document.ApplicationComponent)
+                .Ascending(document => document.AccessLevel)
+                .Ascending(document => document.TransactionTo));
+            userToApplicationComponentAndAccessLevelMappingCollection.Indexes.CreateOne(userToApplicationComponentAndAccessLevelMappingCollectionUserIndexModel);
+            var userToApplicationComponentAndAccessLevelMappingCollectionApplicationComponentIndexModel = new CreateIndexModel<UserToApplicationComponentAndAccessLevelMappingDocument>(Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.IndexKeys
+                .Ascending(document => document.ApplicationComponent)
+                .Ascending(document => document.AccessLevel)
+                .Ascending(document => document.TransactionTo));
+            userToApplicationComponentAndAccessLevelMappingCollection.Indexes.CreateOne(userToApplicationComponentAndAccessLevelMappingCollectionApplicationComponentIndexModel);
+            CreateTransactionFieldIndex<UserToApplicationComponentAndAccessLevelMappingDocument>(userToApplicationComponentAndAccessLevelMappingsCollectionName);
+            // 'GroupToApplicationComponentAndAccessLevelMappings' indexes
+            var groupToApplicationComponentAndAccessLevelMappingCollection = database.GetCollection<GroupToApplicationComponentAndAccessLevelMappingDocument>(groupToApplicationComponentAndAccessLevelMappingsCollectionName);
+            var groupToApplicationComponentAndAccessLevelMappingCollectionGroupIndexModel = new CreateIndexModel<GroupToApplicationComponentAndAccessLevelMappingDocument>(Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.IndexKeys
+                .Ascending(document => document.Group)
+                .Ascending(document => document.ApplicationComponent)
+                .Ascending(document => document.AccessLevel)
+                .Ascending(document => document.TransactionTo));
+            groupToApplicationComponentAndAccessLevelMappingCollection.Indexes.CreateOne(groupToApplicationComponentAndAccessLevelMappingCollectionGroupIndexModel);
+            var groupToApplicationComponentAndAccessLevelMappingCollectionApplicationComponentIndexModel = new CreateIndexModel<GroupToApplicationComponentAndAccessLevelMappingDocument>(Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.IndexKeys
+                .Ascending(document => document.ApplicationComponent)
+                .Ascending(document => document.AccessLevel)
+                .Ascending(document => document.TransactionTo));
+            groupToApplicationComponentAndAccessLevelMappingCollection.Indexes.CreateOne(groupToApplicationComponentAndAccessLevelMappingCollectionApplicationComponentIndexModel);
+            CreateTransactionFieldIndex<GroupToApplicationComponentAndAccessLevelMappingDocument>(groupToApplicationComponentAndAccessLevelMappingsCollectionName);
+            // 'EntityTypes' indexes
+            var entityTypesCollection = database.GetCollection<EntityTypeDocument>(entityTypesCollectionName);
+            var entityTypesCollectionEntityTypeIndexModel = new CreateIndexModel<EntityTypeDocument>(Builders<EntityTypeDocument>.IndexKeys
+                .Ascending(document => document.EntityType)
+                .Ascending(document => document.TransactionTo));
+            entityTypesCollection.Indexes.CreateOne(entityTypesCollectionEntityTypeIndexModel);
+            CreateTransactionFieldIndex<EntityTypeDocument>(entityTypesCollectionName);
+            // 'Entities' indexes
+            var entitiesCollection = database.GetCollection<EntityDocument>(entitiesCollectionName);
+            var entitiesCollectionEntityIndexModel = new CreateIndexModel<EntityDocument>(Builders<EntityDocument>.IndexKeys
+                .Ascending(document => document.EntityType)
+                .Ascending(document => document.Entity)
+                .Ascending(document => document.TransactionTo));
+            entitiesCollection.Indexes.CreateOne(entitiesCollectionEntityIndexModel);
+            CreateTransactionFieldIndex<EntityDocument>(entitiesCollectionName);
+            // 'UserToEntityMappings' indexes
+            var userToEntityMappingCollection = database.GetCollection<UserToEntityMappingDocument>(userToEntityMappingsCollectionName);
+            var userToEntityMappingCollectionUserIndexModel = new CreateIndexModel<UserToEntityMappingDocument>(Builders<UserToEntityMappingDocument>.IndexKeys
+                .Ascending(document => document.User)
+                .Ascending(document => document.EntityType)
+                .Ascending(document => document.Entity)
+                .Ascending(document => document.TransactionTo));
+            userToEntityMappingCollection.Indexes.CreateOne(userToEntityMappingCollectionUserIndexModel);
+            var userToEntityMappingCollectionEntityTypeIndexModel = new CreateIndexModel<UserToEntityMappingDocument>(Builders<UserToEntityMappingDocument>.IndexKeys
+                .Ascending(document => document.EntityType)
+                .Ascending(document => document.Entity)
+                .Ascending(document => document.TransactionTo));
+            userToEntityMappingCollection.Indexes.CreateOne(userToEntityMappingCollectionEntityTypeIndexModel);
+            CreateTransactionFieldIndex<UserToEntityMappingDocument>(userToEntityMappingsCollectionName);
+            // 'GroupToEntityMappings' indexes
+            var groupToEntityMappingCollection = database.GetCollection<GroupToEntityMappingDocument>(groupToEntityMappingsCollectionName);
+            var groupToEntityMappingCollectionGroupIndexModel = new CreateIndexModel<GroupToEntityMappingDocument>(Builders<GroupToEntityMappingDocument>.IndexKeys
+                .Ascending(document => document.Group)
+                .Ascending(document => document.EntityType)
+                .Ascending(document => document.Entity)
+                .Ascending(document => document.TransactionTo));
+            groupToEntityMappingCollection.Indexes.CreateOne(groupToEntityMappingCollectionGroupIndexModel);
+            var groupToEntityMappingCollectionEntityTypeIndexModel = new CreateIndexModel<GroupToEntityMappingDocument>(Builders<GroupToEntityMappingDocument>.IndexKeys
+                .Ascending(document => document.EntityType)
+                .Ascending(document => document.Entity)
+                .Ascending(document => document.TransactionTo));
+            groupToEntityMappingCollection.Indexes.CreateOne(groupToEntityMappingCollectionEntityTypeIndexModel);
+            CreateTransactionFieldIndex<GroupToEntityMappingDocument>(groupToEntityMappingsCollectionName);
+        }
+
+        /// <summary>
+        /// Creates a <see href="https://www.mongodb.com/docs/manual/core/indexes/index-types/index-compound/">compound index</see> on the <see cref="DocumentBase.TransactionFrom"/> and <see cref="DocumentBase.TransactionTo"/> fields of a collection holding documents derived from <see cref="DocumentBase"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of documents (deriving from <see cref="DocumentBase"/>) held by the collection in index is being created on.</typeparam>
+        /// <param name="collectionName">The name of the collection to create the index on.</param>
+        protected void CreateTransactionFieldIndex<T>(String collectionName) where T : DocumentBase
+        {
+            var collection = database.GetCollection<T>(collectionName);
+            var collectionTransactionIndexModel = new CreateIndexModel<T>
+            (
+                Builders<T>.IndexKeys
+                    .Ascending(document => document.TransactionFrom)
+                    .Ascending(document => document.TransactionTo)
+            );
+            collection.Indexes.CreateOne(collectionTransactionIndexModel);
+        }
+
+        #endregion
+
         /// <summary>
         /// Begins a find fluent interface, optionally within a specified session.
         /// </summary>
@@ -1190,7 +1550,7 @@ namespace ApplicationAccess.Persistence.MongoDb
                 throw new Exception($"Failed to invalidate {documentDescription} document(s) in collecion '{collectionName}' when removing {removedElementDescription} from MongoDB.", e);
             }
         }
-        
+
         /// <summary>
         /// Retrieves an existing document as part of an element remove/delete operation.
         /// </summary>
@@ -1205,10 +1565,10 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected T GetExistingDocument<T>
         (
             IClientSessionHandle session,
-            IMongoCollection<T> collection, 
-            FilterDefinition<T> baseFilterDefinition, 
-            DateTime transactionTime, 
-            String findFailedExceptionDescription, 
+            IMongoCollection<T> collection,
+            FilterDefinition<T> baseFilterDefinition,
+            DateTime transactionTime,
+            String findFailedExceptionDescription,
             String noDocumentExistsExceptionDescription
         )
             where T : DocumentBase
@@ -1251,6 +1611,17 @@ namespace ApplicationAccess.Persistence.MongoDb
         }
 
         /// <summary>
+        /// Generates an exception message for the case that reading element data from a collection failed, as part of a load operation.
+        /// </summary>
+        /// <param name="elementName">The name of the element being read (e.g. 'user').</param>
+        /// <param name="collectionName">The name of the collection being read from.</param>
+        /// <returns></returns>
+        protected String GenerateLoadFailedExceptionMessage(String elementName, String collectionName)
+        {
+            return $"Failed to read {elementName} from collection 'collectionName 'when loading from MongoDB.";
+        }
+
+        /// <summary>
         ///  Generates an exception message for the case that no document to remove/delete exists, part of an element remove/delete operation.
         /// </summary>
         /// <param name="transactionTime">The time that the remove/delete operation occurred.</param>
@@ -1274,195 +1645,6 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
 
             return $"No document exists for{keyDocumentPropertiesBuilder.ToString()}, and transaction time '{transactionTime.ToString(dateTimeExceptionMessageFormatString)}'.";
-        }
-
-        /// <summary>
-        /// Creates all AccessManager collections in the database if they don't already exist.
-        /// </summary>
-        protected void CreateCollections()
-        {
-            List<String> allCollectionNames = new()
-            {
-                eventIdToTransactionTimeMapCollectionName,
-                usersCollectionName,
-                groupsCollectionName,
-                userToGroupMappingsCollectionName,
-                groupToGroupMappingsCollectionName,
-                userToApplicationComponentAndAccessLevelMappingsCollectionName,
-                groupToApplicationComponentAndAccessLevelMappingsCollectionName,
-                entityTypesCollectionName,
-                entitiesCollectionName,
-                userToEntityMappingsCollectionName,
-                groupToEntityMappingsCollectionName
-            };
-            foreach (String currentCollectionName in allCollectionNames)
-            {
-                CreateCollection(currentCollectionName);
-            }
-        }
-
-        /// <summary>
-        /// Creates a collection in the database if it doesn't already exist.
-        /// </summary>
-        /// <param name="collectionName">The name of the collection to create.</param>
-        protected void CreateCollection(String collectionName)
-        {
-            foreach (String currentCollectionName in database.ListCollectionNames().ToEnumerable())
-            {
-                if (currentCollectionName == collectionName)
-                {
-                    return;
-                }
-            }
-            try
-            {
-                database.CreateCollection(collectionName);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to create collection '{collectionName}' in MongoDB.", e);
-            }
-        }
-
-        /// <summary>
-        /// Creates all indexes in the database if they don't already exist.
-        /// </summary>
-        protected void CreateIndexes()
-        {
-            // 'EventIdToTransactionTimeMap' indexes
-            var eventIdToTransactionTimeMapCollection = database.GetCollection<EventIdToTransactionTimeMappingDocument>(eventIdToTransactionTimeMapCollectionName);
-            var eventIdToTransactionTimeMapCollectionEventIdIndexModel = new CreateIndexModel<EventIdToTransactionTimeMappingDocument>(Builders<EventIdToTransactionTimeMappingDocument>.IndexKeys.Ascending(document => document.EventId));
-            eventIdToTransactionTimeMapCollection.Indexes.CreateOne(eventIdToTransactionTimeMapCollectionEventIdIndexModel);
-            var eventIdToTransactionTimeMapCollectionTransactioIindexModel = new CreateIndexModel<EventIdToTransactionTimeMappingDocument>(Builders<EventIdToTransactionTimeMappingDocument>.IndexKeys
-                .Ascending(document => document.TransactionTime)
-                .Ascending(document => document.TransactionSequence));
-            eventIdToTransactionTimeMapCollection.Indexes.CreateOne(eventIdToTransactionTimeMapCollectionTransactioIindexModel);
-            // 'Users' indexes
-            var usersCollection = database.GetCollection<UserDocument>(usersCollectionName);
-            var usersCollectionUserIndexModel = new CreateIndexModel<UserDocument>(Builders<UserDocument>.IndexKeys
-                .Ascending(document => document.User)
-                .Ascending(document => document.TransactionTo));
-            usersCollection.Indexes.CreateOne(usersCollectionUserIndexModel);
-            CreateTransactionFieldIndex<UserDocument>(usersCollectionName);
-            // 'Groups' indexes
-            var groupsCollection = database.GetCollection<GroupDocument>(groupsCollectionName);
-            var groupsCollectionUserIndexModel = new CreateIndexModel<GroupDocument>(Builders<GroupDocument>.IndexKeys
-                .Ascending(document => document.Group)
-                .Ascending(document => document.TransactionTo));
-            usersCollection.Indexes.CreateOne(usersCollectionUserIndexModel);
-            CreateTransactionFieldIndex<GroupDocument>(groupsCollectionName);
-            // 'UserToGroupMappings' indexes
-            var userToGroupMappingCollection = database.GetCollection<UserToGroupMappingDocument>(userToGroupMappingsCollectionName);
-            var userToGroupMappingCollectionUserIndexModel = new CreateIndexModel<UserToGroupMappingDocument>(Builders<UserToGroupMappingDocument>.IndexKeys
-                .Ascending(document => document.User)
-                .Ascending(document => document.TransactionTo));
-            userToGroupMappingCollection.Indexes.CreateOne(userToGroupMappingCollectionUserIndexModel);
-            var userToGroupMappingCollectionGroupIndexModel = new CreateIndexModel<UserToGroupMappingDocument>(Builders<UserToGroupMappingDocument>.IndexKeys
-                .Ascending(document => document.Group)
-                .Ascending(document => document.TransactionTo));
-            userToGroupMappingCollection.Indexes.CreateOne(userToGroupMappingCollectionGroupIndexModel);
-            CreateTransactionFieldIndex<UserToGroupMappingDocument>(userToGroupMappingsCollectionName);
-            // 'GroupToGroupMappings' indexes
-            var groupToGroupMappingCollection = database.GetCollection<GroupToGroupMappingDocument>(groupToGroupMappingsCollectionName);
-            var groupToGroupMappingCollectionFromGroupIndexModel = new CreateIndexModel<GroupToGroupMappingDocument>(Builders<GroupToGroupMappingDocument>.IndexKeys
-                .Ascending(document => document.FromGroup)
-                .Ascending(document => document.TransactionTo));
-            groupToGroupMappingCollection.Indexes.CreateOne(groupToGroupMappingCollectionFromGroupIndexModel);
-            var groupToGroupMappingCollectionToGroupIndexModel = new CreateIndexModel<GroupToGroupMappingDocument>(Builders<GroupToGroupMappingDocument>.IndexKeys
-                .Ascending(document => document.ToGroup)
-                .Ascending(document => document.TransactionTo));
-            groupToGroupMappingCollection.Indexes.CreateOne(groupToGroupMappingCollectionToGroupIndexModel);
-            CreateTransactionFieldIndex<UserToGroupMappingDocument>(groupToGroupMappingsCollectionName);
-            // 'UserToApplicationComponentAndAccessLevelMappings' indexes
-            var userToApplicationComponentAndAccessLevelMappingCollection = database.GetCollection<UserToApplicationComponentAndAccessLevelMappingDocument>(userToApplicationComponentAndAccessLevelMappingsCollectionName); 
-            var userToApplicationComponentAndAccessLevelMappingCollectionUserIndexModel = new CreateIndexModel<UserToApplicationComponentAndAccessLevelMappingDocument>(Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.IndexKeys
-                .Ascending(document => document.User)
-                .Ascending(document => document.ApplicationComponent)
-                .Ascending(document => document.AccessLevel)
-                .Ascending(document => document.TransactionTo));
-            userToApplicationComponentAndAccessLevelMappingCollection.Indexes.CreateOne(userToApplicationComponentAndAccessLevelMappingCollectionUserIndexModel);
-            var userToApplicationComponentAndAccessLevelMappingCollectionApplicationComponentIndexModel = new CreateIndexModel<UserToApplicationComponentAndAccessLevelMappingDocument>(Builders<UserToApplicationComponentAndAccessLevelMappingDocument>.IndexKeys
-                .Ascending(document => document.ApplicationComponent)
-                .Ascending(document => document.AccessLevel)
-                .Ascending(document => document.TransactionTo));
-            userToApplicationComponentAndAccessLevelMappingCollection.Indexes.CreateOne(userToApplicationComponentAndAccessLevelMappingCollectionApplicationComponentIndexModel);
-            CreateTransactionFieldIndex<UserToApplicationComponentAndAccessLevelMappingDocument>(userToApplicationComponentAndAccessLevelMappingsCollectionName);
-            // 'GroupToApplicationComponentAndAccessLevelMappings' indexes
-            var groupToApplicationComponentAndAccessLevelMappingCollection = database.GetCollection<GroupToApplicationComponentAndAccessLevelMappingDocument>(groupToApplicationComponentAndAccessLevelMappingsCollectionName);
-            var groupToApplicationComponentAndAccessLevelMappingCollectionGroupIndexModel = new CreateIndexModel<GroupToApplicationComponentAndAccessLevelMappingDocument>(Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.IndexKeys
-                .Ascending(document => document.Group)
-                .Ascending(document => document.ApplicationComponent)
-                .Ascending(document => document.AccessLevel)
-                .Ascending(document => document.TransactionTo));
-            groupToApplicationComponentAndAccessLevelMappingCollection.Indexes.CreateOne(groupToApplicationComponentAndAccessLevelMappingCollectionGroupIndexModel);
-            var groupToApplicationComponentAndAccessLevelMappingCollectionApplicationComponentIndexModel = new CreateIndexModel<GroupToApplicationComponentAndAccessLevelMappingDocument>(Builders<GroupToApplicationComponentAndAccessLevelMappingDocument>.IndexKeys
-                .Ascending(document => document.ApplicationComponent)
-                .Ascending(document => document.AccessLevel)
-                .Ascending(document => document.TransactionTo));
-            groupToApplicationComponentAndAccessLevelMappingCollection.Indexes.CreateOne(groupToApplicationComponentAndAccessLevelMappingCollectionApplicationComponentIndexModel);
-            CreateTransactionFieldIndex<GroupToApplicationComponentAndAccessLevelMappingDocument>(groupToApplicationComponentAndAccessLevelMappingsCollectionName);
-            // 'EntityTypes' indexes
-            var entityTypesCollection = database.GetCollection<EntityTypeDocument>(entityTypesCollectionName);
-            var entityTypesCollectionEntityTypeIndexModel = new CreateIndexModel<EntityTypeDocument>(Builders<EntityTypeDocument>.IndexKeys
-                .Ascending(document => document.EntityType)
-                .Ascending(document => document.TransactionTo));
-            entityTypesCollection.Indexes.CreateOne(entityTypesCollectionEntityTypeIndexModel);
-            CreateTransactionFieldIndex<EntityTypeDocument>(entityTypesCollectionName);
-            // 'Entities' indexes
-            var entitiesCollection = database.GetCollection<EntityDocument>(entitiesCollectionName);
-            var entitiesCollectionEntityIndexModel = new CreateIndexModel<EntityDocument>(Builders<EntityDocument>.IndexKeys
-                .Ascending(document => document.EntityType)
-                .Ascending(document => document.Entity)
-                .Ascending(document => document.TransactionTo));
-            entitiesCollection.Indexes.CreateOne(entitiesCollectionEntityIndexModel);
-            CreateTransactionFieldIndex<EntityDocument>(entitiesCollectionName);
-            // 'UserToEntityMappings' indexes
-            var userToEntityMappingCollection = database.GetCollection<UserToEntityMappingDocument>(userToEntityMappingsCollectionName);
-            var userToEntityMappingCollectionUserIndexModel = new CreateIndexModel<UserToEntityMappingDocument>(Builders<UserToEntityMappingDocument>.IndexKeys
-                .Ascending(document => document.User)
-                .Ascending(document => document.EntityType)
-                .Ascending(document => document.Entity)
-                .Ascending(document => document.TransactionTo));
-            userToEntityMappingCollection.Indexes.CreateOne(userToEntityMappingCollectionUserIndexModel);
-            CreateTransactionFieldIndex<UserToEntityMappingDocument>(userToEntityMappingsCollectionName);
-            var userToEntityMappingCollectionEntityTypeIndexModel = new CreateIndexModel<UserToEntityMappingDocument>(Builders<UserToEntityMappingDocument>.IndexKeys
-                .Ascending(document => document.EntityType)
-                .Ascending(document => document.Entity)
-                .Ascending(document => document.TransactionTo));
-            userToEntityMappingCollection.Indexes.CreateOne(userToEntityMappingCollectionEntityTypeIndexModel);
-            CreateTransactionFieldIndex<UserToEntityMappingDocument>(userToEntityMappingsCollectionName);
-            // 'GroupToEntityMappings' indexes
-            var groupToEntityMappingCollection = database.GetCollection<GroupToEntityMappingDocument>(groupToEntityMappingsCollectionName);
-            var groupToEntityMappingCollectionGroupIndexModel = new CreateIndexModel<GroupToEntityMappingDocument>(Builders<GroupToEntityMappingDocument>.IndexKeys
-                .Ascending(document => document.Group)
-                .Ascending(document => document.EntityType)
-                .Ascending(document => document.Entity)
-                .Ascending(document => document.TransactionTo));
-            groupToEntityMappingCollection.Indexes.CreateOne(groupToEntityMappingCollectionGroupIndexModel);
-            CreateTransactionFieldIndex<GroupToEntityMappingDocument>(groupToEntityMappingsCollectionName);
-            var groupToEntityMappingCollectionEntityTypeIndexModel = new CreateIndexModel<GroupToEntityMappingDocument>(Builders<GroupToEntityMappingDocument>.IndexKeys
-                .Ascending(document => document.EntityType)
-                .Ascending(document => document.Entity)
-                .Ascending(document => document.TransactionTo));
-            groupToEntityMappingCollection.Indexes.CreateOne(groupToEntityMappingCollectionEntityTypeIndexModel);
-            CreateTransactionFieldIndex<GroupToEntityMappingDocument>(groupToEntityMappingsCollectionName);
-        }
-
-        /// <summary>
-        /// Creates a <see href="https://www.mongodb.com/docs/manual/core/indexes/index-types/index-compound/">compound index</see> on the <see cref="DocumentBase.TransactionFrom"/> and <see cref="DocumentBase.TransactionTo"/> fields of a collection holding documents derived from <see cref="DocumentBase"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of documents (deriving from <see cref="DocumentBase"/>) held by the collection in index is being created on.</typeparam>
-        /// <param name="collectionName">The name of the collection to create the index on.</param>
-        protected void CreateTransactionFieldIndex<T>(String collectionName) where T : DocumentBase
-        {
-            var collection = database.GetCollection<T>(collectionName);
-            var collectionTransactionIndexModel = new CreateIndexModel<T>
-            (
-                Builders<T>.IndexKeys
-                    .Ascending(document => document.TransactionFrom)
-                    .Ascending(document => document.TransactionTo)
-            );
-            collection.Indexes.CreateOne(collectionTransactionIndexModel);
         }
 
         /// <summary>

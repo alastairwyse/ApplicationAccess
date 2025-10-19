@@ -51,8 +51,6 @@ namespace ApplicationAccess.Persistence.Sql.UnitTests
         [Test]
         public void LoadStateTimeOverload_ParameterStateDateNotUtc()
         {
-            DateTime testStateTime = DateTime.ParseExact("2022-08-20 19:48:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-
             var e = Assert.Throws<ArgumentException>(delegate
             {
                 testSqlServerPersisterUtilities.Load(DateTime.Now, new AccessManager<String, String, String, String>());

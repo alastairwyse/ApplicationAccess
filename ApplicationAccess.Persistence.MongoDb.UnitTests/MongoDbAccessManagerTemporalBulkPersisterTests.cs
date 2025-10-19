@@ -15,7 +15,11 @@
  */
 
 using System;
+using System.Globalization;
+using ApplicationLogging;
+using ApplicationMetrics;
 using NUnit.Framework;
+using NSubstitute;
 
 namespace ApplicationAccess.Persistence.MongoDb.UnitTests
 {
@@ -24,11 +28,15 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
     /// </summary>
     public class MongoDbAccessManagerTemporalBulkPersisterTests
     {
+        private IApplicationLogger logger;
+        private IMetricLogger metricLogger;
         private MongoDbAccessManagerTemporalBulkPersister<String, String, String, String> testMongoDbAccessManagerTemporalBulkPersister;
 
         [SetUp]
         protected void SetUp()
         {
+            logger = Substitute.For<IApplicationLogger>();
+            metricLogger = Substitute.For<IMetricLogger>();
             testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>
             (
                 "mongodb://testServer:27017", 
@@ -37,7 +45,9 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(), 
-                true
+                true,
+                logger,
+                metricLogger
             );
         }
 
@@ -60,7 +70,9 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    true
+                    true,
+                    logger,
+                    metricLogger
                 );
             });
 
@@ -81,7 +93,9 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    true
+                    true,
+                    logger,
+                    metricLogger
                 );
             });
 
@@ -102,7 +116,9 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    true
+                    true,
+                    logger,
+                    metricLogger
                 );
             });
 
@@ -123,12 +139,38 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    true
+                    true,
+                    logger,
+                    metricLogger
                 );
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'databaseName' must contain a value."));
             Assert.AreEqual("databaseName", e.ParamName);
+        }
+
+        [Test]
+        public void LoadStateTimeOverload_ParameterStateDateNotUtc()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testMongoDbAccessManagerTemporalBulkPersister.Load(DateTime.Now, new AccessManager<String, String, String, String>());
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' must be expressed as UTC."));
+            Assert.AreEqual("stateTime", e.ParamName);
+        }
+
+        [Test]
+        public void LoadStateTimeOverload_ParameterStateDateInTheFuture()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testMongoDbAccessManagerTemporalBulkPersister.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>());
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' with value '{DateTime.MaxValue.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.fffffff")}' is greater than the current time '"));
+            Assert.AreEqual("stateTime", e.ParamName);
         }
     }
 }
