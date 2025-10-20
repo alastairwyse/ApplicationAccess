@@ -50,7 +50,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
 
         #pragma warning restore 1591
 
-        protected readonly DateTime temporalMaxDate = DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc);
+        private readonly DateTime temporalMaxDate = DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc);
 
         private IApplicationLogger logger;
         private IMetricLogger metricLogger;
@@ -502,6 +502,220 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
                 .SortBy(document => document.TransactionSequence)
                 .ToList();
             Assert.AreEqual(20, allEventIdToTransactionTimeMappingDocuments.Count);
+        }
+
+        [Test]
+        public void Load_EventIdOverloadNoDocumentExistsWithEventId()
+        {
+            var initialEventIdToTransactionTimeMappingDocument = new EventIdToTransactionTimeMappingDocument() { EventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32"), TransactionTime = CreateDataTimeFromString("2025-10-20 16:30:52.0000001"), TransactionSequence = 0 };
+            eventIdToTransactionTimeMapCollection.InsertOne(initialEventIdToTransactionTimeMappingDocument);
+            DateTime stateTime = CreateDataTimeFromString("2025-10-20 16:30:52.0000000");
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testMongoDbAccessManagerTemporalBulkPersister.Load(Guid.Parse("00000000-0000-0000-0000-000000000000"), new AccessManager<String, String, String, String>());
+            });
+
+            Assert.That(e.Message, Does.StartWith($"No 'EventIdToTransactionTimeMap' documents were returned for EventId '00000000-0000-0000-0000-000000000000'."));
+            Assert.AreEqual("eventId", e.ParamName);
+        }
+
+        [Test]
+        public void Load_EventIdOverload()
+        {
+            PopulateTestDatabase();
+            Guid eventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            AccessManager<String, String, String, String> accessManager = new();
+
+            AccessManagerState result = testMongoDbAccessManagerTemporalBulkPersister.Load(eventId, accessManager);
+
+            Assert.AreEqual(eventId, result.EventId);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-20 16:30:52.0000000"), result.StateTime);
+            Assert.AreEqual(2, result.StateSequence);
+            List<String> allUsers = new(accessManager.Users);
+            Assert.AreEqual(1, allUsers.Count);
+            Assert.AreEqual("user1", allUsers[0]);
+            List<String> allGroups = new(accessManager.Groups);
+            Assert.AreEqual(2, allGroups.Count);
+            Assert.IsTrue(allGroups.Contains("group1"));
+            Assert.IsTrue(allGroups.Contains("group2"));
+            List<String> userToGroupMappings = new(accessManager.GetUserToGroupMappings("user1", false));
+            Assert.AreEqual(1, userToGroupMappings.Count);
+            Assert.AreEqual("group1", userToGroupMappings[0]);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<String> groupToGroupMappings = new(accessManager.GetGroupToGroupMappings("group1", false));
+            Assert.AreEqual(1, groupToGroupMappings.Count);
+            Assert.AreEqual("group2", groupToGroupMappings[0]);
+            List<Tuple<String, String>> userToApplicationComponentAndAccessLevelMappings = new(accessManager.GetUserToApplicationComponentAndAccessLevelMappings("user1"));
+            Assert.AreEqual(1, userToApplicationComponentAndAccessLevelMappings.Count);
+            Assert.AreEqual("OrderScreen", userToApplicationComponentAndAccessLevelMappings[0].Item1);
+            Assert.AreEqual("Create", userToApplicationComponentAndAccessLevelMappings[0].Item2);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<Tuple<String, String>> groupToApplicationComponentAndAccessLevelMappings = new(accessManager.GetGroupToApplicationComponentAndAccessLevelMappings("group1"));
+            Assert.AreEqual(1, groupToApplicationComponentAndAccessLevelMappings.Count);
+            Assert.AreEqual("OrderScreen", groupToApplicationComponentAndAccessLevelMappings[0].Item1);
+            Assert.AreEqual("Create", groupToApplicationComponentAndAccessLevelMappings[0].Item2);
+            groupToApplicationComponentAndAccessLevelMappings = new(accessManager.GetGroupToApplicationComponentAndAccessLevelMappings("group2"));
+            Assert.AreEqual(0, groupToApplicationComponentAndAccessLevelMappings.Count);
+            List<String> allEntityTypes = new(accessManager.EntityTypes);
+            Assert.AreEqual(1, allEntityTypes.Count);
+            Assert.AreEqual("ClientAccount", allEntityTypes[0]);
+            List<String> allEntities = new(accessManager.GetEntities("ClientAccount"));
+            Assert.AreEqual(1, allEntities.Count);
+            Assert.AreEqual("CompanyA", allEntities[0]);
+            Assert.IsFalse(accessManager.ContainsEntityType("BusinessUnit"));
+            List<Tuple<String, String>> userToEntityMappings = new(accessManager.GetUserToEntityMappings("user1"));
+            Assert.AreEqual(1, userToEntityMappings.Count);
+            Assert.AreEqual("ClientAccount", userToEntityMappings[0].Item1);
+            Assert.AreEqual("CompanyA", userToEntityMappings[0].Item2);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<Tuple<String, String>> groupToEntityMappings = new(accessManager.GetGroupToEntityMappings("group1"));
+            Assert.AreEqual(1, groupToEntityMappings.Count);
+            Assert.AreEqual("ClientAccount", groupToEntityMappings[0].Item1);
+            Assert.AreEqual("CompanyA", groupToEntityMappings[0].Item2);
+            groupToEntityMappings = new(accessManager.GetGroupToEntityMappings("group2"));
+            Assert.AreEqual(0, groupToEntityMappings.Count);
+            Assert.AreEqual(4, userStringifier.FromStringCallCount);
+            Assert.AreEqual(7, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+        }
+
+        [Test]
+        public void Load_StateTimeOverloadNoDocumentExistsWithTransactionTimeLessThanOrEqualToStateTimeParameter()
+        {
+            var initialEventIdToTransactionTimeMappingDocument = new EventIdToTransactionTimeMappingDocument() { EventId = Guid.NewGuid(), TransactionTime = CreateDataTimeFromString("2025-10-20 16:30:52.0000001"), TransactionSequence = 0 };
+            eventIdToTransactionTimeMapCollection.InsertOne(initialEventIdToTransactionTimeMappingDocument);
+            DateTime stateTime = CreateDataTimeFromString("2025-10-20 16:30:52.0000000");
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testMongoDbAccessManagerTemporalBulkPersister.Load(stateTime, new AccessManager<String, String, String, String>());
+            });
+
+            Assert.That(e.Message, Does.StartWith($"No 'EventIdToTransactionTimeMap' documents were returned with TransactionTime less than or equal to '2025-10-20 16:30:52.0000000'."));
+            Assert.AreEqual("stateTime", e.ParamName);
+        }
+
+        [Test]
+        public void Load_StateTimeOverload()
+        {
+            PopulateTestDatabase();
+            DateTime stateTime = CreateDataTimeFromString("2025-10-20 16:30:52.0000001");
+            AccessManager<String, String, String, String> accessManager = new();
+
+            AccessManagerState result = testMongoDbAccessManagerTemporalBulkPersister.Load(stateTime, accessManager);
+
+            Assert.AreEqual(Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32"), result.EventId);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-20 16:30:52.0000000"), result.StateTime);
+            Assert.AreEqual(2, result.StateSequence);
+            List<String> allUsers = new(accessManager.Users);
+            Assert.AreEqual(1, allUsers.Count);
+            Assert.AreEqual("user1", allUsers[0]);
+            List<String> allGroups = new(accessManager.Groups);
+            Assert.AreEqual(2, allGroups.Count);
+            Assert.IsTrue(allGroups.Contains("group1"));
+            Assert.IsTrue(allGroups.Contains("group2"));
+            List<String> userToGroupMappings = new(accessManager.GetUserToGroupMappings("user1", false));
+            Assert.AreEqual(1, userToGroupMappings.Count);
+            Assert.AreEqual("group1", userToGroupMappings[0]);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<String> groupToGroupMappings = new(accessManager.GetGroupToGroupMappings("group1", false));
+            Assert.AreEqual(1, groupToGroupMappings.Count);
+            Assert.AreEqual("group2", groupToGroupMappings[0]);
+            List<Tuple<String, String>> userToApplicationComponentAndAccessLevelMappings = new(accessManager.GetUserToApplicationComponentAndAccessLevelMappings("user1"));
+            Assert.AreEqual(1, userToApplicationComponentAndAccessLevelMappings.Count);
+            Assert.AreEqual("OrderScreen", userToApplicationComponentAndAccessLevelMappings[0].Item1);
+            Assert.AreEqual("Create", userToApplicationComponentAndAccessLevelMappings[0].Item2);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<Tuple<String, String>> groupToApplicationComponentAndAccessLevelMappings = new(accessManager.GetGroupToApplicationComponentAndAccessLevelMappings("group1"));
+            Assert.AreEqual(1, groupToApplicationComponentAndAccessLevelMappings.Count);
+            Assert.AreEqual("OrderScreen", groupToApplicationComponentAndAccessLevelMappings[0].Item1);
+            Assert.AreEqual("Create", groupToApplicationComponentAndAccessLevelMappings[0].Item2); 
+            groupToApplicationComponentAndAccessLevelMappings = new(accessManager.GetGroupToApplicationComponentAndAccessLevelMappings("group2"));
+            Assert.AreEqual(0, groupToApplicationComponentAndAccessLevelMappings.Count);
+            List<String> allEntityTypes = new(accessManager.EntityTypes);
+            Assert.AreEqual(1, allEntityTypes.Count);
+            Assert.AreEqual("ClientAccount", allEntityTypes[0]);
+            List<String> allEntities = new(accessManager.GetEntities("ClientAccount"));
+            Assert.AreEqual(1, allEntities.Count);
+            Assert.AreEqual("CompanyA", allEntities[0]);
+            Assert.IsFalse(accessManager.ContainsEntityType("BusinessUnit"));
+            List<Tuple<String, String>> userToEntityMappings = new(accessManager.GetUserToEntityMappings("user1"));
+            Assert.AreEqual(1, userToEntityMappings.Count);
+            Assert.AreEqual("ClientAccount", userToEntityMappings[0].Item1);
+            Assert.AreEqual("CompanyA", userToEntityMappings[0].Item2);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<Tuple<String, String>> groupToEntityMappings = new(accessManager.GetGroupToEntityMappings("group1"));
+            Assert.AreEqual(1, groupToEntityMappings.Count);
+            Assert.AreEqual("ClientAccount", groupToEntityMappings[0].Item1);
+            Assert.AreEqual("CompanyA", groupToEntityMappings[0].Item2); 
+            groupToEntityMappings = new(accessManager.GetGroupToEntityMappings("group2"));
+            Assert.AreEqual(0, groupToEntityMappings.Count);
+            Assert.AreEqual(4, userStringifier.FromStringCallCount);
+            Assert.AreEqual(7, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+        }
+
+        [Test]
+        public void Load()
+        {
+            PopulateTestDatabase();
+            AccessManager<String, String, String, String> accessManager = new();
+
+            AccessManagerState result = testMongoDbAccessManagerTemporalBulkPersister.Load(accessManager);
+
+            Assert.AreEqual(Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32"), result.EventId);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-20 16:30:52.0000000"), result.StateTime);
+            Assert.AreEqual(2, result.StateSequence);
+            List<String> allUsers = new(accessManager.Users);
+            Assert.AreEqual(1, allUsers.Count);
+            Assert.AreEqual("user1", allUsers[0]);
+            List<String> allGroups = new(accessManager.Groups);
+            Assert.AreEqual(2, allGroups.Count);
+            Assert.IsTrue(allGroups.Contains("group1"));
+            Assert.IsTrue(allGroups.Contains("group2"));
+            List<String> userToGroupMappings = new(accessManager.GetUserToGroupMappings("user1", false));
+            Assert.AreEqual(1, userToGroupMappings.Count);
+            Assert.AreEqual("group1", userToGroupMappings[0]);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<String> groupToGroupMappings = new(accessManager.GetGroupToGroupMappings("group1", false));
+            Assert.AreEqual(1, groupToGroupMappings.Count);
+            Assert.AreEqual("group2", groupToGroupMappings[0]);
+            List<Tuple<String, String>> userToApplicationComponentAndAccessLevelMappings = new(accessManager.GetUserToApplicationComponentAndAccessLevelMappings("user1"));
+            Assert.AreEqual(1, userToApplicationComponentAndAccessLevelMappings.Count);
+            Assert.AreEqual("OrderScreen", userToApplicationComponentAndAccessLevelMappings[0].Item1);
+            Assert.AreEqual("Create", userToApplicationComponentAndAccessLevelMappings[0].Item2);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<Tuple<String, String>> groupToApplicationComponentAndAccessLevelMappings = new(accessManager.GetGroupToApplicationComponentAndAccessLevelMappings("group1"));
+            Assert.AreEqual(1, groupToApplicationComponentAndAccessLevelMappings.Count);
+            Assert.AreEqual("OrderScreen", groupToApplicationComponentAndAccessLevelMappings[0].Item1);
+            Assert.AreEqual("Create", groupToApplicationComponentAndAccessLevelMappings[0].Item2);
+            groupToApplicationComponentAndAccessLevelMappings = new(accessManager.GetGroupToApplicationComponentAndAccessLevelMappings("group2"));
+            Assert.AreEqual(0, groupToApplicationComponentAndAccessLevelMappings.Count);
+            List<String> allEntityTypes = new(accessManager.EntityTypes);
+            Assert.AreEqual(1, allEntityTypes.Count);
+            Assert.AreEqual("ClientAccount", allEntityTypes[0]);
+            List<String> allEntities = new(accessManager.GetEntities("ClientAccount"));
+            Assert.AreEqual(1, allEntities.Count);
+            Assert.AreEqual("CompanyA", allEntities[0]);
+            Assert.IsFalse(accessManager.ContainsEntityType("BusinessUnit"));
+            List<Tuple<String, String>> userToEntityMappings = new(accessManager.GetUserToEntityMappings("user1"));
+            Assert.AreEqual(1, userToEntityMappings.Count);
+            Assert.AreEqual("ClientAccount", userToEntityMappings[0].Item1);
+            Assert.AreEqual("CompanyA", userToEntityMappings[0].Item2);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<Tuple<String, String>> groupToEntityMappings = new(accessManager.GetGroupToEntityMappings("group1"));
+            Assert.AreEqual(1, groupToEntityMappings.Count);
+            Assert.AreEqual("ClientAccount", groupToEntityMappings[0].Item1);
+            Assert.AreEqual("CompanyA", groupToEntityMappings[0].Item2);
+            groupToEntityMappings = new(accessManager.GetGroupToEntityMappings("group2"));
+            Assert.AreEqual(0, groupToEntityMappings.Count);
+            Assert.AreEqual(4, userStringifier.FromStringCallCount);
+            Assert.AreEqual(7, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
         }
 
         [Test]
@@ -2355,6 +2569,75 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         protected DateTime SubtractTemporalMinimumTimeUnit(DateTime inputDateTime)
         {
             return inputDateTime.Subtract(TimeSpan.FromMicroseconds(0.1));
+        }
+
+        /// <summary>
+        /// Populates the 'mongoDatabase' field with test data for testing overloads of the Load() method.
+        /// </summary>
+        protected void PopulateTestDatabase()
+        {
+            var initialEventIdToTransactionTimeMappingDocument = new EventIdToTransactionTimeMappingDocument() { EventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32"), TransactionTime = CreateDataTimeFromString("2025-10-20 16:30:52.0000000"), TransactionSequence = 2 };
+            eventIdToTransactionTimeMapCollection.InsertOne(initialEventIdToTransactionTimeMappingDocument);
+            List<UserDocument> initialUserDocuments = new()
+            {
+                new UserDocument() {  User = "user1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:00.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserDocument() {  User = "user2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:01.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:01.0000000")}
+            };
+            usersCollection.InsertMany(initialUserDocuments);
+            List<GroupDocument> initialGroupDocuments = new()
+            {
+                new GroupDocument() {  Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:02.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupDocument() {  Group = "group2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:03.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupDocument() {  Group = "group3", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:04.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-09 07:53:04.0000000")}
+            };
+            groupsCollection.InsertMany(initialGroupDocuments);
+            List<UserToGroupMappingDocument> initialUserToGroupMappingDocuments = new()
+            {
+                new UserToGroupMappingDocument() {  User = "user1", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:05.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToGroupMappingDocument() {  User = "user2", Group = "group1", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:06.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-04 17:33:06.0000000")}
+            };
+            userToGroupMappingsCollection.InsertMany(initialUserToGroupMappingDocuments);
+            List<GroupToGroupMappingDocument> initialGroupToGroupMappingDocuments = new()
+            {
+                new GroupToGroupMappingDocument() {  FromGroup = "group1", ToGroup = "group2", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:07.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToGroupMappingDocument() {  FromGroup = "group1", ToGroup = "group3", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:08.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-04 17:33:08.0000000")}
+            };
+            groupToGroupMappingsCollection.InsertMany(initialGroupToGroupMappingDocuments);
+            List<UserToApplicationComponentAndAccessLevelMappingDocument> initialUserToApplicationComponentAndAccessLevelMappingDocuments = new()
+            {
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:09.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToApplicationComponentAndAccessLevelMappingDocument() {  User = "user2", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:10.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-04 17:33:10.0000000")},
+            };
+            userToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialUserToApplicationComponentAndAccessLevelMappingDocuments);
+            List<GroupToApplicationComponentAndAccessLevelMappingDocument> initialGroupToApplicationComponentAndAccessLevelMappingDocuments = new()
+            {
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group1", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:11.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToApplicationComponentAndAccessLevelMappingDocument() {  Group = "group2", ApplicationComponent = "OrderScreen", AccessLevel = "Create", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:12.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-04 17:33:12.0000000")},
+            };
+            groupToApplicationComponentAndAccessLevelMappingsCollection.InsertMany(initialGroupToApplicationComponentAndAccessLevelMappingDocuments);
+            List<EntityTypeDocument> initialEntityTypeDocuments = new()
+            {
+                new EntityTypeDocument() {  EntityType = "ClientAccount", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:13.0000000"), TransactionTo = DateTime.MaxValue},
+                new EntityTypeDocument() {  EntityType = "BusinessUnit", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:14.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-04 17:33:14.0000000")}
+            };
+            entityTypesCollection.InsertMany(initialEntityTypeDocuments); List<EntityDocument> initialEntityDocuments = new()
+            {
+                new EntityDocument() {  EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:15.0000000"), TransactionTo = DateTime.MaxValue},
+                new EntityDocument() {  EntityType = "ClientAccount", Entity = "CompanyB", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:16.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-04 17:33:16.0000000")}
+            };
+            entitiesCollection.InsertMany(initialEntityDocuments);
+            List<UserToEntityMappingDocument> initialUserToEntityMappingDocumentDocuments = new()
+            {
+                new UserToEntityMappingDocument() {  User = "user1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:17.0000000"), TransactionTo = DateTime.MaxValue},
+                new UserToEntityMappingDocument() {  User = "user2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:18.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-04 17:33:18.0000000")}
+            };
+            userToEntityMappingsCollection.InsertMany(initialUserToEntityMappingDocumentDocuments);
+            List<GroupToEntityMappingDocument> initialGroupToEntityMappingDocumentDocuments = new()
+            {
+                new GroupToEntityMappingDocument() {  Group = "group1", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:19.0000000"), TransactionTo = DateTime.MaxValue},
+                new GroupToEntityMappingDocument() {  Group = "group2", EntityType = "ClientAccount", Entity = "CompanyA", TransactionFrom = CreateDataTimeFromString("2025-10-04 17:33:20.0000000"), TransactionTo = CreateDataTimeFromString("2025-10-04 17:33:20.0000000")}
+            };
+            groupToEntityMappingsCollection.InsertMany(initialGroupToEntityMappingDocumentDocuments);
         }
 
         #endregion

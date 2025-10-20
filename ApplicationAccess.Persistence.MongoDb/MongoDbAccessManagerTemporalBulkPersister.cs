@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections;
+using System.Linq.Expressions;
 using System.Text;
 using MongoDB.Driver;
 using ApplicationAccess.Persistence;
@@ -38,8 +39,6 @@ namespace ApplicationAccess.Persistence.MongoDb
     {
         // TODO: 
         // Start adding support for config and options 'up' the class hierarchy
-        // Add metrics... number persisted etc... same as other implementations
-        //   Can mongo retries be interrogated for metrics?
         // NEED TO TEST THAT TEMPORAL INDEXES WORK PROPERLY
         // Should I check the contents of UpdateResult after updates?
         // Do a 3 node test with multiple readers and small cache service to force repeated loads
@@ -88,7 +87,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         protected IMongoClient mongoClient;
         /// <summary>The MongoDB database.</summary>
         protected IMongoDatabase database;
-        /// <summary>Maps a type (deriving from <see cref="TemporalEventBufferItemBase"/>) to an action which persists an event of that type.</summary>
+        /// <summary>Maps types (deriving from <see cref="TemporalEventBufferItemBase"/>) to actions which persists an event of that type.</summary>
         protected Dictionary<Type, Action<TemporalEventBufferItemBase>> eventTypeToPersistenceActionMap;
         /// <summary>Whether the PersistEvents() method has already been called.</summary>
         protected Boolean persistEventsCalled;
@@ -251,6 +250,8 @@ namespace ApplicationAccess.Persistence.MongoDb
 
         #region Event Persistence Methods
 
+        #pragma warning disable 1591
+
         protected void CreateEvent(IClientSessionHandle session, Guid eventId, DateTime transactionTime)
         {
             IMongoCollection<EventIdToTransactionTimeMappingDocument> eventIdToTransactionTimeMappingCollection = database.GetCollection<EventIdToTransactionTimeMappingDocument>(eventIdToTransactionTimeMapCollectionName);
@@ -289,6 +290,7 @@ namespace ApplicationAccess.Persistence.MongoDb
                 transactionSequence = lastTransactionSequence + 1;
             }
 
+            // Create the new event
             EventIdToTransactionTimeMappingDocument newDocument = new()
             {
                 EventId = eventId,
@@ -1124,12 +1126,14 @@ namespace ApplicationAccess.Persistence.MongoDb
             }
         }
 
+        #pragma warning restore 1591
+
         #endregion
 
         #region Load Methods
 
         /// <summary>
-        /// Loads the access manager with state corresponding to the specified timestamp (and greatest sequence number if multiple states exist at the same timestamp) from persistent storage.
+        /// Loads the access manager with state corresponding to the specified timestamp (and greatest sequence number if multiple states exist at the same timestamp) from MongoDB.
         /// </summary>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
@@ -1179,61 +1183,215 @@ namespace ApplicationAccess.Persistence.MongoDb
         }
 
         /// <summary>
-        /// Loads the access manager with state corresponding to the specified timestamp from persistent storage into the specified AccessManager instance.
+        /// Loads the access manager with state corresponding to the specified timestamp from MongoDB into the specified AccessManager instance.
         /// </summary>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
         protected void LoadToAccessManager(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-
-            // TODO...
-            //   Implement methods like GetUsers() from SqlPersisterUtilitiesBase
-            //   Also implement this method copying same one from SqlPersisterUtilitiesBase
-
-            throw new NotImplementedException();
+            accessManagerToLoadTo.Clear();
+            foreach (String currentUser in GetUsers(stateTime))
+            {
+                accessManagerToLoadTo.AddUser(userStringifier.FromString(currentUser));
+            }
+            foreach (String currentGroup in GetGroups(stateTime))
+            {
+                accessManagerToLoadTo.AddGroup(groupStringifier.FromString(currentGroup));
+            }
+            foreach (Tuple<String, String> currentUserToGroupMapping in GetUserToGroupMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddUserToGroupMapping(userStringifier.FromString(currentUserToGroupMapping.Item1), groupStringifier.FromString(currentUserToGroupMapping.Item2));
+            }
+            foreach (Tuple<String, String> currentGroupToGroupMapping in GetGroupToGroupMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddGroupToGroupMapping(groupStringifier.FromString(currentGroupToGroupMapping.Item1), groupStringifier.FromString(currentGroupToGroupMapping.Item2));
+            }
+            foreach (Tuple<String, String, String> currentUserToApplicationComponentAndAccessLevelMapping in GetUserToApplicationComponentAndAccessLevelMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddUserToApplicationComponentAndAccessLevelMapping
+                (
+                    userStringifier.FromString(currentUserToApplicationComponentAndAccessLevelMapping.Item1),
+                    applicationComponentStringifier.FromString(currentUserToApplicationComponentAndAccessLevelMapping.Item2),
+                    accessLevelStringifier.FromString(currentUserToApplicationComponentAndAccessLevelMapping.Item3)
+                );
+            }
+            foreach (Tuple<String, String, String> currentGroupToApplicationComponentAndAccessLevelMapping in GetGroupToApplicationComponentAndAccessLevelMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddGroupToApplicationComponentAndAccessLevelMapping
+                (
+                    groupStringifier.FromString(currentGroupToApplicationComponentAndAccessLevelMapping.Item1),
+                    applicationComponentStringifier.FromString(currentGroupToApplicationComponentAndAccessLevelMapping.Item2),
+                    accessLevelStringifier.FromString(currentGroupToApplicationComponentAndAccessLevelMapping.Item3)
+                );
+            }
+            foreach (String currentEntityType in GetEntityTypes(stateTime))
+            {
+                accessManagerToLoadTo.AddEntityType(currentEntityType);
+            }
+            foreach (Tuple<String, String> currentEntityTypeAndEntity in GetEntities(stateTime))
+            {
+                accessManagerToLoadTo.AddEntity(currentEntityTypeAndEntity.Item1, currentEntityTypeAndEntity.Item2);
+            }
+            foreach (Tuple<String, String, String> currentUserToEntityMapping in GetUserToEntityMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddUserToEntityMapping
+                (
+                    userStringifier.FromString(currentUserToEntityMapping.Item1),
+                    currentUserToEntityMapping.Item2,
+                    currentUserToEntityMapping.Item3
+                );
+            }
+            foreach (Tuple<String, String, String> currentGroupToEntityMapping in GetGroupToEntityMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddGroupToEntityMapping
+                (
+                    groupStringifier.FromString(currentGroupToEntityMapping.Item1),
+                    currentGroupToEntityMapping.Item2,
+                    currentGroupToEntityMapping.Item3
+                );
+            }
         }
 
-        /// <summary>
-        /// Returns all users in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all users in the database valid at the specified time.</returns>
-        protected IEnumerable<TUser> GetUsers(DateTime stateTime)
+        #pragma warning disable 1591
+
+        // The following Get*() methods return all elements in the database valid at the specified state time
+
+        protected IEnumerable<String> GetUsers(DateTime stateTime)
         {
-            var usersCollection = database.GetCollection<UserDocument>(usersCollectionName);
-            FilterDefinition<UserDocument> filterDefinition = AddTemporalTimestampFilter(stateTime, FilterDefinition<UserDocument>.Empty);
-            ProjectionDefinition<UserDocument, TUser> projection = new FindExpressionProjectionDefinition<UserDocument, TUser>(document => userStringifier.FromString(document.User));
+            return GetElements
+            (
+                stateTime, 
+                usersCollectionName, 
+                "users",
+                (UserDocument document) => document.User
+            );
+        }
+
+        protected IEnumerable<String> GetGroups(DateTime stateTime)
+        {
+            return GetElements
+            (
+                stateTime,
+                groupsCollectionName,
+                "groups",
+                (GroupDocument document) => document.Group
+            );
+        }
+
+        protected IEnumerable<Tuple<String, String>> GetUserToGroupMappings(DateTime stateTime)
+        {
+            return GetElements
+            (
+                stateTime,
+                userToGroupMappingsCollectionName,
+                "user to group mappings",
+                (UserToGroupMappingDocument document) => Tuple.Create(document.User, document.Group)
+            );
+        }
+
+        protected IEnumerable<Tuple<String, String>> GetGroupToGroupMappings(DateTime stateTime)
+        {
+            return GetElements
+            (
+                stateTime,
+                groupToGroupMappingsCollectionName,
+                "group to group mappings",
+                (GroupToGroupMappingDocument document) => Tuple.Create(document.FromGroup, document.ToGroup)
+            );
+        }
+
+        protected IEnumerable<Tuple<String, String, String>> GetUserToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
+        {
+            return GetElements
+            (
+                stateTime,
+                userToApplicationComponentAndAccessLevelMappingsCollectionName,
+                "user to application component and access level mappings",
+                (UserToApplicationComponentAndAccessLevelMappingDocument document) => Tuple.Create(document.User, document.ApplicationComponent, document.AccessLevel)
+            );
+        }
+
+        protected IEnumerable<Tuple<String, String, String>> GetGroupToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
+        {
+            return GetElements
+            (
+                stateTime,
+                groupToApplicationComponentAndAccessLevelMappingsCollectionName,
+                "group to application component and access level mappings",
+                (GroupToApplicationComponentAndAccessLevelMappingDocument document) => Tuple.Create(document.Group, document.ApplicationComponent, document.AccessLevel)
+            );
+        }
+
+        protected IEnumerable<String> GetEntityTypes(DateTime stateTime)
+        {
+            return GetElements
+            (
+                stateTime,
+                entityTypesCollectionName,
+                "entity types",
+                (EntityTypeDocument document) => document.EntityType
+            );
+        }
+
+        protected IEnumerable<Tuple<String, String>> GetEntities(DateTime stateTime)
+        {
+            return GetElements
+            (
+                stateTime,
+                entitiesCollectionName,
+                "entities",
+                (EntityDocument document) => Tuple.Create(document.EntityType, document.Entity)
+            );
+        }
+
+        protected IEnumerable<Tuple<String, String, String>> GetUserToEntityMappings(DateTime stateTime)
+        {
+            return GetElements
+            (
+                stateTime,
+                userToEntityMappingsCollectionName,
+                "user to entity mappings",
+                (UserToEntityMappingDocument document) => Tuple.Create(document.User, document.EntityType, document.Entity)
+            );
+        }
+
+        protected IEnumerable<Tuple<String, String, String>> GetGroupToEntityMappings(DateTime stateTime)
+        {
+            return GetElements
+            (
+                stateTime,
+                groupToEntityMappingsCollectionName,
+                "group to entity mappings",
+                (GroupToEntityMappingDocument document) => Tuple.Create(document.Group, document.EntityType, document.Entity)
+            );
+        }
+
+        #pragma warning restore 1591
+
+        /// <summary>
+        /// Returns all elements in the database valid at the specified state time.
+        /// </summary>
+        /// <typeparam name="TElement">The type of element to read/return.</typeparam>
+        /// <typeparam name="TDocument">The type of document the elements are stored in in MongoDB.</typeparam>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <param name="collectionName">The name of the collection to read the elements from.</param>
+        /// <param name="elementName">The name of the element being read (e.g. 'users', to use in exception messages).</param>
+        /// <returns>A collection of all elements in the database valid at the specified state time.</returns>
+        protected IEnumerable<TElement> GetElements<TElement, TDocument>(DateTime stateTime, String collectionName, String elementName, Expression<Func<TDocument, TElement>> documentToElementConversionFunction)
+            where TDocument : DocumentBase
+        {
+            var elementCollection = database.GetCollection<TDocument>(collectionName);
+            FilterDefinition<TDocument> filterDefinition = AddTemporalTimestampFilter(stateTime, FilterDefinition<TDocument>.Empty);
+            ProjectionDefinition<TDocument, TElement> projection = new FindExpressionProjectionDefinition<TDocument, TElement>(documentToElementConversionFunction);
             try
             {
-                return Find(null, usersCollection, filterDefinition).Project(projection).ToEnumerable();
+                return Find(null, elementCollection, filterDefinition).Project(projection).ToEnumerable();
             }
             catch (Exception e)
             {
-                throw new Exception(GenerateLoadFailedExceptionMessage("users", usersCollectionName), e);
+                throw new Exception(GenerateLoadFailedExceptionMessage(elementName, collectionName), e);
             }
         }
-
-        /// <summary>
-        /// Returns all groups in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all groups in the database valid at the specified time.</returns>
-        protected IEnumerable<TGroup> GetGroups(DateTime stateTime)
-        {
-            var groupsCollection = database.GetCollection<GroupDocument>(groupsCollectionName);
-            FilterDefinition<GroupDocument> filterDefinition = AddTemporalTimestampFilter(stateTime, FilterDefinition<GroupDocument>.Empty);
-            ProjectionDefinition<GroupDocument, TGroup> projection = new FindExpressionProjectionDefinition<GroupDocument, TGroup>(document => groupStringifier.FromString(document.Group));
-            try
-            {
-                return Find(null, groupsCollection, filterDefinition).Project(projection).ToEnumerable();
-            }
-            catch (Exception e)
-            {
-                throw new Exception(GenerateLoadFailedExceptionMessage("groups", groupsCollectionName), e);
-            }
-        }
-
-        // TODO: Implement GetGroups etc, etc...
 
         #endregion
 
@@ -1412,7 +1570,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <summary>
         /// Creates a <see href="https://www.mongodb.com/docs/manual/core/indexes/index-types/index-compound/">compound index</see> on the <see cref="DocumentBase.TransactionFrom"/> and <see cref="DocumentBase.TransactionTo"/> fields of a collection holding documents derived from <see cref="DocumentBase"/>.
         /// </summary>
-        /// <typeparam name="T">The type of documents (deriving from <see cref="DocumentBase"/>) held by the collection in index is being created on.</typeparam>
+        /// <typeparam name="T">The type of documents (deriving from <see cref="DocumentBase"/>) held by the collection the index is being created on.</typeparam>
         /// <param name="collectionName">The name of the collection to create the index on.</param>
         protected void CreateTransactionFieldIndex<T>(String collectionName) where T : DocumentBase
         {
@@ -1436,7 +1594,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="collection">The collection to read from.</param>
         /// <param name="filter">The filter to apply to execute the find.</param>
         /// <returns>A find fluent interface.</returns>
-        protected IFindFluent<T, T> Find<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filter)
+        protected IFindFluent<T, T> Find<T>(IClientSessionHandle? session, IMongoCollection<T> collection, FilterDefinition<T> filter)
         {
             if (session == null)
             {
@@ -1455,7 +1613,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="session">The (optional) session to execute the insert in.  Set to null to not run in a session.</param>
         /// <param name="collection">The collection to insert into.</param>
         /// <param name="document">The document to insert.</param>
-        protected void InsertOne<T>(IClientSessionHandle session, IMongoCollection<T> collection, T document)
+        protected void InsertOne<T>(IClientSessionHandle? session, IMongoCollection<T> collection, T document)
         {
             if (session == null)
             {
@@ -1476,7 +1634,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="filterDefinition">The filter.</param>
         /// <param name="updateDefinition">The update.</param>
         /// <returns>The result of the update operation.</returns>
-        protected UpdateResult UpdateOne<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
+        protected UpdateResult UpdateOne<T>(IClientSessionHandle? session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
         {
             if (session == null)
             {
@@ -1497,7 +1655,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="filterDefinition">The filter.</param>
         /// <param name="updateDefinition">The update.</param>
         /// <returns>The result of the update operation.</returns>
-        protected UpdateResult UpdateMany<T>(IClientSessionHandle session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
+        protected UpdateResult UpdateMany<T>(IClientSessionHandle? session, IMongoCollection<T> collection, FilterDefinition<T> filterDefinition, UpdateDefinition<T> updateDefinition)
         {
             if (session == null)
             {
@@ -1514,7 +1672,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// </summary>
         /// <typeparam name="T">The type of data (deriving from <see cref="DocumentBase"/>) being filtered.</typeparam>
         /// <param name="transactionTime">The timestamp of the temporal filter.</param>
-        /// <param name="existingFilters">The existing filters to add to.</param>
+        /// <param name="existingFilters">The existing filter(s) to add to.</param>
         /// <returns>The appended <see cref="FilterDefinition{TDocument}"/>.</returns>
         protected FilterDefinition<T> AddTemporalTimestampFilter<T>(DateTime transactionTime, params FilterDefinition<T>[] existingFilters)
             where T : DocumentBase
@@ -1613,7 +1771,7 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <summary>
         /// Generates an exception message for the case that reading element data from a collection failed, as part of a load operation.
         /// </summary>
-        /// <param name="elementName">The name of the element being read (e.g. 'user').</param>
+        /// <param name="elementName">The name of the element being read (e.g. 'users').</param>
         /// <param name="collectionName">The name of the collection being read from.</param>
         /// <returns></returns>
         protected String GenerateLoadFailedExceptionMessage(String elementName, String collectionName)
