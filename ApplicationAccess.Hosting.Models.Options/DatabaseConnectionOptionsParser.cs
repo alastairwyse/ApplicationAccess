@@ -43,6 +43,17 @@ namespace ApplicationAccess.Hosting.Models.Options
 
                 return new DatabaseConnectionParameters(sqlDatabaseConnectionParameters);
             }
+            else if (databaseConnectionOptions.MongoDbDatabaseConnection != null)
+            {
+                var mongoDbDatabaseConnectionParameters = new MongoDbDatabaseConnectionParameters
+                (
+                    databaseConnectionOptions.MongoDbDatabaseConnection.ConnectionString,
+                    databaseConnectionOptions.MongoDbDatabaseConnection.DatabaseName,
+                    databaseConnectionOptions.MongoDbDatabaseConnection.UseTransactions.Value
+                );
+
+                return new DatabaseConnectionParameters(mongoDbDatabaseConnectionParameters);
+            }
             else
             {
                 return new DatabaseConnectionParameters();

@@ -25,6 +25,8 @@ namespace ApplicationAccess.Hosting.Models
     {
         /// <summary>Parameters used to connect to a SQL database.</summary>
         protected SqlDatabaseConnectionParametersBase sqlDatabaseConnectionParameters;
+        /// <summary>Parameters used to connect to a MongoDB database.</summary>
+        protected MongoDbDatabaseConnectionParameters mongoDbDatabaseConnectionParameters;
 
         /// <summary>
         /// Parameters used to connect to a SQL database.
@@ -35,11 +37,20 @@ namespace ApplicationAccess.Hosting.Models
         }
 
         /// <summary>
+        /// Parameters used to connect to a MongoDB database.
+        /// </summary>
+        public MongoDbDatabaseConnectionParameters MongoDbDatabaseConnectionParameters
+        {
+            get { return mongoDbDatabaseConnectionParameters; }
+        }
+
+        /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Models.DatabaseConnectionParameters class.
         /// </summary>
         public DatabaseConnectionParameters()
         {
             sqlDatabaseConnectionParameters = null;
+            mongoDbDatabaseConnectionParameters = null;
         }
 
         /// <summary>
@@ -50,6 +61,16 @@ namespace ApplicationAccess.Hosting.Models
             : this()
         {
             this.sqlDatabaseConnectionParameters = sqlDatabaseConnectionParameters;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Models.DatabaseConnectionParameters class.
+        /// </summary>
+        /// <param name="mongoDbDatabaseConnectionParameters">Parameters used to connect to a MongoDB database.</param>
+        public DatabaseConnectionParameters(MongoDbDatabaseConnectionParameters mongoDbDatabaseConnectionParameters)
+            : this()
+        {
+            this.mongoDbDatabaseConnectionParameters = mongoDbDatabaseConnectionParameters;
         }
     }
 }

@@ -16,20 +16,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Persistence.Sql;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.File;
 using ApplicationAccess.Persistence.Sql.PostgreSql;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities;
-using NUnit.Framework;
-using NSubstitute;
 using ApplicationLogging;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
-using System.IO;
-using ApplicationAccess.Persistence.File;
+using NUnit.Framework;
+using NSubstitute;
 
 namespace ApplicationAccess.Hosting.Persistence.Sql.UnitTests
 {

@@ -22,10 +22,13 @@ using ApplicationAccess.Hosting.Persistence;
 using ApplicationAccess.Hosting.Persistence.Sql;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.File;
+using ApplicationAccess.Persistence.MongoDb;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationAccess.Utilities;
+using ApplicationAccess.UnitTests;
 using ApplicationLogging;
 using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -67,7 +70,7 @@ namespace ApplicationAccess.Hosting.Persistence.UnitTests
         }
 
         [Test]
-        public void GetPersister_SqlServerAccessManagerTemporalBulkPersister()
+        public void GetPersister_SqlServerAccessManagerTemporalBulkPersisterReturned()
         {
             String testUserId = "sa";
             String testPassword = "password";
@@ -84,6 +87,104 @@ namespace ApplicationAccess.Hosting.Persistence.UnitTests
             {
 
                 Assert.IsAssignableFrom<AccessManagerRedundantTemporalBulkPersister<String, String, String, String>>(result);
+                NonPublicFieldAssert.IsOfType<SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>>(new List<String>() { "primaryReader" }, result);
+                NonPublicFieldAssert.IsOfType<SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>>(new List<String>() { "primaryPersister" }, result);
+            }
+        }
+
+        [Test]
+        public void GetPersister_MongoDbAccessManagerTemporalBulkPersisterWithoutMetricsWithoutBackupReturned()
+        {
+            String connectionString = "mongodb://127.0.0.1:27017";
+            String databaseName = "ApplicationAccess";
+            Boolean userTransactions = true;
+            var mongoDbConnectionParameters = new MongoDbDatabaseConnectionParameters(connectionString, databaseName, userTransactions);
+            DatabaseConnectionParameters databaseConnectionParameters = new(mongoDbConnectionParameters);
+            testAccessManagerTemporalBulkPersisterFactory = new
+            (
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                testLogger
+            );
+
+            using (IAccessManagerTemporalBulkPersister<String, String, String, String> result = testAccessManagerTemporalBulkPersisterFactory.GetPersister(databaseConnectionParameters, null))
+            {
+
+                Assert.IsAssignableFrom<MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>>(result);
+                NonPublicFieldAssert.IsOfType<NullMetricLogger>(new List<String>() { "metricLogger" }, result);
+            }
+        }
+
+        [Test]
+        public void GetPersister_MongoDbAccessManagerTemporalBulkPersisterWithMetricsWithoutBackupReturned()
+        {
+            String connectionString = "mongodb://127.0.0.1:27017";
+            String databaseName = "ApplicationAccess";
+            Boolean userTransactions = true;
+            var mongoDbConnectionParameters = new MongoDbDatabaseConnectionParameters(connectionString, databaseName, userTransactions);
+            DatabaseConnectionParameters databaseConnectionParameters = new(mongoDbConnectionParameters);
+
+            using (IAccessManagerTemporalBulkPersister<String, String, String, String> result = testAccessManagerTemporalBulkPersisterFactory.GetPersister(databaseConnectionParameters, null))
+            {
+
+                Assert.IsAssignableFrom<MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>>(result);
+                NonPublicFieldAssert.HasValue(new List<String>() { "metricLogger" }, testMetricLogger, result, true);
+            }
+        }
+
+        [Test]
+        public void GetPersister_MongoDbAccessManagerTemporalBulkPersisterWithoutMetricsWithBackupReturned()
+        {
+            String connectionString = "mongodb://127.0.0.1:27017";
+            String databaseName = "ApplicationAccess";
+            Boolean userTransactions = true;
+            var mongoDbConnectionParameters = new MongoDbDatabaseConnectionParameters(connectionString, databaseName, userTransactions);
+            var testPersisterBackupFilePath = Path.Combine(Directory.GetCurrentDirectory(), "TestBackupEvents.json");
+            DatabaseConnectionParameters databaseConnectionParameters = new(mongoDbConnectionParameters);
+            testAccessManagerTemporalBulkPersisterFactory = new
+            (
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                testLogger
+            );
+
+            using (IAccessManagerTemporalBulkPersister<String, String, String, String> result = testAccessManagerTemporalBulkPersisterFactory.GetPersister(databaseConnectionParameters, testPersisterBackupFilePath))
+            {
+
+                Assert.IsAssignableFrom<AccessManagerRedundantTemporalBulkPersister<String, String, String, String>>(result);
+                NonPublicFieldAssert.IsOfType<NullMetricLogger>(new List<String>() { "metricLogger" }, result);
+                NonPublicFieldAssert.IsOfType<MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>>(new List<String>() { "primaryReader" }, result);
+                NonPublicFieldAssert.IsOfType<MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>>(new List<String>() { "primaryPersister" }, result);
+                NonPublicFieldAssert.IsOfType<FileAccessManagerTemporalEventBulkPersisterReader<String, String, String, String>>(new List<String>() { "backupPersister" }, result);
+                NonPublicFieldAssert.IsOfType<NullMetricLogger>(new List<String>() { "primaryPersister", "metricLogger" }, result);
+                NonPublicFieldAssert.IsOfType<NullMetricLogger>(new List<String>() { "backupPersister", "metricLogger" }, result);
+            }
+        }
+
+        [Test]
+        public void GetPersister_MongoDbAccessManagerTemporalBulkPersisterWithMetricsWithBackupReturned()
+        {
+            String connectionString = "mongodb://127.0.0.1:27017";
+            String databaseName = "ApplicationAccess";
+            Boolean userTransactions = true;
+            var mongoDbConnectionParameters = new MongoDbDatabaseConnectionParameters(connectionString, databaseName, userTransactions);
+            var testPersisterBackupFilePath = Path.Combine(Directory.GetCurrentDirectory(), "TestBackupEvents.json");
+            DatabaseConnectionParameters databaseConnectionParameters = new(mongoDbConnectionParameters);
+
+            using (IAccessManagerTemporalBulkPersister<String, String, String, String> result = testAccessManagerTemporalBulkPersisterFactory.GetPersister(databaseConnectionParameters, testPersisterBackupFilePath))
+            {
+
+                Assert.IsAssignableFrom<AccessManagerRedundantTemporalBulkPersister<String, String, String, String>>(result);
+                NonPublicFieldAssert.HasValue(new List<String>() { "metricLogger" }, testMetricLogger, result, true);
+                NonPublicFieldAssert.IsOfType<MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>>(new List<String>() { "primaryReader" }, result);
+                NonPublicFieldAssert.IsOfType<MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>>(new List<String>() { "primaryPersister" }, result);
+                NonPublicFieldAssert.IsOfType<FileAccessManagerTemporalEventBulkPersisterReader<String, String, String, String>>(new List<String>() { "backupPersister" }, result);
+                NonPublicFieldAssert.HasValue(new List<String>() { "primaryPersister", "metricLogger" }, testMetricLogger, result, true);
+                NonPublicFieldAssert.HasValue(new List<String>() { "backupPersister", "metricLogger" }, testMetricLogger, result, true);
             }
         }
     }

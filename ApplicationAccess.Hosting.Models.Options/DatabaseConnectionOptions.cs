@@ -32,8 +32,7 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public SqlDatabaseConnectionOptions? SqlDatabaseConnection { get; set; }
 
-        // TODO: Add MongoDB connection options here
-        //   Will also need to add a validator (use MetricLoggingOptionsValidator as a template) to ensure that both SQL and Mongo are not defined
+        public MongoDbDatabaseConnectionOptions? MongoDbDatabaseConnection { get; set; }
 
         public DatabaseConnectionOptions()
         {

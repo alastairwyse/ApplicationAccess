@@ -18,6 +18,8 @@ using System;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Persistence.Sql;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.File;
+using ApplicationAccess.Persistence.MongoDb;
 using ApplicationLogging;
 using ApplicationMetrics;
 
@@ -100,11 +102,11 @@ namespace ApplicationAccess.Hosting.Persistence
         /// <returns>The <see cref="IAccessManagerTemporalBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</returns>
         public IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> GetPersister(DatabaseConnectionParameters databaseConnectionParameters, String persisterBackupFilePath)
         {
-            if (databaseConnectionParameters.SqlDatabaseConnectionParameters == null)
+            if (databaseConnectionParameters.SqlDatabaseConnectionParameters == null && databaseConnectionParameters.MongoDbDatabaseConnectionParameters == null)
             {
                 return new NullAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>();
             }
-            else
+            else if (databaseConnectionParameters.SqlDatabaseConnectionParameters != null)
             {
                 SqlAccessManagerTemporalBulkPersisterFactory<TUser, TGroup, TComponent, TAccess> sqlAccessManagerTemporalBulkPersisterFactory;
                 if (metricLogger == null)
@@ -117,6 +119,90 @@ namespace ApplicationAccess.Hosting.Persistence
                 }
 
                 return sqlAccessManagerTemporalBulkPersisterFactory.GetPersister(databaseConnectionParameters.SqlDatabaseConnectionParameters, persisterBackupFilePath);
+            }
+            else
+            {
+                MongoDbAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> mongoDbPersister;
+                if (metricLogger == null)
+                {
+                    mongoDbPersister = new MongoDbAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                    (
+                        databaseConnectionParameters.MongoDbDatabaseConnectionParameters.ConnectionString,
+                        databaseConnectionParameters.MongoDbDatabaseConnectionParameters.DatabaseName,
+                        userStringifier, 
+                        groupStringifier, 
+                        applicationComponentStringifier, 
+                        accessLevelStringifier,
+                        databaseConnectionParameters.MongoDbDatabaseConnectionParameters.UseTransactions,
+                        logger
+                    );
+                }
+                else
+                {
+                    mongoDbPersister = new MongoDbAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                    (
+                        databaseConnectionParameters.MongoDbDatabaseConnectionParameters.ConnectionString,
+                        databaseConnectionParameters.MongoDbDatabaseConnectionParameters.DatabaseName,
+                        userStringifier,
+                        groupStringifier,
+                        applicationComponentStringifier,
+                        accessLevelStringifier,
+                        databaseConnectionParameters.MongoDbDatabaseConnectionParameters.UseTransactions,
+                        logger, 
+                        metricLogger
+                    );
+                }
+                if (persisterBackupFilePath == null)
+                {
+                    return mongoDbPersister;
+                }
+                else
+                {
+                    if (metricLogger == null)
+                    {
+                        var backupPersister = new FileAccessManagerTemporalEventBulkPersisterReader<TUser, TGroup, TComponent, TAccess>
+                        (
+                            persisterBackupFilePath,
+                            userStringifier,
+                            groupStringifier,
+                            applicationComponentStringifier,
+                            accessLevelStringifier,
+                            logger
+                        );
+                        var redundantPersister = new AccessManagerRedundantTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                        (
+                            mongoDbPersister,
+                            mongoDbPersister,
+                            backupPersister,
+                            logger
+                        );
+
+                        return redundantPersister;
+                    }
+                    else
+                    {
+                        var backupPersister = new FileAccessManagerTemporalEventBulkPersisterReader<TUser, TGroup, TComponent, TAccess>
+                        (
+                            persisterBackupFilePath,
+                            userStringifier,
+                            groupStringifier,
+                            applicationComponentStringifier,
+                            accessLevelStringifier,
+                            logger,
+                            metricLogger
+                        );
+                        var redundantPersister = new AccessManagerRedundantTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                        (
+                            mongoDbPersister,
+                            mongoDbPersister,
+                            backupPersister,
+                            logger,
+                            metricLogger
+                        );
+
+                        return redundantPersister;
+                    }
+                }
             }
         }
     }

@@ -45,12 +45,29 @@ namespace ApplicationAccess.Hosting.Rest
         /// <param name="databaseConnectionOptions"></param>
         public void Validate(DatabaseConnectionOptions databaseConnectionOptions)
         {
-            if (databaseConnectionOptions.SqlDatabaseConnection != null)
+            if (databaseConnectionOptions.SqlDatabaseConnection != null && databaseConnectionOptions.MongoDbDatabaseConnection != null)
+            {
+                // Both 'Connection' configuration settings are set (can only have one)
+                throw new ValidationException($"{GenerateExceptionMessagePrefix()}  Configuration for either section '{SqlDatabaseConnectionOptions.SqlDatabaseConnectionOptionsName}' or section '{MongoDbDatabaseConnectionOptions.MongoDbDatabaseConnectionOptionsName}' must be provided, but not both.");
+            }
+            else if (databaseConnectionOptions.SqlDatabaseConnection != null)
             {
                 var validationContext = new ValidationContext(databaseConnectionOptions.SqlDatabaseConnection);
                 try
                 {
                     Validator.ValidateObject(databaseConnectionOptions.SqlDatabaseConnection, validationContext, true);
+                }
+                catch (Exception e)
+                {
+                    throw new ValidationException(GenerateExceptionMessagePrefix(), e);
+                }
+            }
+            else if (databaseConnectionOptions.MongoDbDatabaseConnection != null)
+            {
+                var validationContext = new ValidationContext(databaseConnectionOptions.MongoDbDatabaseConnection);
+                try
+                {
+                    Validator.ValidateObject(databaseConnectionOptions.MongoDbDatabaseConnection, validationContext, true);
                 }
                 catch (Exception e)
                 {

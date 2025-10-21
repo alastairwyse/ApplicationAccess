@@ -36,9 +36,24 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         }
 
         [Test]
+        public void Validate_BothSqlDatabaseConnectionAndMongoDbDatabaseConnectionDefined()
+        {
+            var testDatabaseConnectionOptions = new DatabaseConnectionOptions();
+            testDatabaseConnectionOptions.SqlDatabaseConnection = new SqlDatabaseConnectionOptions();
+            testDatabaseConnectionOptions.MongoDbDatabaseConnection = new MongoDbDatabaseConnectionOptions();
+
+            var e = Assert.Throws<ValidationException>(delegate
+            {
+                testDatabaseConnectionOptionsValidator.Validate(testDatabaseConnectionOptions);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error validating DatabaseConnection options.  Configuration for either section 'SqlDatabaseConnection' or section 'MongoDbDatabaseConnection' must be provided, but not both."));
+        }
+
+        [Test]
         public void Validate_SqlDatabaseConnectionDatabaseTypeNull()
         {
-            var testDatabaseConnectionOptions = new DatabaseConnectionOptions() ;
+            var testDatabaseConnectionOptions = new DatabaseConnectionOptions();
             testDatabaseConnectionOptions.SqlDatabaseConnection = new SqlDatabaseConnectionOptions();
 
             var e = Assert.Throws<ValidationException>(delegate
@@ -48,6 +63,22 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
 
             Assert.That(e.Message, Does.StartWith($"Error validating DatabaseConnection options."));
             Assert.That(e.InnerException.Message, Does.StartWith($"Error validating SqlDatabaseConnection options.  Configuration for 'DatabaseType' is required."));
+        }
+        [Test]
+        public void Validate_MongoDbDatabaseConnectionUseTransactionsNull()
+        {
+            var testDatabaseConnectionOptions = new DatabaseConnectionOptions();
+            testDatabaseConnectionOptions.MongoDbDatabaseConnection = new MongoDbDatabaseConnectionOptions();
+            testDatabaseConnectionOptions.MongoDbDatabaseConnection.ConnectionString = "mongodb://127.0.0.1:27017";
+            testDatabaseConnectionOptions.MongoDbDatabaseConnection.DatabaseName = "ApplicationAccess";
+
+            var e = Assert.Throws<ValidationException>(delegate
+            {
+                testDatabaseConnectionOptionsValidator.Validate(testDatabaseConnectionOptions);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error validating DatabaseConnection options."));
+            Assert.That(e.InnerException.Message, Does.StartWith($"Error validating MongoDbDatabaseConnection options.  Configuration for 'UseTransactions' is required."));
         }
     }
 }
