@@ -20,6 +20,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Grpc.AspNetCore.Server;
 
+using ApplicationAccess.Hosting.Rest.EventCache;
+
 namespace ApplicationAccess.Hosting.Grpc.EventCache
 {
     public class Program
@@ -33,6 +35,9 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
 
             GrpcServiceOptions options = new();
             //options.
+
+            builder.Services.AddSingleton(typeof(TemporalEventBulkPersisterHolder));
+            builder.Services.AddSingleton(typeof(TemporalEventQueryProcessorHolder));
 
             var app = builder.Build();
 

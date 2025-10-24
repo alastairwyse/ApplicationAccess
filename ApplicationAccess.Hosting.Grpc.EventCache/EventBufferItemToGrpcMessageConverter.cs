@@ -326,7 +326,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to convert Protobuf {typeof(ByteString).Name} to a {typeof(Guid).Name}.");
+                throw new Exception($"Failed to convert Protobuf {typeof(ByteString).Name} to a {typeof(Guid).Name}.", e);
             }
         }
 
@@ -338,7 +338,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to convert {typeof(Guid).Name} '{inputGuid.ToString()}' to a Protobuf {typeof(ByteString).Name}.");
+                throw new Exception($"Failed to convert {typeof(Guid).Name} '{inputGuid.ToString()}' to a Protobuf {typeof(ByteString).Name}.", e);
             }
         }
 

@@ -179,6 +179,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Persisten
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Persistence.MongoDb.IntegrationTests", "ApplicationAccess.Persistence.MongoDb.IntegrationTests\ApplicationAccess.Persistence.MongoDb.IntegrationTests.csproj", "{B97F4AA5-1B90-424F-8137-CBB0E09B1A22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Grpc.Client", "ApplicationAccess.Hosting.Grpc.Client\ApplicationAccess.Hosting.Grpc.Client.csproj", "{77B40D96-8C8B-4693-8585-8093915E0CE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -537,6 +539,10 @@ Global
 		{B97F4AA5-1B90-424F-8137-CBB0E09B1A22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B97F4AA5-1B90-424F-8137-CBB0E09B1A22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B97F4AA5-1B90-424F-8137-CBB0E09B1A22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77B40D96-8C8B-4693-8585-8093915E0CE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77B40D96-8C8B-4693-8585-8093915E0CE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77B40D96-8C8B-4693-8585-8093915E0CE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77B40D96-8C8B-4693-8585-8093915E0CE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

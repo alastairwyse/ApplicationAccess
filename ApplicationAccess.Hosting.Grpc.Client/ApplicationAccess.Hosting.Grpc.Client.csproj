@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+    <Description>Client classes which connect to AccessManager instances hosted as gRPC services.</Description>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.72.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\ApplicationAccess.Hosting.Grpc\Models\Protos\grpc_error.proto" ProtoRoot="..\ApplicationAccess.Hosting.Grpc" Link="Protos\grpc_error.proto" GrpcServices="None" />
+    <Protobuf Include="..\ApplicationAccess.Hosting.Grpc\Models\Protos\temporal_event_buffer_items.proto" ProtoRoot="..\ApplicationAccess.Hosting.Grpc" Link="Protos\temporal_event_buffer_items.proto" GrpcServices="None" />
+    <Protobuf Include="..\ApplicationAccess.Hosting.Grpc\Protos\event_cache.proto" ProtoRoot="..\ApplicationAccess.Hosting.Grpc" Link="Protos\event_cache.proto" GrpcServices="Client" />
+  </ItemGroup>
+
+</Project>
