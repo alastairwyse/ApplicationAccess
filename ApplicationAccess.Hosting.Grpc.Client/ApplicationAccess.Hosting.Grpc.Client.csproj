@@ -21,12 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Grpc.EventCache\ApplicationAccess.Hosting.Grpc.EventCache.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\ApplicationAccess.Hosting.Grpc\Models\Protos\grpc_error.proto" ProtoRoot="..\ApplicationAccess.Hosting.Grpc" Link="Protos\grpc_error.proto" GrpcServices="None" />
-    <Protobuf Include="..\ApplicationAccess.Hosting.Grpc\Models\Protos\temporal_event_buffer_items.proto" ProtoRoot="..\ApplicationAccess.Hosting.Grpc" Link="Protos\temporal_event_buffer_items.proto" GrpcServices="None" />
     <Protobuf Include="..\ApplicationAccess.Hosting.Grpc\Protos\event_cache.proto" ProtoRoot="..\ApplicationAccess.Hosting.Grpc" Link="Protos\event_cache.proto" GrpcServices="Client" />
   </ItemGroup>
 

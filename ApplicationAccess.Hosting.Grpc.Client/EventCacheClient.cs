@@ -16,8 +16,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Google.Protobuf;
 using Grpc.Net.Client;
+using ApplicationAccess.Hosting.Grpc.EventCache;
 using ApplicationAccess.Hosting.Grpc.EventCache.V1;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
@@ -47,6 +49,8 @@ namespace ApplicationAccess.Hosting.Grpc.Client
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
         /// <summary>The gRPC channel to use to connect.</summary>
         protected GrpcChannel channel;
+        /// <summary>Used to convert <see cref="TemporalEventBufferItemBase"/> instances to gRPC messages and vice versa.</summary>
+        protected EventBufferItemToGrpcMessageConverter eventBufferItemToGrpcMessageConverter;
         /// <summary>The logger for general logging.</summary>
         protected IApplicationLogger logger;
         /// <summary>The logger for metrics.</summary>
@@ -76,6 +80,7 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             this.applicationComponentStringifier = applicationComponentStringifier;
             this.accessLevelStringifier = accessLevelStringifier;
             channel = GrpcChannel.ForAddress(url);
+            eventBufferItemToGrpcMessageConverter = new EventBufferItemToGrpcMessageConverter();
             logger = new NullLogger();
             metricLogger = new NullMetricLogger();
             disposed = false;
@@ -156,16 +161,28 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             this.metricLogger = metricLogger;
         }
 
+        #pragma warning disable 0436
+
         /// <inheritdoc/>
         public IList<TemporalEventBufferItemBase> GetAllEventsSince(Guid eventId)
         {
             var client = new EventCacheRpc.EventCacheRpcClient(channel);
             GetAllEventsSinceRequest request = new GetAllEventsSinceRequest() { PriorEventId = ByteString.CopyFrom(eventId.ToByteArray()) };
+            GetAllEventsSinceReply reply;
+            try
+            {
+                reply = client.GetAllEventsSince(request);
+            }
+            catch (Exception e)
+            {
+                // TODO: Error handling here
+                throw;
+            }
 
-            // TODO: Need to call underlying client method with error handling.
-
-            throw new NotImplementedException();
+            return eventBufferItemToGrpcMessageConverter.Convert(reply.Events.Events).ToList();
         }
+
+        #pragma warning restore 0436
 
         /// <inheritdoc/>
         public void PersistEvents(IList<TemporalEventBufferItemBase> events)
