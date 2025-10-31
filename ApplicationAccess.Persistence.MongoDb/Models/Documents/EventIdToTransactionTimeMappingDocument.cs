@@ -32,7 +32,7 @@ namespace ApplicationAccess.Persistence.MongoDb.Models.Documents
         [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public required Guid EventId { get; init; }
 
-        [BsonDateTimeOptions(Representation = BsonType.Document)]
+        [BsonDateTimeOptions(Representation = BsonType.Int64, Kind = DateTimeKind.Utc)]
         public required DateTime TransactionTime { get; init; }
 
         public required Int32 TransactionSequence { get; init; }

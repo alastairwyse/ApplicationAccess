@@ -18,11 +18,7 @@ using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-using Grpc.AspNetCore.Server;
-
-using ApplicationAccess.Hosting.Rest.EventCache;
-
-namespace ApplicationAccess.Hosting.Grpc.EventCache
+namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
 {
     public class Program
     {
@@ -31,20 +27,16 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddGrpc();
 
-            GrpcServiceOptions options = new();
-            //options.
-
-            builder.Services.AddSingleton(typeof(TemporalEventBulkPersisterHolder));
-            builder.Services.AddSingleton(typeof(TemporalEventQueryProcessorHolder));
+            builder.Services.AddControllers();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            app.MapGrpcService<EventCacheService>();
-            app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-            
+            app.MapControllers();
+
             app.Run();
         }
     }

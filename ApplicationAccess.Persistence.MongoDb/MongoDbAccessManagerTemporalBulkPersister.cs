@@ -37,18 +37,6 @@ namespace ApplicationAccess.Persistence.MongoDb
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public class MongoDbAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
     {
-        // TODO: 
-        // Start adding support for config and options 'up' the class hierarchy
-        // NEED TO TEST THAT TEMPORAL INDEXES WORK PROPERLY
-        // Should I check the contents of UpdateResult after updates?
-        // Real mongoDB tests...
-        //   Single node run in parallel with SQL Server (and then Postgres).
-        //     Run comparer after running test harness for a period
-        //     Then stop and start MongoDB version, and run comparison again (to check that Load() works properly)
-        //   Do a 3 node test with multiple readers and small cache service to force repeated loads
-        //     Check no errors after high load testing
-        //   Test that file backup works on MongoDB failure
-
         #pragma warning disable 1591
 
         protected const String eventIdToTransactionTimeMapCollectionName = "EventIdToTransactionTimeMap";

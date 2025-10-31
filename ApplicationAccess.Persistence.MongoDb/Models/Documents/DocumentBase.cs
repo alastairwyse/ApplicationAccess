@@ -29,10 +29,10 @@ namespace ApplicationAccess.Persistence.MongoDb.Models.Documents
 
         public ObjectId _id;
 
-        [BsonDateTimeOptions(Representation = BsonType.Document)]
+        [BsonDateTimeOptions(Representation = BsonType.Int64, Kind = DateTimeKind.Utc)]
         public required DateTime TransactionFrom { get; init; }
 
-        [BsonDateTimeOptions(Representation = BsonType.Document)]
+        [BsonDateTimeOptions(Representation = BsonType.Int64, Kind = DateTimeKind.Utc)]
         public required DateTime TransactionTo { get; init; }
 
         #pragma warning restore 1591

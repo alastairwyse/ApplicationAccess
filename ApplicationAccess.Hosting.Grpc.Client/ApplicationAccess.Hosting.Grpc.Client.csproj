@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\ApplicationAccess.Hosting.Grpc\Protos\event_cache.proto" ProtoRoot="..\ApplicationAccess.Hosting.Grpc" Link="Protos\event_cache.proto" GrpcServices="Client" />
+    <Protobuf Include="..\ApplicationAccess.Hosting.Grpc\Protos\event_cache_v1.proto" ProtoRoot="..\ApplicationAccess.Hosting.Grpc" Link="Protos\event_cache_v1.proto" GrpcServices="Client" />
   </ItemGroup>
 
 </Project>
