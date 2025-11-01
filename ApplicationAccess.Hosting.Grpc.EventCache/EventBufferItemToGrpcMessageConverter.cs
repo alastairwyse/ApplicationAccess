@@ -26,8 +26,42 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
     /// <summary>
     /// Converts between subclasses of <see cref="TemporalEventBufferItemBase"/> and their equivalent gRPC message.
     /// </summary>
-    public class EventBufferItemToGrpcMessageConverter
+    /// <typeparam name="TUser">The type of users in the AccessManager.</typeparam>
+    /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
+    /// <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
+    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+    public class EventBufferItemToGrpcMessageConverter<TUser, TGroup, TComponent, TAccess>
     {
+        /// <summary>A string converter for users.</summary>
+        protected IUniqueStringifier<TUser> userStringifier;
+        /// <summary>A string converter for groups.</summary>
+        protected IUniqueStringifier<TGroup> groupStringifier;
+        /// <summary>A string converter for application components.</summary>
+        protected IUniqueStringifier<TComponent> applicationComponentStringifier;
+        /// <summary>A string converter for access levels.</summary>
+        protected IUniqueStringifier<TAccess> accessLevelStringifier;
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Grpc.EventCache.EventBufferItemToGrpcMessageConverter class.
+        /// </summary>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        public EventBufferItemToGrpcMessageConverter
+        (
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier
+        )
+        {
+            this.userStringifier = userStringifier;
+            this.groupStringifier = groupStringifier;
+            this.applicationComponentStringifier = applicationComponentStringifier;
+            this.accessLevelStringifier = accessLevelStringifier;
+        }
+
         /// <summary>
         /// Converts a repeated collection of <see cref="TemporalEventBufferItemListItem"/> messages to a collection of subclasses of <see cref="TemporalEventBufferItemBase"/>.
         /// </summary>
@@ -67,83 +101,83 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
             {
                 case TemporalEventBufferItemListItem.ItemOneofCase.UserEventBufferItem:
                     UserEventBufferItem userEventMessage = eventMessage.UserEventBufferItem;
-                    return new UserEventBufferItem<String>
+                    return new UserEventBufferItem<TUser>
                     (
                         ConvertProtobufByteStringToGuid(userEventMessage.BaseProperties.EventId),
                         ConvertGrpcEventAction(userEventMessage.BaseProperties.EventAction),
-                        userEventMessage.User,
+                        userStringifier.FromString(userEventMessage.User),
                         userEventMessage.BaseProperties.OccurredTime.ToDateTime(),
                         userEventMessage.BaseProperties.HashCode
                     );
 
                 case TemporalEventBufferItemListItem.ItemOneofCase.GroupEventBufferItem:
                     GroupEventBufferItem groupEventMessage = eventMessage.GroupEventBufferItem;
-                    return new GroupEventBufferItem<String>
+                    return new GroupEventBufferItem<TGroup>
                     (
                         ConvertProtobufByteStringToGuid(groupEventMessage.BaseProperties.EventId),
                         ConvertGrpcEventAction(groupEventMessage.BaseProperties.EventAction),
-                        groupEventMessage.Group,
+                        groupStringifier.FromString(groupEventMessage.Group),
                         groupEventMessage.BaseProperties.OccurredTime.ToDateTime(),
                         groupEventMessage.BaseProperties.HashCode
                     );
 
                 case TemporalEventBufferItemListItem.ItemOneofCase.UserToGroupMappingEventBufferItem:
                     UserToGroupMappingEventBufferItem userToGroupMappingEventMessage = eventMessage.UserToGroupMappingEventBufferItem;
-                    return new UserToGroupMappingEventBufferItem<String, String>
+                    return new UserToGroupMappingEventBufferItem<TUser, TGroup>
                     (
                         ConvertProtobufByteStringToGuid(userToGroupMappingEventMessage.BaseProperties.EventId),
                         ConvertGrpcEventAction(userToGroupMappingEventMessage.BaseProperties.EventAction),
-                        userToGroupMappingEventMessage.User, 
-                        userToGroupMappingEventMessage.Group,
+                        userStringifier.FromString(userToGroupMappingEventMessage.User),
+                        groupStringifier.FromString(userToGroupMappingEventMessage.Group),
                         userToGroupMappingEventMessage.BaseProperties.OccurredTime.ToDateTime(),
                         userToGroupMappingEventMessage.BaseProperties.HashCode
                     );
 
                 case TemporalEventBufferItemListItem.ItemOneofCase.GroupToGroupMappingEventBufferItem:
                     GroupToGroupMappingEventBufferItem groupToGroupMappingEventMessage = eventMessage.GroupToGroupMappingEventBufferItem;
-                    return new GroupToGroupMappingEventBufferItem<String>
+                    return new GroupToGroupMappingEventBufferItem<TGroup>
                     (
                         ConvertProtobufByteStringToGuid(groupToGroupMappingEventMessage.BaseProperties.EventId),
                         ConvertGrpcEventAction(groupToGroupMappingEventMessage.BaseProperties.EventAction),
-                        groupToGroupMappingEventMessage.FromGroup,
-                        groupToGroupMappingEventMessage.ToGroup,
+                        groupStringifier.FromString(groupToGroupMappingEventMessage.FromGroup),
+                        groupStringifier.FromString(groupToGroupMappingEventMessage.ToGroup),
                         groupToGroupMappingEventMessage.BaseProperties.OccurredTime.ToDateTime(),
                         groupToGroupMappingEventMessage.BaseProperties.HashCode
                     );
 
                 case TemporalEventBufferItemListItem.ItemOneofCase.UserToApplicationComponentAndAccessLevelMappingEventBufferItem:
                     UserToApplicationComponentAndAccessLevelMappingEventBufferItem userToApplicationComponentAndAccessLevelMappingEventMessage = eventMessage.UserToApplicationComponentAndAccessLevelMappingEventBufferItem;
-                    return new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>
+                    return new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>
                     (
                         ConvertProtobufByteStringToGuid(userToApplicationComponentAndAccessLevelMappingEventMessage.BaseProperties.EventId),
                         ConvertGrpcEventAction(userToApplicationComponentAndAccessLevelMappingEventMessage.BaseProperties.EventAction),
-                        userToApplicationComponentAndAccessLevelMappingEventMessage.User,
-                        userToApplicationComponentAndAccessLevelMappingEventMessage.ApplicationComponent,
-                        userToApplicationComponentAndAccessLevelMappingEventMessage.AccessLevel,
+                        userStringifier.FromString(userToApplicationComponentAndAccessLevelMappingEventMessage.User),
+                        applicationComponentStringifier.FromString(userToApplicationComponentAndAccessLevelMappingEventMessage.ApplicationComponent),
+                        accessLevelStringifier.FromString(userToApplicationComponentAndAccessLevelMappingEventMessage.AccessLevel),
                         userToApplicationComponentAndAccessLevelMappingEventMessage.BaseProperties.OccurredTime.ToDateTime(),
                         userToApplicationComponentAndAccessLevelMappingEventMessage.BaseProperties.HashCode
                     );
 
                 case TemporalEventBufferItemListItem.ItemOneofCase.GroupToApplicationComponentAndAccessLevelMappingEventBufferItem:
                     GroupToApplicationComponentAndAccessLevelMappingEventBufferItem groupToApplicationComponentAndAccessLevelMappingEventMessage = eventMessage.GroupToApplicationComponentAndAccessLevelMappingEventBufferItem;
-                    return new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>
+                    return new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>
                     (
                         ConvertProtobufByteStringToGuid(groupToApplicationComponentAndAccessLevelMappingEventMessage.BaseProperties.EventId),
                         ConvertGrpcEventAction(groupToApplicationComponentAndAccessLevelMappingEventMessage.BaseProperties.EventAction),
-                        groupToApplicationComponentAndAccessLevelMappingEventMessage.Group,
-                        groupToApplicationComponentAndAccessLevelMappingEventMessage.ApplicationComponent,
-                        groupToApplicationComponentAndAccessLevelMappingEventMessage.AccessLevel,
+                        groupStringifier.FromString(groupToApplicationComponentAndAccessLevelMappingEventMessage.Group),
+                        applicationComponentStringifier.FromString(groupToApplicationComponentAndAccessLevelMappingEventMessage.ApplicationComponent),
+                        accessLevelStringifier.FromString(groupToApplicationComponentAndAccessLevelMappingEventMessage.AccessLevel),
                         groupToApplicationComponentAndAccessLevelMappingEventMessage.BaseProperties.OccurredTime.ToDateTime(),
                         groupToApplicationComponentAndAccessLevelMappingEventMessage.BaseProperties.HashCode
                     );
 
                 case TemporalEventBufferItemListItem.ItemOneofCase.UserToEntityMappingEventBufferItem:
                     UserToEntityMappingEventBufferItem userToEntityMappingEventMessage = eventMessage.UserToEntityMappingEventBufferItem;
-                    return new UserToEntityMappingEventBufferItem<String>
+                    return new UserToEntityMappingEventBufferItem<TUser>
                     (
                         ConvertProtobufByteStringToGuid(userToEntityMappingEventMessage.BaseProperties.EventId),
                         ConvertGrpcEventAction(userToEntityMappingEventMessage.BaseProperties.EventAction),
-                        userToEntityMappingEventMessage.User,
+                        userStringifier.FromString(userToEntityMappingEventMessage.User),
                         userToEntityMappingEventMessage.EntityType,
                         userToEntityMappingEventMessage.Entity,
                         userToEntityMappingEventMessage.BaseProperties.OccurredTime.ToDateTime(),
@@ -152,11 +186,11 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
 
                 case TemporalEventBufferItemListItem.ItemOneofCase.GroupToEntityMappingEventBufferItem:
                     GroupToEntityMappingEventBufferItem groupToEntityMappingEventMessage = eventMessage.GroupToEntityMappingEventBufferItem;
-                    return new GroupToEntityMappingEventBufferItem<String>
+                    return new GroupToEntityMappingEventBufferItem<TGroup>
                     (
                         ConvertProtobufByteStringToGuid(groupToEntityMappingEventMessage.BaseProperties.EventId),
                         ConvertGrpcEventAction(groupToEntityMappingEventMessage.BaseProperties.EventAction),
-                        groupToEntityMappingEventMessage.Group,
+                        groupStringifier.FromString(groupToEntityMappingEventMessage.Group),
                         groupToEntityMappingEventMessage.EntityType,
                         groupToEntityMappingEventMessage.Entity,
                         groupToEntityMappingEventMessage.BaseProperties.OccurredTime.ToDateTime(),
@@ -201,74 +235,74 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
             TemporalEventBufferItemListItem returnTemporalEventBufferItemListItem;
             switch (eventBufferItem)
             {
-                case UserEventBufferItem<String> userEventBufferItem:
+                case UserEventBufferItem<TUser> userEventBufferItem:
                     UserEventBufferItem returnUserEventBufferItem = new();
                     returnUserEventBufferItem.BaseProperties = CreateBaseProperties(userEventBufferItem);
-                    returnUserEventBufferItem.User = userEventBufferItem.User;
+                    returnUserEventBufferItem.User = userStringifier.ToString(userEventBufferItem.User);
                     returnTemporalEventBufferItemListItem = new();
                     returnTemporalEventBufferItemListItem.UserEventBufferItem = returnUserEventBufferItem;
                     return returnTemporalEventBufferItemListItem;
 
-                case GroupEventBufferItem<String> groupEventBufferItem:
+                case GroupEventBufferItem<TGroup> groupEventBufferItem:
                     GroupEventBufferItem returnGroupEventBufferItem = new();
                     returnGroupEventBufferItem.BaseProperties = CreateBaseProperties(groupEventBufferItem);
-                    returnGroupEventBufferItem.Group = groupEventBufferItem.Group;
+                    returnGroupEventBufferItem.Group = groupStringifier.ToString(groupEventBufferItem.Group);
                     returnTemporalEventBufferItemListItem = new();
                     returnTemporalEventBufferItemListItem.GroupEventBufferItem = returnGroupEventBufferItem;
                     return returnTemporalEventBufferItemListItem;
 
-                case UserToGroupMappingEventBufferItem<String, String> userToGroupMappingEventBufferItem:
+                case UserToGroupMappingEventBufferItem<TUser, TGroup> userToGroupMappingEventBufferItem:
                     UserToGroupMappingEventBufferItem returnUserToGroupMappingEventBufferItem = new();
                     returnUserToGroupMappingEventBufferItem.BaseProperties = CreateBaseProperties(userToGroupMappingEventBufferItem);
-                    returnUserToGroupMappingEventBufferItem.User = userToGroupMappingEventBufferItem.User;
-                    returnUserToGroupMappingEventBufferItem.Group = userToGroupMappingEventBufferItem.Group;
+                    returnUserToGroupMappingEventBufferItem.User = userStringifier.ToString(userToGroupMappingEventBufferItem.User);
+                    returnUserToGroupMappingEventBufferItem.Group = groupStringifier.ToString(userToGroupMappingEventBufferItem.Group);
                     returnTemporalEventBufferItemListItem = new();
                     returnTemporalEventBufferItemListItem.UserToGroupMappingEventBufferItem = returnUserToGroupMappingEventBufferItem;
                     return returnTemporalEventBufferItemListItem;
 
-                case GroupToGroupMappingEventBufferItem<String> groupToGroupMappingEventBufferItem:
+                case GroupToGroupMappingEventBufferItem<TGroup> groupToGroupMappingEventBufferItem:
                     GroupToGroupMappingEventBufferItem returnGroupToGroupMappingEventBufferItem = new();
                     returnGroupToGroupMappingEventBufferItem.BaseProperties = CreateBaseProperties(groupToGroupMappingEventBufferItem);
-                    returnGroupToGroupMappingEventBufferItem.FromGroup = groupToGroupMappingEventBufferItem.FromGroup;
-                    returnGroupToGroupMappingEventBufferItem.ToGroup = groupToGroupMappingEventBufferItem.ToGroup;
+                    returnGroupToGroupMappingEventBufferItem.FromGroup = groupStringifier.ToString(groupToGroupMappingEventBufferItem.FromGroup);
+                    returnGroupToGroupMappingEventBufferItem.ToGroup = groupStringifier.ToString(groupToGroupMappingEventBufferItem.ToGroup);
                     returnTemporalEventBufferItemListItem = new();
                     returnTemporalEventBufferItemListItem.GroupToGroupMappingEventBufferItem = returnGroupToGroupMappingEventBufferItem;
                     return returnTemporalEventBufferItemListItem;
 
-                case UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String> userToApplicationComponentAndAccessLevelMappingEventBufferItem:
+                case UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess> userToApplicationComponentAndAccessLevelMappingEventBufferItem:
                     UserToApplicationComponentAndAccessLevelMappingEventBufferItem returnUserToApplicationComponentAndAccessLevelMappingEventBufferItem = new();
                     returnUserToApplicationComponentAndAccessLevelMappingEventBufferItem.BaseProperties = CreateBaseProperties(userToApplicationComponentAndAccessLevelMappingEventBufferItem);
-                    returnUserToApplicationComponentAndAccessLevelMappingEventBufferItem.User = userToApplicationComponentAndAccessLevelMappingEventBufferItem.User;
-                    returnUserToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent = userToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent;
-                    returnUserToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel = userToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel;
+                    returnUserToApplicationComponentAndAccessLevelMappingEventBufferItem.User = userStringifier.ToString(userToApplicationComponentAndAccessLevelMappingEventBufferItem.User);
+                    returnUserToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent = applicationComponentStringifier.ToString(userToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent);
+                    returnUserToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel = accessLevelStringifier.ToString(userToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel);
                     returnTemporalEventBufferItemListItem = new();
                     returnTemporalEventBufferItemListItem.UserToApplicationComponentAndAccessLevelMappingEventBufferItem = returnUserToApplicationComponentAndAccessLevelMappingEventBufferItem;
                     return returnTemporalEventBufferItemListItem;
 
-                case GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String> groupToApplicationComponentAndAccessLevelMappingEventBufferItem:
+                case GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess> groupToApplicationComponentAndAccessLevelMappingEventBufferItem:
                     GroupToApplicationComponentAndAccessLevelMappingEventBufferItem returnGroupToApplicationComponentAndAccessLevelMappingEventBufferItem = new();
                     returnGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.BaseProperties = CreateBaseProperties(groupToApplicationComponentAndAccessLevelMappingEventBufferItem);
-                    returnGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.Group = groupToApplicationComponentAndAccessLevelMappingEventBufferItem.Group;
-                    returnGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent = groupToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent;
-                    returnGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel = groupToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel;
+                    returnGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.Group = groupStringifier.ToString(groupToApplicationComponentAndAccessLevelMappingEventBufferItem.Group);
+                    returnGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent = applicationComponentStringifier.ToString(groupToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent);
+                    returnGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel = accessLevelStringifier.ToString(groupToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel);
                     returnTemporalEventBufferItemListItem = new();
                     returnTemporalEventBufferItemListItem.GroupToApplicationComponentAndAccessLevelMappingEventBufferItem = returnGroupToApplicationComponentAndAccessLevelMappingEventBufferItem;
                     return returnTemporalEventBufferItemListItem;
 
-                case UserToEntityMappingEventBufferItem<String> userToEntityMappingEventBufferItem:
+                case UserToEntityMappingEventBufferItem<TUser> userToEntityMappingEventBufferItem:
                     UserToEntityMappingEventBufferItem returnUserToEntityMappingEventBufferItem = new();
                     returnUserToEntityMappingEventBufferItem.BaseProperties = CreateBaseProperties(userToEntityMappingEventBufferItem);
-                    returnUserToEntityMappingEventBufferItem.User = userToEntityMappingEventBufferItem.User;
+                    returnUserToEntityMappingEventBufferItem.User = userStringifier.ToString(userToEntityMappingEventBufferItem.User);
                     returnUserToEntityMappingEventBufferItem.EntityType = userToEntityMappingEventBufferItem.EntityType;
                     returnUserToEntityMappingEventBufferItem.Entity = userToEntityMappingEventBufferItem.Entity;
                     returnTemporalEventBufferItemListItem = new();
                     returnTemporalEventBufferItemListItem.UserToEntityMappingEventBufferItem = returnUserToEntityMappingEventBufferItem;
                     return returnTemporalEventBufferItemListItem;
 
-                case GroupToEntityMappingEventBufferItem<String> groupToEntityMappingEventBufferItem:
+                case GroupToEntityMappingEventBufferItem<TGroup> groupToEntityMappingEventBufferItem:
                     GroupToEntityMappingEventBufferItem returnGroupToEntityMappingEventBufferItem = new();
                     returnGroupToEntityMappingEventBufferItem.BaseProperties = CreateBaseProperties(groupToEntityMappingEventBufferItem);
-                    returnGroupToEntityMappingEventBufferItem.Group = groupToEntityMappingEventBufferItem.Group;
+                    returnGroupToEntityMappingEventBufferItem.Group = groupStringifier.ToString(groupToEntityMappingEventBufferItem.Group);
                     returnGroupToEntityMappingEventBufferItem.EntityType = groupToEntityMappingEventBufferItem.EntityType;
                     returnGroupToEntityMappingEventBufferItem.Entity = groupToEntityMappingEventBufferItem.Entity;
                     returnTemporalEventBufferItemListItem = new();

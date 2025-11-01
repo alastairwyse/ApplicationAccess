@@ -38,7 +38,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
         protected ILogger<EventCacheService> logger;
 
         /// <summary>Used to convert <see cref="TemporalEventBufferItemBase"/> instances to and from their gRPC message equivalent.</summary>
-        protected EventBufferItemToGrpcMessageConverter eventConverter;
+        protected EventBufferItemToGrpcMessageConverter<String, String, String, String> eventConverter;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.EventCache.Controllers.EventCacheController class.
@@ -48,7 +48,13 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
             eventPersister = temporalEventBulkPersisterHolder.TemporalEventBulkPersister;
             eventQueryProcessor = temporalEventQueryProcessorHolder.TemporalEventQueryProcessor;
             this.logger = logger;
-            eventConverter = new EventBufferItemToGrpcMessageConverter();
+            eventConverter = new EventBufferItemToGrpcMessageConverter<String, String, String, String>
+            (
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier()
+            );
         }
 
         /// <summary>

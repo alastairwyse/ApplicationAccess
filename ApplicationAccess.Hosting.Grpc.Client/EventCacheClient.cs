@@ -18,9 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Google.Protobuf;
+using Grpc.Core;
 using Grpc.Net.Client;
 using ApplicationAccess.Hosting.Grpc.EventCache;
 using ApplicationAccess.Hosting.Grpc.EventCache.V1;
+using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Utilities;
@@ -39,18 +41,10 @@ namespace ApplicationAccess.Hosting.Grpc.Client
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public class EventCacheClient<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
-        /// <summary>A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</summary>
-        protected IUniqueStringifier<TUser> userStringifier;
-        /// <summary>A string converter for groups.  Used to convert strings sent to and received from the web API from/to TGroup instances.</summary>
-        protected IUniqueStringifier<TGroup> groupStringifier;
-        /// <summary>A string converter for application components.  Used to convert strings sent to and received from the web API from/to TComponent instances.</summary>
-        protected IUniqueStringifier<TComponent> applicationComponentStringifier;
-        /// <summary>A string converter for access levels.  Used to convert strings sent to and received from the web API from/to TAccess instances.</summary>
-        protected IUniqueStringifier<TAccess> accessLevelStringifier;
         /// <summary>The gRPC channel to use to connect.</summary>
         protected GrpcChannel channel;
         /// <summary>Used to convert <see cref="TemporalEventBufferItemBase"/> instances to gRPC messages and vice versa.</summary>
-        protected EventBufferItemToGrpcMessageConverter eventBufferItemToGrpcMessageConverter;
+        protected EventBufferItemToGrpcMessageConverter<TUser, TGroup, TComponent, TAccess> eventBufferItemToGrpcMessageConverter;
         /// <summary>The logger for general logging.</summary>
         protected IApplicationLogger logger;
         /// <summary>The logger for metrics.</summary>
@@ -75,12 +69,8 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             IUniqueStringifier<TAccess> accessLevelStringifier
         )
         {
-            this.userStringifier = userStringifier;
-            this.groupStringifier = groupStringifier;
-            this.applicationComponentStringifier = applicationComponentStringifier;
-            this.accessLevelStringifier = accessLevelStringifier;
             channel = GrpcChannel.ForAddress(url);
-            eventBufferItemToGrpcMessageConverter = new EventBufferItemToGrpcMessageConverter();
+            eventBufferItemToGrpcMessageConverter = new EventBufferItemToGrpcMessageConverter<TUser, TGroup, TComponent, TAccess>(userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier);
             logger = new NullLogger();
             metricLogger = new NullMetricLogger();
             disposed = false;
@@ -172,6 +162,17 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             try
             {
                 reply = client.GetAllEventsSince(request);
+            }
+            catch (RpcException rpcEx)
+            {
+                Console.WriteLine($"Server error: {rpcEx.Status.Detail}");
+                var rpcStat = rpcEx.GetRpcStatus();
+                
+                var repcError = rpcStat.GetDetail<GrpcError>();
+                Console.WriteLine("RPC Code: " + repcError.Code);
+                Console.WriteLine("RPC Message: " + repcError.Message);
+
+                throw;
             }
             catch (Exception e)
             {

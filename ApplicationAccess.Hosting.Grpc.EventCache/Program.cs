@@ -16,11 +16,13 @@
 
 using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 using Grpc.AspNetCore.Server;
-
+using ApplicationAccess.Hosting.Grpc;
+using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.EventCache;
+using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Grpc.EventCache
 {
@@ -30,8 +32,26 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
         {
             var builder = WebApplication.CreateBuilder(args);
 
+
+            // TODO: Needs to be moved to gRPC equivalent of ApplicationInitializer
+            //   and that also needs to ensure the ErrorHandlingOptions are in config.
+            var errorHandlingOptions = new ErrorHandlingOptions();
+            builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName).Bind(errorHandlingOptions);
+            ExceptionToGrpcStatusConverter exceptionToGrpcStatusConverter = null;
+            if (errorHandlingOptions.IncludeInnerExceptions.Value == true)
+            {
+                exceptionToGrpcStatusConverter = new ExceptionToGrpcStatusConverter();
+            }
+            else
+            {
+                exceptionToGrpcStatusConverter = new ExceptionToGrpcStatusConverter(0);
+            }
+
             // Add services to the container.
-            builder.Services.AddGrpc();
+            builder.Services.AddGrpc(options =>
+            {
+                options.Interceptors.Add<ExceptionHandlingInterceptor>(errorHandlingOptions, exceptionToGrpcStatusConverter);
+            });
 
             GrpcServiceOptions options = new();
             //options.
