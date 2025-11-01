@@ -33,6 +33,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             //     Tests like ArgumentExceptionMappedToHttpErrorResponse()
             //   Will likely want to move this to ApplicationAccess.Hosting.Grpc.DistributedWriter.IntegrationTests (or maybe another project with more core functionality)
             //   Also need to test when 'errorHandlingOptions.OverrideInternalServerErrors' is set to true
+            //   Ensure that by default I've covered all the same exceptions as the REST version does
 
             throw new NotImplementedException();
         }

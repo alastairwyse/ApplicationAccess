@@ -39,18 +39,10 @@ namespace ApplicationAccess.Hosting.Grpc.Client
     /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class EventCacheClient<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public class EventCacheClient<TUser, TGroup, TComponent, TAccess> : AccessManagerClientBase, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>
     {
-        /// <summary>The gRPC channel to use to connect.</summary>
-        protected GrpcChannel channel;
         /// <summary>Used to convert <see cref="TemporalEventBufferItemBase"/> instances to gRPC messages and vice versa.</summary>
         protected EventBufferItemToGrpcMessageConverter<TUser, TGroup, TComponent, TAccess> eventBufferItemToGrpcMessageConverter;
-        /// <summary>The logger for general logging.</summary>
-        protected IApplicationLogger logger;
-        /// <summary>The logger for metrics.</summary>
-        protected IMetricLogger metricLogger;
-        /// <summary>Indicates whether the object has been disposed.</summary>
-        protected Boolean disposed;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Grpc.Client.EventCacheClient class.
@@ -67,13 +59,9 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier
-        )
+        ) : base(url)
         {
-            channel = GrpcChannel.ForAddress(url);
             eventBufferItemToGrpcMessageConverter = new EventBufferItemToGrpcMessageConverter<TUser, TGroup, TComponent, TAccess>(userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier);
-            logger = new NullLogger();
-            metricLogger = new NullMetricLogger();
-            disposed = false;
         }
 
         /// <summary>
@@ -93,10 +81,9 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier
-        ) : this(url, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier)
+        ) : base (url, channelOptions)
         {
-            channel.Dispose();
-            channel = GrpcChannel.ForAddress(url, channelOptions);
+            eventBufferItemToGrpcMessageConverter = new EventBufferItemToGrpcMessageConverter<TUser, TGroup, TComponent, TAccess>(userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier);
         }
 
         /// <summary>
@@ -118,10 +105,9 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             IUniqueStringifier<TAccess> accessLevelStringifier,
             IApplicationLogger logger,
             IMetricLogger metricLogger
-        ) : this(url, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier)
-        {
-            this.logger = logger;
-            this.metricLogger = metricLogger;
+        ) : base(url, logger, metricLogger)
+        { 
+            eventBufferItemToGrpcMessageConverter = new EventBufferItemToGrpcMessageConverter<TUser, TGroup, TComponent, TAccess>(userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier);
         }
 
         /// <summary>
@@ -145,10 +131,9 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             IUniqueStringifier<TAccess> accessLevelStringifier,
             IApplicationLogger logger,
             IMetricLogger metricLogger
-        ) : this(url, channelOptions, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier)
+        ) : base(url, channelOptions, logger, metricLogger)
         {
-            this.logger = logger;
-            this.metricLogger = metricLogger;
+            eventBufferItemToGrpcMessageConverter = new EventBufferItemToGrpcMessageConverter<TUser, TGroup, TComponent, TAccess>(userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier);
         }
 
         #pragma warning disable 0436
@@ -163,20 +148,9 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             {
                 reply = client.GetAllEventsSince(request);
             }
-            catch (RpcException rpcEx)
-            {
-                Console.WriteLine($"Server error: {rpcEx.Status.Detail}");
-                var rpcStat = rpcEx.GetRpcStatus();
-                
-                var repcError = rpcStat.GetDetail<GrpcError>();
-                Console.WriteLine("RPC Code: " + repcError.Code);
-                Console.WriteLine("RPC Message: " + repcError.Message);
-
-                throw;
-            }
             catch (Exception e)
             {
-                // TODO: Error handling here
+                HandleRpcException(nameof(client.GetAllEventsSince), e);
                 throw;
             }
 
@@ -190,48 +164,5 @@ namespace ApplicationAccess.Hosting.Grpc.Client
         {
             throw new NotImplementedException();
         }
-
-        #region Finalize / Dispose Methods
-
-        /// <summary>
-        /// Releases the unmanaged resources used by the EventCacheClient.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #pragma warning disable 1591
-
-        ~EventCacheClient()
-        {
-            Dispose(false);
-        }
-
-        #pragma warning restore 1591
-
-        /// <summary>
-        /// Provides a method to free unmanaged resources used by this class.
-        /// </summary>
-        /// <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    // Free other state (managed objects).
-                    channel.Dispose();
-                }
-                // Free your own state (unmanaged objects).
-
-                // Set large fields to null.
-
-                disposed = true;
-            }
-        }
-
-        #endregion
     }
 }
