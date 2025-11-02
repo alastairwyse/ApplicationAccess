@@ -37,26 +37,18 @@ namespace ApplicationAccess.Hosting.Rest
     /// <summary>
     /// Provides common Initialization routines for ApplicationAccess components hosted as REST-based web APIs.
     /// </summary>
-    public class ApplicationInitializer
+    public class ApplicationInitializer : ApplicationInitializerBase<ApplicationInitializerParameters>
     {
-        /// <summary>The ASP.NET core environment variable to use for integration testing of the component.</summary>
-        public static readonly String IntegrationTestingEnvironmentName = "IntegrationTesting";
-
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ApplicationInitializer class.
         /// </summary>
         public ApplicationInitializer()
+            : base()
         {
         }
 
-        /// <summary>
-        /// Initializes the component.
-        /// </summary>
-        /// <typeparam name="THostedService">The type of the hosted service which underlies the component, and should be registered using the <see cref="ServiceCollectionHostedServiceExtensions.AddHostedService{THostedService}(IServiceCollection)"/> method.</typeparam>
-        /// <param name="parameters">A collection of parameters used to initialize the component.</param>
-        /// <returns>A <see cref="WebApplication"/> initialized and ready to host the component.</returns>
-        public WebApplication Initialize<THostedService>(ApplicationInitializerParameters parameters)
-            where THostedService : class, IHostedService
+        /// <inheritdoc/>
+        public override WebApplication Initialize<THostedService>(ApplicationInitializerParameters parameters)
         {
             ThrowExceptionIfParametersPropertyIsNull(parameters.Args, nameof(parameters.Args), nameof(parameters));
             ThrowExceptionIfStringParametersPropertyIsWhitespace(parameters.SwaggerVersionString, nameof(parameters.SwaggerVersionString), nameof(parameters));

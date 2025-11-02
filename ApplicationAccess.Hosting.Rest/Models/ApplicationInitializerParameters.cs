@@ -25,17 +25,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ApplicationAccess.Hosting.Models;
 
-
 namespace ApplicationAccess.Hosting.Rest.Models
 {
     /// <summary>
     /// Container class holding parameters passed to the <see cref="ApplicationInitializer"/> class.
     /// </summary>
-    public class ApplicationInitializerParameters
+    public class ApplicationInitializerParameters : ApplicationInitializerParametersBase
     {
-        /// <summary>Startup arguments/parameters passed to the hosted component.</summary>
-        public String[] Args { get; set; }
-
         /// <summary>An action which configures custom JSON serialization on the specified <see cref="JsonOptions"/> object.</summary>
         public Action<JsonOptions> ConfigureJsonOptionsAction { get; set; }
 
@@ -51,15 +47,6 @@ namespace ApplicationAccess.Hosting.Rest.Models
         /// <summary>A collection of assemblies outside of the assembly for the hosted application, for which to include swagger generation for (typeically used to add swagger generation for classes in the shared ApplicationAccess.Hosting.Rest.Controllers namespace).</summary>
         public IEnumerable<Assembly> SwaggerGenerationAdditionalAssemblies { get; set; }
 
-        /// <summary>An action which configures adding, binding, and validation of <see cref="IOptions{TOptions}"/> instances on the specified web application builder.</summary>
-        public Action<WebApplicationBuilder> ConfigureOptionsAction { get; set; }
-
-        /// <summary>A collection of types of 'processor holder' classes (e.g. <see cref="UserEventProcessorHolder"/>) to be registered in dependency injection.</summary>
-        public IEnumerable<Type> ProcessorHolderTypes { get; set; }
-
-        /// <summary>An action which allows custom service configuration and registration.</summary>
-        public Action<IServiceCollection> ConfigureServicesAction { get; set; }
-
         /// <summary>A collection of mappings between a type (derived from <see cref="Exception"/>) and a <see cref="System.Net.HttpStatusCode"/> that should be returned when an exception of that type is thrown from a controller method.</summary>
         public IEnumerable<Tuple<Type, HttpStatusCode>> ExceptionToHttpStatusCodeMappings { get; set; }
 
@@ -69,30 +56,20 @@ namespace ApplicationAccess.Hosting.Rest.Models
         /// <summary>A collection of mappings between a type (derived from <see cref="Exception"/>) and a custom function which converts that type into an <see cref="HttpErrorResponse"/>.  Each of the functions accepts an <see cref="Exception"/> (although typed as the base <see cref="Exception"/> it's safe to cast it to derived type of the first item in the Tuple), and returns an <see cref="HttpErrorResponse"/> representing the exception.</summary>
         public IEnumerable<Tuple<Type, Func<Exception, HttpErrorResponse>>> ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings { get; set; }
 
-        /// <summary>The exception to throw on receiving any requests after the switch has been tripped, when <see cref="TripSwitchMiddleware"/> is enabled.  <see cref="TripSwitchMiddleware"/> will not be used if not set.</summary>
-        public Exception TripSwitchTrippedException { get; set; }
-
-        /// <summary>An action which allows configuring the specified <see cref="IApplicationBuilder"/>.</summary>
-        public Action<IApplicationBuilder> ConfigureApplicationBuilderAction { get; set; }
-
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Models.ApplicationInitializerParameters class.
         /// </summary>
         public ApplicationInitializerParameters()
+            : base()
         {
             ConfigureJsonOptionsAction = null;
             SwaggerVersionString = "";
             SwaggerApplicationName = "";
             SwaggerApplicationDescription = "";
             SwaggerGenerationAdditionalAssemblies = Enumerable.Empty<Assembly>();
-            ConfigureOptionsAction = (WebApplicationBuilder builder) => { };
-            ProcessorHolderTypes = Enumerable.Empty<Type>();
-            ConfigureServicesAction = (IServiceCollection serviceCollection) => { };
             ExceptionToHttpStatusCodeMappings = Enumerable.Empty<Tuple<Type, HttpStatusCode>>();
             ExceptionTypesMappedToStandardHttpErrorResponse = Enumerable.Empty<Type>();
             ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings = Enumerable.Empty<Tuple<Type, Func<Exception, HttpErrorResponse>>>();
-            TripSwitchTrippedException = null;
-            ConfigureApplicationBuilderAction = (IApplicationBuilder applicationBuilder) => { };
         }
     }
 }

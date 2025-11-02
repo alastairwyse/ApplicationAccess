@@ -28,7 +28,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
     /// <summary>
     /// Integration tests for RPC methods in the ApplicationAccess.Hosting.Grpc.EventCache.EventCacheService class.
     /// </summary>
-    /// <remarks>This class additionally implicitly tests the ApplicationAccess.Hosting.Grpc.EventBufferItemToGrpcMessageConverter class.</remarks>
+    /// <remarks>This class additionally implicitly tests the ApplicationAccess.Hosting.Grpc.EventBufferItemToGrpcMessageConverter, ApplicationAccess.Hosting.Grpc.Client.EventCacheClient, and ApplicationAccess.Hosting.Grpc.Client.AccessManagerClientBase classes.</remarks>
     public class RpcTests : IntegrationTestsBase
     {
         [Test]
@@ -37,9 +37,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             List<TemporalEventBufferItemBase> returnEvents = CreateTestEvents();
             mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            //mockTemporalEventQueryProcessor.GetAllEventsSince(priorEventdId).Returns(returnEvents);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw new ArgumentException("Test arg except", "Test param"));
-
+            mockTemporalEventQueryProcessor.GetAllEventsSince(priorEventdId).Returns(returnEvents);
 
             IList<TemporalEventBufferItemBase> results = grpcClient.GetAllEventsSince(priorEventdId);
 

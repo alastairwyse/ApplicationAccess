@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Utilities\ApplicationAccess.Hosting.Rest.Utilities.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj" />
   </ItemGroup>
 
   <ItemGroup>

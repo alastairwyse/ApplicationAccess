@@ -92,7 +92,7 @@ namespace ApplicationAccess.Hosting.Grpc
         /// </summary>
         /// <param name="exceptionType">The type (assignable to <see cref="Exception"/>) that the conversion function converts.</param>
         /// <param name="conversionFunction">The conversion function.  Accepts an Exception object and returns a <see cref="Status"/>.</param>
-        /// <remarks>Note that the conversion function should not handle the exception's 'InnerException' property, nor assign to the HttpErrorResponse's 'InnerError' property.</remarks>
+        /// <remarks>Note that the conversion function should not handle the exception's 'InnerException' property, nor assign to the GrpcError's 'InnerError' property.</remarks>
         public void AddConversionFunction(Type exceptionType, Func<Exception, Status> conversionFunction)
         {
             if (typeof(Exception).IsAssignableFrom(exceptionType) == false)

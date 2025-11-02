@@ -117,19 +117,26 @@ namespace ApplicationAccess.Hosting.Grpc.Client
                         else if (grpcError.Code == typeof(AggregateException).Name)
                         {
                             List<Tuple<String, String>> innerExceptionTypesAndMessages = new();
-                            for (Int32 innerExceptionNumber = 0; innerExceptionNumber < (grpcError.Attributes.Count / 2); innerExceptionNumber++)
+                            for (Int32 innerExceptionNumber = 1; innerExceptionNumber <= (grpcError.Attributes.Count / 2); innerExceptionNumber++)
                             {
                                 String exceptionType = GetGrpcErrorAttributeValue(grpcError, $"InnerException{innerExceptionNumber}Code");
                                 String message = GetGrpcErrorAttributeValue(grpcError, $"InnerException{innerExceptionNumber}Message");
                                 innerExceptionTypesAndMessages.Add(Tuple.Create(exceptionType, message));
                             }
-                            StringBuilder innerExceptionMessgeBuilder = new($"The ${nameof(AggregateException)} contained the following exception types and messages as inner exceptions: ");
-                            foreach (Tuple<String, String> currentInnerExceptionTypesAndMessage in innerExceptionTypesAndMessages)
+                            if (innerExceptionTypesAndMessages.Count > 0)
                             {
-                                innerExceptionMessgeBuilder.Append($"{currentInnerExceptionTypesAndMessage.Item1}, '{currentInnerExceptionTypesAndMessage.Item2}'; ");
+                                StringBuilder innerExceptionMessgeBuilder = new($"The {nameof(AggregateException)} contained the following exception types and messages as inner exceptions: ");
+                                foreach (Tuple<String, String> currentInnerExceptionTypesAndMessage in innerExceptionTypesAndMessages)
+                                {
+                                    innerExceptionMessgeBuilder.Append($"{currentInnerExceptionTypesAndMessage.Item1}, '{currentInnerExceptionTypesAndMessage.Item2}'; ");
+                                }
+                                var innerException = new Exception(innerExceptionMessgeBuilder.ToString());
+                                throw new AggregateException(grpcError.Message, innerException);
                             }
-                            var innerException = new Exception(innerExceptionMessgeBuilder.ToString());
-                            throw new AggregateException(grpcError.Message, innerException);
+                            else
+                            {
+                                throw new AggregateException(grpcError.Message);
+                            }
                         }
                         else
                         {

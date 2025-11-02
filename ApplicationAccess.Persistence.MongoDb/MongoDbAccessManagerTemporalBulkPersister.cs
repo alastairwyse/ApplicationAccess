@@ -1570,8 +1570,8 @@ namespace ApplicationAccess.Persistence.MongoDb
             var collectionTransactionIndexModel = new CreateIndexModel<T>
             (
                 Builders<T>.IndexKeys
-                    .Ascending(document => document.TransactionFrom)
                     .Ascending(document => document.TransactionTo)
+                    .Ascending(document => document.TransactionFrom)
             );
             collection.Indexes.CreateOne(collectionTransactionIndexModel);
         }
