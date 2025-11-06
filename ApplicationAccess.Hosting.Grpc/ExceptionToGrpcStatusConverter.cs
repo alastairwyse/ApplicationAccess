@@ -109,7 +109,8 @@ namespace ApplicationAccess.Hosting.Grpc
         /// Adds handling for an exception to the converter, using a default conversion function (one which populates just the <see cref="GrpcError.Code"/>, <see cref="GrpcError.Message"/> and optionally <see cref="GrpcError.Target"/> properties).
         /// </summary>
         /// <param name="exceptionType">The type (assignable to <see cref="Exception"/>) to convert.</param>
-        public void AddConversionFunction(Type exceptionType)
+        /// <param name="statusCode">The <see cref="Status.Code"/> to use in the conversion.</param>
+        public void AddConversionFunction(Type exceptionType, Code statusCode)
         {
             Func<Exception, Status> conversionFunction = (Exception exception) =>
             {
@@ -124,7 +125,7 @@ namespace ApplicationAccess.Hosting.Grpc
                 }
                 return new Status
                 {
-                    Code = (Int32)Code.Internal,
+                    Code = (Int32)statusCode,
                     Message = exception.Message,
                     Details = { Google.Protobuf.WellKnownTypes.Any.Pack(grpcError) }
                 };

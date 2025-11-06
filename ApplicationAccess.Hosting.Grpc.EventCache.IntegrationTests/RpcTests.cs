@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using ApplicationAccess.Hosting.Grpc;
+using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
@@ -140,6 +141,46 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             Assert.AreEqual(6, groupStringifier.FromStringCallCount);
             Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
             Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+        }
+
+        [Test]
+        public void GetAllEventsSince_EventNotCached()
+        {
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = $"No event with eventId '{priorEventdId}' was found in the cache.";
+            var mockException = new EventNotCachedException(exceptionMessage);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<EventNotCachedException>(delegate
+            {
+                grpcClient.GetAllEventsSince(priorEventdId);
+            });
+
+            Assert.That(e.Message, Does.StartWith(exceptionMessage));
+        }
+
+        [Test]
+        public void GetAllEventsSince_EventCacheEmpty()
+        {
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = "The event cache is empty.";
+            var mockException = new EventCacheEmptyException(exceptionMessage);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<EventCacheEmptyException>(delegate
+            {
+                grpcClient.GetAllEventsSince(priorEventdId);
+            });
+
+            Assert.That(e.Message, Does.StartWith(exceptionMessage));
+        }
+        [Test]
+        public void GetAllEventsSince_TripSwitchActuated()
+        {
+
+            throw new NotImplementedException();
         }
 
         #region Private/Protected Methods

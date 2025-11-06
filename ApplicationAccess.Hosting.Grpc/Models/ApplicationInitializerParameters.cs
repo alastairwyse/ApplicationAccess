@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Google.Rpc;
-using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Rest.Models;
 
 namespace ApplicationAccess.Hosting.Grpc.Models
@@ -28,8 +27,8 @@ namespace ApplicationAccess.Hosting.Grpc.Models
     /// </summary>
     public class ApplicationInitializerParameters : ApplicationInitializerParametersBase
     {
-        /// <summary>A collection of types (derived from <see cref="Exception"/>) which should be mapped to <see cref="Status">Statuses</see> via the standard conversion function.</summary>
-        public IEnumerable<Type> ExceptionTypesMappedToStandardGrpcStatuses { get; set; }
+        /// <summary>A collection of mappings between a type (derived from <see cref="Exception"/>) and a <see cref="Code"/> that should be set on the <see cref="Status"/> returned when an exception of that type is thrown by the gRPC service.</summary>
+        public IEnumerable<Tuple<Type, Code>> ExceptionToGrpcStatusCodeMappings { get; set; }
 
         /// <summary>A collection of mappings between a type (derived from <see cref="Exception"/>) and a custom function which converts that type into a <see cref="Status"/>.  Each of the functions accepts an <see cref="Exception"/> (although typed as the base <see cref="Exception"/> it's safe to cast it to derived type of the first item in the Tuple), and returns a <see cref="Status"/> representing the exception.</summary>
         public IEnumerable<Tuple<Type, Func<Exception, Status>>> ExceptionToCustomGrpcStatusGeneratorFunctionMappings { get; set; }
@@ -40,7 +39,7 @@ namespace ApplicationAccess.Hosting.Grpc.Models
         public ApplicationInitializerParameters()
             : base()
         {
-            ExceptionTypesMappedToStandardGrpcStatuses = Enumerable.Empty<Type>();
+            ExceptionToGrpcStatusCodeMappings = Enumerable.Empty<Tuple<Type, Code>>();
             ExceptionToCustomGrpcStatusGeneratorFunctionMappings = Enumerable.Empty<Tuple<Type, Func<Exception, Status>>>();
         }
     }

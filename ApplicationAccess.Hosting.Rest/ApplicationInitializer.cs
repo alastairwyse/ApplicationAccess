@@ -47,8 +47,14 @@ namespace ApplicationAccess.Hosting.Rest
         {
         }
 
-        /// <inheritdoc/>
-        public override WebApplication Initialize<THostedService>(ApplicationInitializerParameters parameters)
+        /// <summary>
+        /// Initializes the component.
+        /// </summary>
+        /// <typeparam name="THostedService">The type of the hosted service which underlies the component, and should be registered using the <see cref="ServiceCollectionHostedServiceExtensions.AddHostedService{THostedService}(IServiceCollection)"/> method.</typeparam>
+        /// <param name="parameters">A collection of parameters used to initialize the component.</param>
+        /// <returns>A <see cref="WebApplication"/> initialized and ready to host the component.</returns>
+        public WebApplication Initialize<THostedService>(ApplicationInitializerParameters parameters)
+            where THostedService : class, IHostedService
         {
             ThrowExceptionIfParametersPropertyIsNull(parameters.Args, nameof(parameters.Args), nameof(parameters));
             ThrowExceptionIfStringParametersPropertyIsWhitespace(parameters.SwaggerVersionString, nameof(parameters.SwaggerVersionString), nameof(parameters));
@@ -155,44 +161,21 @@ namespace ApplicationAccess.Hosting.Rest
             parameters.ConfigureOptionsAction.Invoke(builder);
 
             // Register and validate metric logging options
-            builder.Services.AddOptions<MetricLoggingOptions>()
-                .Bind(builder.Configuration.GetSection(MetricLoggingOptions.MetricLoggingOptionsName))
-                .ValidateDataAnnotations().ValidateOnStart();
-            var metricLoggingOptions = new MetricLoggingOptions();
-            builder.Configuration.GetSection(MetricLoggingOptions.MetricLoggingOptionsName).Bind(metricLoggingOptions);
-            var validator = new MetricLoggingOptionsValidator();
-            validator.Validate(metricLoggingOptions);
+            ValidateAndRegisterMetricLoggingOptions(builder);
 
             // Register 'holder' classes for the interfaces that comprise IAccessManager
-            //   See notes in remarks of class UserQueryProcessorHolder for an explanation
-            foreach (Type currentProcessorHolderType in parameters.ProcessorHolderTypes)
-            {
-                builder.Services.AddSingleton(currentProcessorHolderType);
-            }
+            RegisterProcessorHolders(builder, parameters.ProcessorHolderTypes);
 
             // Create and register the TripSwitchActuator
-            TripSwitchActuator tripSwitchActuator = null;
-            if (parameters.TripSwitchTrippedException != null)
-            {
-                tripSwitchActuator = new TripSwitchActuator();
-                builder.Services.AddSingleton<TripSwitchActuator>(tripSwitchActuator);
-            }
+            CreateAndRegisterTripSwitchActuator(builder, parameters);
 
             parameters.ConfigureServicesAction.Invoke(builder.Services);
 
             // Register the hosted service wrapper
-            if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
-            {
-                builder.Services.AddHostedService<THostedService>();
-            }
+            RegisterHostedSerice<THostedService>(builder);
 
             // Setup file logging if configured
-            String logFilePath = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFilePath)}");
-            String logFileNamePrefix = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFileNamePrefix)}");
-            if (logFilePath != null && logFileNamePrefix != null)
-            {
-                middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix);
-            }
+            SetupFileLogging(builder, middlewareUtilities);
 
             WebApplication app = builder.Build();
 
@@ -350,12 +333,6 @@ namespace ApplicationAccess.Hosting.Rest
             {
                 return new HttpErrorResponse(code, exception.Message, exception.TargetSite.Name, attributes);
             }
-        }
-
-        protected void ThrowExceptionIfParametersPropertyIsNull(Object propertyValue, String propertyName, String parametersName)
-        {
-            if (propertyValue == null)
-                throw new ArgumentNullException(propertyName, $"Property '{propertyName}' of {parametersName} object cannot be null.");
         }
 
         protected void ThrowExceptionIfStringParametersPropertyIsWhitespace(String propertyValue, String propertyName, String parametersName)

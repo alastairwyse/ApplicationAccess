@@ -15,9 +15,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
 
 namespace ApplicationAccess.Hosting.Rest
@@ -31,20 +34,97 @@ namespace ApplicationAccess.Hosting.Rest
         /// <summary>The ASP.NET core environment variable to use for integration testing of the component.</summary>
         public static readonly String IntegrationTestingEnvironmentName = "IntegrationTesting";
 
+        /// <summary>Actuator for a trip switch.</summary>
+        protected TripSwitchActuator tripSwitchActuator;
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ApplicationInitializerBase class.
         /// </summary>
         public ApplicationInitializerBase()
         {
+            tripSwitchActuator = null;
+        }
+
+        #region Private/Protected Methods
+
+        protected void ThrowExceptionIfParametersPropertyIsNull(Object propertyValue, String propertyName, String parametersName)
+        {
+            if (propertyValue == null)
+                throw new ArgumentNullException(propertyName, $"Property '{propertyName}' of {parametersName} object cannot be null.");
         }
 
         /// <summary>
-        /// Initializes the component.
+        /// Register all 'holder' classes for the interfaces that the hosted component implements within dependency injection.
         /// </summary>
-        /// <typeparam name="THostedService">The type of the hosted service which underlies the component, and should be registered using the <see cref="ServiceCollectionHostedServiceExtensions.AddHostedService{THostedService}(IServiceCollection)"/> method.</typeparam>
-        /// <param name="parameters">A collection of parameters used to initialize the component.</param>
-        /// <returns>A <see cref="WebApplication"/> initialized and ready to host the component.</returns>
-        public abstract WebApplication Initialize<THostedService>(TParameters parameters)
-            where THostedService : class, IHostedService;
+        /// <param name="builder">The web application builder to use to register.</param>
+        /// <param name="processorHolderTypes">A collection of the types of processor 'holder'.</param>
+        /// <remarks>See notes in remarks of class <see cref="UserQueryProcessorHolder"/> for an explanation of 'holder' classes.</remarks>
+        protected void RegisterProcessorHolders(WebApplicationBuilder builder, IEnumerable<Type> processorHolderTypes)
+        {
+            foreach (Type currentProcessorHolderType in processorHolderTypes)
+            {
+                builder.Services.AddSingleton(currentProcessorHolderType);
+            }
+        }
+
+        /// <summary>
+        /// Register and validate options for metric logging.
+        /// </summary>
+        /// <param name="builder">The web application builder to use to register.</param>
+        protected void ValidateAndRegisterMetricLoggingOptions(WebApplicationBuilder builder)
+        {
+            builder.Services.AddOptions<MetricLoggingOptions>()
+                .Bind(builder.Configuration.GetSection(MetricLoggingOptions.MetricLoggingOptionsName))
+                .ValidateDataAnnotations().ValidateOnStart();
+            var metricLoggingOptions = new MetricLoggingOptions();
+            builder.Configuration.GetSection(MetricLoggingOptions.MetricLoggingOptionsName).Bind(metricLoggingOptions);
+            var validator = new MetricLoggingOptionsValidator();
+            validator.Validate(metricLoggingOptions);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="TripSwitchActuator"/> and registers it within dependency injection.
+        /// </summary>
+        /// <param name="builder">The web application builder to use to register.</param>
+        /// <param name="parameters">The application initialization parameters.</param>
+        protected void CreateAndRegisterTripSwitchActuator(WebApplicationBuilder builder, TParameters parameters)
+        {
+            if (parameters.TripSwitchTrippedException != null)
+            {
+                tripSwitchActuator = new TripSwitchActuator();
+                builder.Services.AddSingleton<TripSwitchActuator>(tripSwitchActuator);
+            }
+        }
+
+        /// <summary>
+        /// Registers the underlying ApplicationAccess wrapper component as a hosted service.
+        /// </summary>
+        /// <typeparam name="THostedService">The type of the ApplicationAccess wrapper component.</typeparam>
+        /// <param name="builder">The web application builder to use to register.</param>
+        protected void RegisterHostedSerice<THostedService>(WebApplicationBuilder builder)
+            where THostedService : class, IHostedService
+        {
+            if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
+            {
+                builder.Services.AddHostedService<THostedService>();
+            }
+        }
+
+        /// <summary>
+        /// Sets up logging to a file if it's been configured.
+        /// </summary>
+        /// <param name="builder">The builder used to set up the web application.</param>
+        /// <param name="middlewareUtilities">The <see cref="MiddlewareUtilities"/> object to use to setup file logging.</param>
+        protected void SetupFileLogging(WebApplicationBuilder builder, MiddlewareUtilities middlewareUtilities)
+        {
+            String logFilePath = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFilePath)}");
+            String logFileNamePrefix = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFileNamePrefix)}");
+            if (logFilePath != null && logFileNamePrefix != null)
+            {
+                middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix);
+            }
+        }
+
+        #endregion
     }
 }

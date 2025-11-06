@@ -25,6 +25,7 @@ using ApplicationAccess.Hosting.Grpc;
 using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using ApplicationAccess.Serialization;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
@@ -85,11 +86,11 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
 
 
         [Test]
-        public void AddConversionFunction_ExceptionOnlyOverloadAndExceptionTypeParameterNotException()
+        public void AddConversionFunction_ExceptionAndCodeOverloadAndExceptionTypeParameterNotException()
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testExceptionToGrpcStatusConverter.AddConversionFunction(typeof(StringBuilder));
+                testExceptionToGrpcStatusConverter.AddConversionFunction(typeof(StringBuilder), Code.Internal);
             });
 
             Assert.That(e.Message, Does.StartWith("Type 'System.Text.StringBuilder' specified in parameter 'exceptionType' is not assignable to 'System.Exception'."));
@@ -117,15 +118,28 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
         }
 
         [Test]
-        public void AddConversionFunction_ExceptionOnlyOverload()
+        public void AddConversionFunction_ExceptionAndCodeOverload()
         {
-            testExceptionToGrpcStatusConverter.AddConversionFunction(typeof(ServiceUnavailableException));
+            testExceptionToGrpcStatusConverter.AddConversionFunction(typeof(DeserializationException), Code.InvalidArgument);
+            testExceptionToGrpcStatusConverter.AddConversionFunction(typeof(ServiceUnavailableException), Code.Unavailable);
 
-            Status result = testExceptionToGrpcStatusConverter.Convert(new ServiceUnavailableException("Service Unavailable"));
+            Status result = testExceptionToGrpcStatusConverter.Convert(new DeserializationException("Deserialization Failed"));
 
-            Assert.AreEqual((Int32)Code.Internal, result.Code);
-            Assert.AreEqual("Service Unavailable", result.Message);
+            Assert.AreEqual((Int32)Code.InvalidArgument, result.Code);
+            Assert.AreEqual("Deserialization Failed", result.Message);
             GrpcError unpackedDetail = result.GetDetail<GrpcError>();
+            Assert.AreEqual("DeserializationException", unpackedDetail.Code);
+            Assert.AreEqual("Deserialization Failed", unpackedDetail.Message);
+            Assert.AreEqual("", unpackedDetail.Target);
+            Assert.AreEqual(0, unpackedDetail.Attributes.Count);
+            Assert.IsNull(unpackedDetail.InnerError);
+
+
+            result = testExceptionToGrpcStatusConverter.Convert(new ServiceUnavailableException("Service Unavailable"));
+
+            Assert.AreEqual((Int32)Code.Unavailable, result.Code);
+            Assert.AreEqual("Service Unavailable", result.Message);
+            unpackedDetail = result.GetDetail<GrpcError>();
             Assert.AreEqual("ServiceUnavailableException", unpackedDetail.Code);
             Assert.AreEqual("Service Unavailable", unpackedDetail.Message);
             Assert.AreEqual("", unpackedDetail.Target);

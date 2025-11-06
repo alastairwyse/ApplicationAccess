@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
+using ApplicationAccess.Serialization;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
 using NUnit.Framework;
@@ -28,19 +29,25 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
     /// <summary>
     /// Tests custom gRPC interceptors (e.g. custom error handling).
     /// </summary>
-    public class InterceptorTests : IntegrationTestsBase
+    public class InterceptorTests_FORDISTWRITER : IntegrationTestsBase
     {
         [Test]
         public void Todo()
         {
             // TODO: 
+            //   This class needs to be moved to gRPC DistWriter.IntegrationTests namespace once created.
             //   Also need to test when 'errorHandlingOptions.OverrideInternalServerErrors' is set to true
             //   Ensure that by default I've covered all the same exceptions as the REST version does
-            //   Need to test AppAccess specific testing being mapped aswell...
-            //     Rest middelware tests have UserNotFoundExceptionMappedToHttpErrorResponse(), and others...
-            //       FYI, these handlers are added in the REST ApplicationInitializer... SO NEED TO DO SAME IN GRPC VERSION
-            //     Will need this to, but not in generic namespace... should put these tests in the Writer RpcTests
-            //     Will also need tripswitch tests in the same test project as above.
+            //   Will also need tripswitch tests 
+            //   REST event cache has custom exception conversion for these...
+            //     DeserializationException
+            //    EventCacheEmptyException
+            //    ServiceUnavailableException
+            //   ... will need gRPC-side unit tests for these
+            //   See REST implementation of EventCacheClient... need custom handling of the below exceptions AND TESTS
+            //    EventCacheEmptyException
+            //    EventNotCachedException
+            //   gRPC ver of AppInitializer needs to have option to add TripSwicth interceptor
 
             throw new NotImplementedException();
         }
@@ -230,6 +237,88 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
 
             Assert.That(e.Message, Does.StartWith(exceptionMessage));
             Assert.AreEqual(resourceId, e.ResourceId);
+        }
+
+        [Test]
+        public void UserNotFoundExceptionMappedToGrpcError()
+        {
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = "Test user not found exception message.";
+            var user = "user1";
+            var mockException = new UserNotFoundException<String>(exceptionMessage, nameof(user), user);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
+            {
+                grpcClient.GetAllEventsSince(priorEventdId);
+            });
+
+            Assert.That(e.Message, Does.StartWith(exceptionMessage));
+            Assert.AreEqual(nameof(user), e.ParamName);
+            Assert.AreEqual(user, e.User);
+        }
+
+        [Test]
+        public void GroupNotFoundExceptionMappedToGrpcError()
+        {
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = "Test group not found exception message.";
+            var group = "group1";
+            var mockException = new GroupNotFoundException<String>(exceptionMessage, nameof(group), group);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
+            {
+                grpcClient.GetAllEventsSince(priorEventdId);
+            });
+
+            Assert.That(e.Message, Does.StartWith(exceptionMessage));
+            Assert.AreEqual(nameof(group), e.ParamName);
+            Assert.AreEqual(group, e.Group);
+        }
+
+        [Test]
+        public void EntityTypeNotFoundExceptionMappedToGrpcError()
+        {
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = "Test group not found exception message.";
+            var entityType = "Clients";
+            var mockException = new EntityTypeNotFoundException(exceptionMessage, nameof(entityType), entityType);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
+            {
+                grpcClient.GetAllEventsSince(priorEventdId);
+            });
+
+            Assert.That(e.Message, Does.StartWith(exceptionMessage));
+            Assert.AreEqual(nameof(entityType), e.ParamName);
+            Assert.AreEqual(entityType, e.EntityType);
+        }
+
+        [Test]
+        public void EntityNotFoundExceptionMappedToGrpcError()
+        {
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = "Test group not found exception message.";
+            var entityType = "Clients";
+            var entity = "CompanyA";
+            var mockException = new EntityNotFoundException(exceptionMessage, nameof(entity), entityType, entity);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<EntityNotFoundException>(delegate
+            {
+                grpcClient.GetAllEventsSince(priorEventdId);
+            });
+
+            Assert.That(e.Message, Does.StartWith(exceptionMessage));
+            Assert.AreEqual(nameof(entity), e.ParamName);
+            Assert.AreEqual(entityType, e.EntityType);
+            Assert.AreEqual(entity, e.Entity);
         }
 
         #endregion

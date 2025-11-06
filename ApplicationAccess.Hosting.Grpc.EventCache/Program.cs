@@ -15,14 +15,16 @@
  */
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Grpc.AspNetCore.Server;
-using ApplicationAccess.Hosting.Grpc;
+using Google.Rpc;
+using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.EventCache;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using ApplicationAccess.Persistence;
+using ApplicationAccess.Serialization;
 
 namespace ApplicationAccess.Hosting.Grpc.EventCache
 {
@@ -30,41 +32,36 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
     {
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
-
-
-            // TODO: Needs to be moved to gRPC equivalent of ApplicationInitializer
-            //   and that also needs to ensure the ErrorHandlingOptions are in config.
-            var errorHandlingOptions = new ErrorHandlingOptions();
-            builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName).Bind(errorHandlingOptions);
-            ExceptionToGrpcStatusConverter exceptionToGrpcStatusConverter = null;
-            if (errorHandlingOptions.IncludeInnerExceptions.Value == true)
+            var parameters = new ApplicationInitializerParameters()
             {
-                exceptionToGrpcStatusConverter = new ExceptionToGrpcStatusConverter();
-            }
-            else
-            {
-                exceptionToGrpcStatusConverter = new ExceptionToGrpcStatusConverter(0);
-            }
+                Args = args,
+                ConfigureOptionsAction = (WebApplicationBuilder builder) =>
+                {
+                    builder.Services.AddOptions<EventCachingOptions>()
+                        .Bind(builder.Configuration.GetSection(EventCachingOptions.EventCachingOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                },
+                ProcessorHolderTypes = new List<Type>()
+                {
+                    typeof(TemporalEventBulkPersisterHolder),
+                    typeof(TemporalEventQueryProcessorHolder)
+                },
+                ExceptionToGrpcStatusCodeMappings = new List<Tuple<Type, Code>>()
+                {
+                    // Add a mapping from DeserializationException to HTTP 400 equivalent error status
+                    new Tuple<Type, Code>(typeof(DeserializationException), Code.InvalidArgument),
+                    // Add a mapping from EventCacheEmptyException to HTTP 503 equivalent error status
+                    new Tuple<Type, Code>(typeof(EventCacheEmptyException), Code.Unavailable),
+                    // Add a mapping from ServiceUnavailableException to HTTP 503 equivalent error status (for TripSwitch)
+                    new Tuple<Type, Code>(typeof(EventCacheEmptyException), Code.Unavailable),
+                },
+                // Setup TripSwitchMiddleware 
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an internal error."),
+            };
 
-            // Add services to the container.
-            builder.Services.AddGrpc(options =>
-            {
-                options.Interceptors.Add<ExceptionHandlingInterceptor>(errorHandlingOptions, exceptionToGrpcStatusConverter);
-            });
+            var initializer = new ApplicationInitializer();
+            WebApplication app = initializer.Initialize<EventCacheService, TemporalEventBulkCachingNodeHostedServiceWrapper>(parameters);
 
-            GrpcServiceOptions options = new();
-            //options.
-
-            builder.Services.AddSingleton(typeof(TemporalEventBulkPersisterHolder));
-            builder.Services.AddSingleton(typeof(TemporalEventQueryProcessorHolder));
-
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            app.MapGrpcService<EventCacheService>();
-            app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-            
             app.Run();
         }
     }

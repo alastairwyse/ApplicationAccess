@@ -21,6 +21,7 @@ using Google.Rpc;
 using Grpc.Core;
 using Grpc.Net.Client;
 using ApplicationAccess.Hosting.Grpc.Models;
+using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Utilities;
 using ApplicationLogging;
@@ -190,8 +191,36 @@ namespace ApplicationAccess.Hosting.Grpc.Client
                     Code.NotFound,
                     (GrpcError grpcError) =>
                     {
-                        String resourceId = GetGrpcErrorAttributeValue(grpcError, nameof(NotFoundException.ResourceId));
-                        throw new NotFoundException(grpcError.Message, resourceId);
+                        if (grpcError.Code == "UserNotFoundException")
+                        {
+                            String parameterName = GetGrpcErrorAttributeValue(grpcError, "ParameterName");
+                            String user = GetGrpcErrorAttributeValue(grpcError, "User");
+                            throw new UserNotFoundException<String>(grpcError.Message, parameterName, user);
+                        }
+                        else if (grpcError.Code == "GroupNotFoundException")
+                        {
+                            String parameterName = GetGrpcErrorAttributeValue(grpcError, "ParameterName");
+                            String group = GetGrpcErrorAttributeValue(grpcError, "Group");
+                            throw new GroupNotFoundException<String>(grpcError.Message, parameterName, group);
+                        }
+                        else if (grpcError.Code == typeof(EntityTypeNotFoundException).Name)
+                        {
+                            String parameterName = GetGrpcErrorAttributeValue(grpcError, "ParameterName");
+                            String entityType = GetGrpcErrorAttributeValue(grpcError, "EntityType");
+                            throw new EntityTypeNotFoundException(grpcError.Message, parameterName, entityType);
+                        }
+                        else if (grpcError.Code == typeof(EntityNotFoundException).Name)
+                        {
+                            String parameterName = GetGrpcErrorAttributeValue(grpcError, "ParameterName");
+                            String entityType = GetGrpcErrorAttributeValue(grpcError, "EntityType");
+                            String entity = GetGrpcErrorAttributeValue(grpcError, "Entity");
+                            throw new EntityNotFoundException(grpcError.Message, parameterName, entityType, entity);
+                        }
+                        else
+                        {
+                            String resourceId = GetGrpcErrorAttributeValue(grpcError, nameof(NotFoundException.ResourceId));
+                            throw new NotFoundException(grpcError.Message, resourceId);
+                        }
                     }
                 }
             };

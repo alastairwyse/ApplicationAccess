@@ -364,7 +364,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
                         }
                         else
                         {
-                            String resourceId = GetHttpErrorResponseAttributeValue(httpErrorResponse, "ResourceId");
+                            String resourceId = GetHttpErrorResponseAttributeValue(httpErrorResponse, nameof(NotFoundException.ResourceId));
                             throw new NotFoundException(httpErrorResponse.Message, resourceId);
                         }
                     }
