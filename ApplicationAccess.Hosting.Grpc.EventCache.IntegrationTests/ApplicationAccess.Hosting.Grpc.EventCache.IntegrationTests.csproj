@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Grpc.Client\ApplicationAccess.Hosting.Grpc.Client.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Grpc.EventCache\ApplicationAccess.Hosting.Grpc.EventCache.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.IntegrationTests\ApplicationAccess.Hosting.Rest.IntegrationTests.csproj" />
   </ItemGroup>
 
 </Project>

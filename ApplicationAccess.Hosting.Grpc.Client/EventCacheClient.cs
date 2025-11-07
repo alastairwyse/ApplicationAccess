@@ -18,11 +18,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Google.Protobuf;
+using Google.Rpc;
 using Grpc.Core;
 using Grpc.Net.Client;
 using ApplicationAccess.Hosting.Grpc.EventCache;
 using ApplicationAccess.Hosting.Grpc.EventCache.V1;
 using ApplicationAccess.Hosting.Grpc.Models;
+using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Utilities;
@@ -150,6 +152,23 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             }
             catch (Exception e)
             {
+                RpcException rpcException = (RpcException)e;
+                Google.Rpc.Status rpcStatus = rpcException.GetRpcStatus();
+                if (rpcStatus != null)
+                {
+                    GrpcError grpcError = rpcStatus.GetDetail<GrpcError>();
+                    if (grpcError != null)
+                    {
+                        if (rpcStatus.Code == (Int32)Code.Unavailable && grpcError.Code == nameof(EventCacheEmptyException))
+                        {
+                            throw new EventCacheEmptyException(grpcError.Message);
+                        }
+                        else if (rpcStatus.Code == (Int32)Code.NotFound && grpcError.Code == nameof(NotFoundException))
+                        {
+                            throw new EventNotCachedException(grpcError.Message);
+                        }
+                    }
+                }
                 HandleRpcException(nameof(client.GetAllEventsSince), e);
                 throw;
             }

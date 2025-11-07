@@ -211,7 +211,6 @@ namespace ApplicationAccess.Hosting.Rest.IntegrationTests
             testWebApp.Dispose();
         }
 
-
         #region Nested Classes
 
         /// <summary>

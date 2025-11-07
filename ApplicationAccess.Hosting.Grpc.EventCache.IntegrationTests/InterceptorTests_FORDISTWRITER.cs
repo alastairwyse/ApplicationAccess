@@ -31,6 +31,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
     /// </summary>
     public class InterceptorTests_FORDISTWRITER : IntegrationTestsBase
     {
+        // Need to use 'Order' attribute so the TripSwitch() test is run last... after the switch is tripped, nothing works
+
         [Test]
         public void Todo()
         {
@@ -48,6 +50,9 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             //    EventCacheEmptyException
             //    EventNotCachedException
             //   gRPC ver of AppInitializer needs to have option to add TripSwicth interceptor
+            //   Need full manual and unit testing of gRPC Tripswicth
+            //     including throwing exception vs shutting down
+            //     make sure any intehration/unit tests of te REST version of replicated for gRPC
 
             throw new NotImplementedException();
         }
@@ -58,6 +63,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         //   the AccessManagerClientBase class, and re-thrown.
 
         [Test]
+        [Order(0)]
         public void ExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -75,6 +81,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void ArgumentExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -105,6 +112,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void ArgumentOutOfRangeExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -134,6 +142,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void ArgumentNullExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -163,6 +172,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void IndexOutOfRangeExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -180,6 +190,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void AggregateExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -203,6 +214,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void AggregateExceptionMappedToGrpcError_NoInnerExceptions()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -221,6 +233,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void NotFoundExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -240,6 +253,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void UserNotFoundExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -260,6 +274,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void GroupNotFoundExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -280,6 +295,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void EntityTypeNotFoundExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -300,6 +316,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
         public void EntityNotFoundExceptionMappedToGrpcError()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
@@ -319,6 +336,21 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             Assert.AreEqual(nameof(entity), e.ParamName);
             Assert.AreEqual(entityType, e.EntityType);
             Assert.AreEqual(entity, e.Entity);
+        }
+
+        [Test]
+        [Order(Int32.MaxValue)]
+        public void TripSwitch()
+        {
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            tripSwitchActuator.Actuate();
+
+            var e = Assert.Throws<ServiceUnavailableException>(delegate
+            {
+                grpcClient.GetAllEventsSince(priorEventdId);
+            });
+
+            Assert.That(e.Message, Does.StartWith("The service is unavailable due to an internal error."));
         }
 
         #endregion

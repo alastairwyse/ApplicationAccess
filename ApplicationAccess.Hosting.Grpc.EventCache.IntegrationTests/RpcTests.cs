@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using ApplicationAccess.Hosting.Grpc;
+using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using NSubstitute;
@@ -176,11 +177,23 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
 
             Assert.That(e.Message, Does.StartWith(exceptionMessage));
         }
+
         [Test]
         public void GetAllEventsSince_TripSwitchActuated()
         {
+            // Both EventCacheEmptyException and ServiceUnavailableException are serialized through gRPC with 'Code' property set to 'Unavailable', so test that the client handles both cases correctly
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = "The service is unavailable due to an internal error.";
+            var mockException = new ServiceUnavailableException(exceptionMessage);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
-            throw new NotImplementedException();
+            var e = Assert.Throws<ServiceUnavailableException>(delegate
+            {
+                grpcClient.GetAllEventsSince(priorEventdId);
+            });
+
+            Assert.That(e.Message, Does.StartWith(exceptionMessage));
         }
 
         #region Private/Protected Methods

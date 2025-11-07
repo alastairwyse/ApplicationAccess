@@ -534,32 +534,6 @@ namespace ApplicationAccess.Hosting.Grpc.UnitTests
         }
 
         [Test]
-        public void Convert_NotFoundException()
-        {
-            Exception testException = null;
-            try
-            {
-                throw new NotFoundException("Test not found exception message.", "ABC");
-            }
-            catch (Exception e)
-            {
-                testException = e;
-            }
-
-            Status result = testExceptionToGrpcStatusConverter.Convert(testException);
-
-            Assert.AreEqual((Int32)Code.NotFound, result.Code);
-            Assert.AreEqual("Test not found exception message.", result.Message);
-            GrpcError unpackedDetail = result.GetDetail<GrpcError>();
-            Assert.AreEqual("NotFoundException", unpackedDetail.Code);
-            Assert.AreEqual("Test not found exception message.", unpackedDetail.Message);
-            Assert.AreEqual("Convert_NotFoundException", unpackedDetail.Target);
-            Assert.AreEqual(1, unpackedDetail.Attributes.Count);
-            Assert.AreEqual("ABC", unpackedDetail.Attributes["ResourceId"]);
-            Assert.IsNull(unpackedDetail.InnerError);
-        }
-
-        [Test]
         public void Convert_InnerExceptionDepthLimitSet()
         {
             testExceptionToGrpcStatusConverter = new ExceptionToGrpcStatusConverter(1);

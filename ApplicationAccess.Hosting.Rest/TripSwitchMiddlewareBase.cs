@@ -31,9 +31,9 @@ namespace ApplicationAccess.Hosting.Rest
         protected readonly RequestDelegate next;
         /// <summary>The actuator for the trip switch.</summary>
         protected readonly TripSwitchActuator actuator;
-        /// <summary>A collection of actions to invoke when the switch is tripped.</summary>
+        /// <summary>An action to invoke when the switch is tripped.</summary>
         protected readonly Action onTripAction;
-        /// <summary>Flag to indicate whether the actions in the 'onTripActions' member have been run.</summary>
+        /// <summary>Flag to indicate whether the action in the 'onTripAction' member has been run.</summary>
         protected Boolean onTripActionsRun;
 
         /// <summary>

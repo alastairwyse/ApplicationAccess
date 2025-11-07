@@ -41,6 +41,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         protected MethodCallCountingStringUniqueStringifier applicationComponentStringifier;
         protected MethodCallCountingStringUniqueStringifier accessLevelStringifier;
         protected TestEventCache testEventCache;
+        protected TripSwitchActuator tripSwitchActuator;
         protected HttpClient httpClient;
         protected HttpMessageHandler httpHandler;
         protected EventCacheClient<String, String, String, String> grpcClient;
@@ -57,6 +58,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             testEventCache = new TestEventCache();
             testEventCache.Services.GetService<TemporalEventBulkPersisterHolder>().TemporalEventBulkPersister = mockTemporalEventBulkPersister;
             testEventCache.Services.GetService<TemporalEventQueryProcessorHolder>().TemporalEventQueryProcessor = mockTemporalEventQueryProcessor;
+            tripSwitchActuator = testEventCache.Services.GetService<TripSwitchActuator>();
             httpClient = testEventCache.CreateClient();
             httpHandler = testEventCache.Server.CreateHandler();
             GrpcChannelOptions channelOptions = new GrpcChannelOptions()

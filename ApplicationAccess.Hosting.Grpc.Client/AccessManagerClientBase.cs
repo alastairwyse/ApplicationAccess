@@ -222,6 +222,13 @@ namespace ApplicationAccess.Hosting.Grpc.Client
                             throw new NotFoundException(grpcError.Message, resourceId);
                         }
                     }
+                },
+                {
+                    Code.Unavailable,
+                    (GrpcError grpcError) =>
+                    {
+                        throw new ServiceUnavailableException(grpcError.Message);
+                    }
                 }
             };
         }
@@ -261,7 +268,14 @@ namespace ApplicationAccess.Hosting.Grpc.Client
                     GrpcError grpcError = rpcStatus.GetDetail<GrpcError>();
                     if (grpcError != null)
                     {
-                        grpcErrorCodeToExceptionThrowingActionMap[(Code)rpcStatus.Code].Invoke(grpcError);
+                        if (grpcErrorCodeToExceptionThrowingActionMap.ContainsKey((Code)rpcStatus.Code) == true)
+                        {
+                            grpcErrorCodeToExceptionThrowingActionMap[(Code)rpcStatus.Code].Invoke(grpcError);
+                        }
+                        else
+                        {
+                            throw new Exception($"Failed to call RPC method '{rpcName}'.  Received non-success RPC status '{(Code)rpcStatus.Code}',  error code '{grpcError.Code}', and error message '{grpcError.Message}'.");
+                        }
                     }
                     else
                     {

@@ -303,32 +303,6 @@ namespace ApplicationAccess.Hosting.Grpc
                     };
                 }
             );
-            typeToConversionFunctionMap.Add
-            (
-                typeof(NotFoundException),
-                (Exception exception) =>
-                {
-                    var notFoundException = (NotFoundException)exception;
-                    var attributes = new MapField<String, String>();
-                    attributes.Add(nameof(notFoundException.ResourceId), $"{notFoundException.ResourceId}");
-                    var grpcError = new GrpcError
-                    {
-                        Code = exception.GetType().Name,
-                        Message = exception.Message,
-                        Attributes = { attributes }
-                    };
-                    if (exception.TargetSite != null)
-                    {
-                        grpcError.Target = exception.TargetSite.Name;
-                    }
-                    return new Status
-                    {
-                        Code = (Int32)Code.NotFound,
-                        Message = exception.Message,
-                        Details = { Google.Protobuf.WellKnownTypes.Any.Pack(grpcError) }
-                    };
-                }
-            );
         }
 
         /// <summary>

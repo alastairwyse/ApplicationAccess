@@ -48,12 +48,10 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
                 },
                 ExceptionToGrpcStatusCodeMappings = new List<Tuple<Type, Code>>()
                 {
-                    // Add a mapping from DeserializationException to HTTP 400 equivalent error status
-                    new Tuple<Type, Code>(typeof(DeserializationException), Code.InvalidArgument),
                     // Add a mapping from EventCacheEmptyException to HTTP 503 equivalent error status
                     new Tuple<Type, Code>(typeof(EventCacheEmptyException), Code.Unavailable),
                     // Add a mapping from ServiceUnavailableException to HTTP 503 equivalent error status (for TripSwitch)
-                    new Tuple<Type, Code>(typeof(EventCacheEmptyException), Code.Unavailable),
+                    new Tuple<Type, Code>(typeof(ServiceUnavailableException), Code.Unavailable)
                 },
                 // Setup TripSwitchMiddleware 
                 TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an internal error."),

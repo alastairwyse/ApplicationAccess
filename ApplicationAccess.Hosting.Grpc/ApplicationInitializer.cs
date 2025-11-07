@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Google.Protobuf.Collections;
 using Google.Rpc;
 using ApplicationAccess.Hosting.Grpc.Models;
@@ -92,7 +93,6 @@ namespace ApplicationAccess.Hosting.Grpc
             // Setup custom exception handler using gRPC interceptors, so that any exceptions are caught and returned from the service as GrpcError objects
             var errorHandlingOptions = new ErrorHandlingOptions();
             builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName).Bind(errorHandlingOptions);
-            var exceptionToHttpStatusCodeConverter = new ExceptionToHttpStatusCodeConverter();
             ExceptionToGrpcStatusConverter exceptionToGrpcStatusConverter = null;
             if (errorHandlingOptions.IncludeInnerExceptions.Value == true)
             {
@@ -114,19 +114,20 @@ namespace ApplicationAccess.Hosting.Grpc
             {
                 exceptionToGrpcStatusConverter.AddConversionFunction(currentMapping.Item1, currentMapping.Item2);
             }
+
             builder.Services.AddGrpc(options =>
             {
                 options.Interceptors.Add<ExceptionHandlingInterceptor>(errorHandlingOptions, exceptionToGrpcStatusConverter);
+                if (parameters.TripSwitchTrippedException != null)
+                {
+                    options.Interceptors.Add<TripSwitchInterceptor>(tripSwitchActuator, parameters.TripSwitchTrippedException, () => { });
+                }
             });
 
             WebApplication app = builder.Build();
 
-            // Add TripSwitchMiddleware
             if (parameters.TripSwitchTrippedException != null)
             {
-                // TODO: Need the grpc interceptor version of below
-                //   This will likely have to go above builder.Build() aswell
-                //app.UseTripSwitch(tripSwitchActuator, parameters.TripSwitchTrippedException, () => { });
                 app.Lifetime.ApplicationStopped.Register(() => { tripSwitchActuator.Dispose(); });
             }
 
@@ -146,6 +147,17 @@ namespace ApplicationAccess.Hosting.Grpc
         /// <param name="exceptionToGrpcStatusConverter">The <see cref="ExceptionToGrpcStatusConverter"/> to add the conversion functions to.</param>
         protected void AddElementNotFoundExceptionConversionFunctions(ExceptionToGrpcStatusConverter exceptionToGrpcStatusConverter)
         {
+            exceptionToGrpcStatusConverter.AddConversionFunction
+            (
+                typeof(NotFoundException),
+                (Exception exception) =>
+                {
+                    var notFoundException = (NotFoundException)exception;
+                    var attributes = new MapField<String, String>();
+                    attributes.Add(nameof(notFoundException.ResourceId), $"{notFoundException.ResourceId}");
+                    return ConstructStatusFromException(Code.NotFound, nameof(NotFoundException), exception, attributes);
+                }
+            );
             exceptionToGrpcStatusConverter.AddConversionFunction
             (
                 typeof(UserNotFoundException<String>),
