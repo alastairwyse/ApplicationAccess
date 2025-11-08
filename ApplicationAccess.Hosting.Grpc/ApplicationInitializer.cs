@@ -16,12 +16,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Google.Protobuf.Collections;
 using Google.Rpc;
 using ApplicationAccess.Hosting.Grpc.Models;
@@ -114,13 +112,24 @@ namespace ApplicationAccess.Hosting.Grpc
             {
                 exceptionToGrpcStatusConverter.AddConversionFunction(currentMapping.Item1, currentMapping.Item2);
             }
+            ExceptionHandlingInterceptor exceptionHandlingInterceptor = new(errorHandlingOptions, exceptionToGrpcStatusConverter);
+            builder.Services.AddSingleton<ExceptionHandlingInterceptor>(exceptionHandlingInterceptor);
+
+            //   As per https://learn.microsoft.com/en-us/aspnet/core/grpc/interceptors?view=aspnetcore-8.0#configure-server-interceptors, by default interceptors have a per-request lifetime
+            //     Want to register both ExceptionHandlingInterceptor and TripSwitchInterceptor as singletons to match functionality of REST middleware equivalents (and TripSwitchInterceptor needs to be a singleton as it holds state)
+            //     Hence need to first register instances of both as singletons in standard dependency injection before registering them in gRPC with the Interceptors.Add() method.
+            if (parameters.TripSwitchTrippedException != null)
+            {
+                TripSwitchInterceptor tripSwitchInterceptor = new (tripSwitchActuator, parameters.TripSwitchTrippedException, () => { });
+                builder.Services.AddSingleton<TripSwitchInterceptor>(tripSwitchInterceptor);
+            }
 
             builder.Services.AddGrpc(options =>
             {
-                options.Interceptors.Add<ExceptionHandlingInterceptor>(errorHandlingOptions, exceptionToGrpcStatusConverter);
+                options.Interceptors.Add<ExceptionHandlingInterceptor>();
                 if (parameters.TripSwitchTrippedException != null)
                 {
-                    options.Interceptors.Add<TripSwitchInterceptor>(tripSwitchActuator, parameters.TripSwitchTrippedException, () => { });
+                    options.Interceptors.Add<TripSwitchInterceptor>();
                 }
             });
 

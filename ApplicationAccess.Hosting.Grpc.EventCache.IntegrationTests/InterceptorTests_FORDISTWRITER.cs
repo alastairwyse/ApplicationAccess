@@ -40,19 +40,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             //   This class needs to be moved to gRPC DistWriter.IntegrationTests namespace once created.
             //   Also need to test when 'errorHandlingOptions.OverrideInternalServerErrors' is set to true
             //   Ensure that by default I've covered all the same exceptions as the REST version does
-            //   Will also need tripswitch tests 
-            //   REST event cache has custom exception conversion for these...
-            //     DeserializationException
-            //    EventCacheEmptyException
-            //    ServiceUnavailableException
-            //   ... will need gRPC-side unit tests for these
-            //   See REST implementation of EventCacheClient... need custom handling of the below exceptions AND TESTS
-            //    EventCacheEmptyException
-            //    EventNotCachedException
-            //   gRPC ver of AppInitializer needs to have option to add TripSwicth interceptor
-            //   Need full manual and unit testing of gRPC Tripswicth
-            //     including throwing exception vs shutting down
-            //     make sure any intehration/unit tests of te REST version of replicated for gRPC
+
 
             throw new NotImplementedException();
         }

@@ -152,7 +152,6 @@ namespace ApplicationAccess.Hosting.Rest.IntegrationTests
             testWebApp.Dispose();
         }
 
-
         [Test]
         public async Task TripViaExceptionAndShutdownApplication()
         {
@@ -177,7 +176,6 @@ namespace ApplicationAccess.Hosting.Rest.IntegrationTests
             client.Dispose();
             testWebApp.Dispose();
         }
-
 
         /// <summary>
         /// Checks that the functionality to trip via the actuator still works properly when initializing the trip switch to trip on an exception.
