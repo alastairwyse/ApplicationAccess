@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Grpc.Health.V1;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
@@ -327,8 +329,17 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        [Order(0)]
+        public async Task TripSwitchNotTripped()
+        {
+            HealthCheckResponse result = await healthCheckClient.CheckAsync(new HealthCheckRequest());
+
+            Assert.AreEqual(HealthCheckResponse.Types.ServingStatus.Serving, result.Status);
+        }
+
+        [Test]
         [Order(Int32.MaxValue)]
-        public void TripSwitch()
+        public async Task TripSwitchTripped()
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             tripSwitchActuator.Actuate();
@@ -339,6 +350,11 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             });
 
             Assert.That(e.Message, Does.StartWith("The service is unavailable due to an internal error."));
+
+
+            HealthCheckResponse result = await healthCheckClient.CheckAsync(new HealthCheckRequest());
+
+            Assert.AreEqual(HealthCheckResponse.Types.ServingStatus.NotServing, result.Status);
         }
 
         #endregion

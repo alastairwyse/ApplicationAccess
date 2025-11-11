@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
+using Grpc.Health.V1;
 using ApplicationAccess.Hosting.Grpc;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
@@ -194,6 +196,20 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             });
 
             Assert.That(e.Message, Does.StartWith(exceptionMessage));
+        }
+
+        [Test]
+        public void PersistEvents()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test]
+        public async Task HealthCheck()
+        {
+            HealthCheckResponse result = await healthCheckClient.CheckAsync(new HealthCheckRequest());
+
+            Assert.AreEqual(HealthCheckResponse.Types.ServingStatus.Serving, result.Status);
         }
 
         #region Private/Protected Methods

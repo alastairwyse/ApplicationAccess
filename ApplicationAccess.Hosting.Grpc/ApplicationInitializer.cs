@@ -22,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Google.Protobuf.Collections;
 using Google.Rpc;
+using Grpc.AspNetCore.HealthChecks;
 using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest;
@@ -122,6 +123,10 @@ namespace ApplicationAccess.Hosting.Grpc
             {
                 TripSwitchInterceptor tripSwitchInterceptor = new (tripSwitchActuator, parameters.TripSwitchTrippedException, () => { });
                 builder.Services.AddSingleton<TripSwitchInterceptor>(tripSwitchInterceptor);
+
+                // Add gRPC health checks (using the TripSwicth to report the health)
+                TripSwitchHealthCheck tripSwitchHealthCheck = new(tripSwitchActuator);
+                builder.Services.AddSingleton<TripSwitchHealthCheck>(tripSwitchHealthCheck);
             }
 
             builder.Services.AddGrpc(options =>
@@ -132,6 +137,10 @@ namespace ApplicationAccess.Hosting.Grpc
                     options.Interceptors.Add<TripSwitchInterceptor>();
                 }
             });
+            if (parameters.TripSwitchTrippedException != null)
+            {
+                builder.Services.AddGrpcHealthChecks().AddCheck<TripSwitchHealthCheck>("TripSwitch actuated health check");
+            }
 
             WebApplication app = builder.Build();
 
@@ -143,6 +152,10 @@ namespace ApplicationAccess.Hosting.Grpc
             parameters.ConfigureApplicationBuilderAction(app);
 
             app.MapGrpcService<TGrpcService>();
+            if (parameters.TripSwitchTrippedException != null)
+            {
+                app.MapGrpcHealthChecksService();
+            }
             app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client.");
 
             return app;

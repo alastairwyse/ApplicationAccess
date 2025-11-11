@@ -63,7 +63,7 @@ namespace ApplicationAccess.Hosting.Grpc
                 return await continuation(request, context);
             }
             catch (Exception e)
-            { 
+            {
                 Google.Rpc.Status grpcStatus = exceptionToGrpcStatusConverter.Convert(e);
                 if (grpcStatus.Code == (Int32)Code.Internal && errorHandlingOptions.OverrideInternalServerErrors.Value == true)
                 {

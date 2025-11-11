@@ -30,6 +30,9 @@ namespace ApplicationAccess.Hosting.Grpc
     /// <remarks>When initialized to throw an exception after the switch is tripped, this interceptor can be used in conjunction with the <see cref="ExceptionHandlingInterceptor"/> to convert the thrown exception to a specified gRPC <see cref="Status"/>.</remarks>
     public class TripSwitchInterceptor : Interceptor
     {
+        /// <summary>The gRPC health checking protocol <see href="https://github.com/grpc/grpc/blob/v1.15.0/doc/health-checking.md#service-definition">service definition package name prefix</see>.</summary>
+        protected const String grpcHealthPackagePrefix = "grpc.health";
+
         /// <summary>The actuator for the trip switch.</summary>
         protected readonly TripSwitchActuator actuator;
         /// <summary>>The exception to throw on receiving any requests after the switch has been tripped.</summary>
@@ -114,7 +117,7 @@ namespace ApplicationAccess.Hosting.Grpc
             UnaryServerMethod<TRequest, TResponse> continuation
         )
         {
-            if (actuator.IsActuated == true)
+            if (actuator.IsActuated == true && MethodIsHealthCheckMethod(context.Method) == false)
             {
                 if (onTripActionsRun == false)
                 {
@@ -145,6 +148,31 @@ namespace ApplicationAccess.Hosting.Grpc
                 return await continuation(request, context);
             }
         }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Checks whether the specified name of the RPC method being called is a <see href="https://github.com/grpc/grpc/blob/v1.15.0/doc/health-checking.md#grpc-health-checking-protocol">gRPC health check</see> method. 
+        /// </summary>
+        /// <param name="rpcMethodName">The name of the RPC method being called.</param>
+        /// <returns>True if the method is a gRPC health check method.  False otherwise.</returns>
+        protected Boolean MethodIsHealthCheckMethod(String rpcMethodName)
+        {
+            if (rpcMethodName.Length < grpcHealthPackagePrefix.Length + 1)
+            {
+                return false;
+            }
+            if (rpcMethodName.Substring(1, grpcHealthPackagePrefix.Length) == grpcHealthPackagePrefix)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -218,48 +246,16 @@ namespace ApplicationAccess.Hosting.Grpc
             UnaryServerMethod<TRequest, TResponse> continuation
         )
         {
-            if (actuator.IsActuated == true)
+            if (MethodIsHealthCheckMethod(context.Method) == false)
             {
-                if (onTripActionsRun == false)
+                if (actuator.IsActuated == true)
                 {
-                    onTripAction.Invoke();
-                    onTripActionsRun = true;
-                }
-                if (shutdownTimeout > -1 && applicationLifeTime != null)
-                {
-                    var shutdownThread = new Thread(() =>
+                    if (onTripActionsRun == false)
                     {
-                        if (shutdownTimeout > 0)
-                        {
-                            Thread.Sleep(shutdownTimeout * 1000);
-                        }
-                        applicationLifeTime.StopApplication();
-                    });
-                    shutdownThread.Start();
-
-                    return await continuation(request, context);
-                }
-                else
-                {
-                    throw whenTrippedException;
-                }
-            }
-            else
-            {
-                try
-                {
-                    return await continuation(request, context);
-                }
-                catch (TTripException e)
-                {
-                    actuator.Actuate();
-                    onExceptionTripAction.Invoke(e);
-                    onTripActionsRun = true;
-                    if (whenTrippedException != null)
-                    {
-                        throw whenTrippedException;
+                        onTripAction.Invoke();
+                        onTripActionsRun = true;
                     }
-                    else
+                    if (shutdownTimeout > -1 && applicationLifeTime != null)
                     {
                         var shutdownThread = new Thread(() =>
                         {
@@ -270,9 +266,48 @@ namespace ApplicationAccess.Hosting.Grpc
                             applicationLifeTime.StopApplication();
                         });
                         shutdownThread.Start();
-                        throw;
+
+                        return await continuation(request, context);
+                    }
+                    else
+                    {
+                        throw whenTrippedException;
                     }
                 }
+                else
+                {
+                    try
+                    {
+                        return await continuation(request, context);
+                    }
+                    catch (TTripException e)
+                    {
+                        actuator.Actuate();
+                        onExceptionTripAction.Invoke(e);
+                        onTripActionsRun = true;
+                        if (whenTrippedException != null)
+                        {
+                            throw whenTrippedException;
+                        }
+                        else
+                        {
+                            var shutdownThread = new Thread(() =>
+                            {
+                                if (shutdownTimeout > 0)
+                                {
+                                    Thread.Sleep(shutdownTimeout * 1000);
+                                }
+                                applicationLifeTime.StopApplication();
+                            });
+                            shutdownThread.Start();
+                            throw;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                return await continuation(request, context);
             }
         }
     }

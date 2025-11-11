@@ -16,10 +16,11 @@
 
 using System;
 using System.Net.Http;
-using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Grpc.Health.V1;
+using Grpc.Net.Client;
 using ApplicationAccess.Hosting.Grpc.Client;
 using ApplicationAccess.Hosting.Rest;
 using ApplicationAccess.Hosting.Rest.EventCache;
@@ -45,6 +46,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         protected HttpClient httpClient;
         protected HttpMessageHandler httpHandler;
         protected EventCacheClient<String, String, String, String> grpcClient;
+        protected GrpcChannel grpcChannel;
+        protected Health.HealthClient healthCheckClient;
 
         [OneTimeSetUp]
         protected virtual void OneTimeSetUp()
@@ -74,11 +77,14 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
                 applicationComponentStringifier,
                 accessLevelStringifier
             );
+            grpcChannel = GrpcChannel.ForAddress(new Uri(httpClient.BaseAddress.ToString()), channelOptions);
+            healthCheckClient = new(grpcChannel);
         }
 
         [OneTimeTearDown]
         protected virtual void OneTimeTearDown()
         {
+            grpcChannel.Dispose();
             grpcClient.Dispose();
             httpHandler.Dispose();
             httpClient.Dispose();
