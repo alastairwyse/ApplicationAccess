@@ -199,9 +199,114 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
-        public void PersistEvents()
+        public void CacheEvents()
         {
-            throw new NotImplementedException();
+            List<TemporalEventBufferItemBase> testEvents = CreateTestEvents();
+            List<TemporalEventBufferItemBase> capturedEvents = null;
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventBulkPersister.PersistEvents(Arg.Do<List<TemporalEventBufferItemBase>>(argumentValue => capturedEvents = argumentValue));
+
+            grpcClient.PersistEvents(testEvents);
+
+            Assert.AreEqual(10, capturedEvents.Count);
+
+            Assert.IsInstanceOf<EntityTypeEventBufferItem>(capturedEvents[0]);
+            var entityTypeEvent = (EntityTypeEventBufferItem)capturedEvents[0];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000000"), entityTypeEvent.EventId);
+            Assert.AreEqual(EventAction.Remove, entityTypeEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000000"), entityTypeEvent.OccurredTime);
+            Assert.AreEqual(-5, entityTypeEvent.HashCode);
+            Assert.AreEqual("ClientAccount", entityTypeEvent.EntityType);
+
+            Assert.IsInstanceOf<EntityEventBufferItem>(capturedEvents[1]);
+            var entityEvent = (EntityEventBufferItem)capturedEvents[1];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000001"), entityEvent.EventId);
+            Assert.AreEqual(EventAction.Add, entityEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000001"), entityEvent.OccurredTime);
+            Assert.AreEqual(-4, entityEvent.HashCode);
+            Assert.AreEqual("BusinessUnit", entityEvent.EntityType);
+            Assert.AreEqual("Sales", entityEvent.Entity);
+
+            Assert.IsInstanceOf<UserToEntityMappingEventBufferItem<String>>(capturedEvents[2]);
+            var userToEntityMappingEvent = (UserToEntityMappingEventBufferItem<String>)capturedEvents[2];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000002"), userToEntityMappingEvent.EventId);
+            Assert.AreEqual(EventAction.Remove, userToEntityMappingEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000002"), userToEntityMappingEvent.OccurredTime);
+            Assert.AreEqual(-3, userToEntityMappingEvent.HashCode);
+            Assert.AreEqual("user1", userToEntityMappingEvent.User);
+            Assert.AreEqual("ClientAccount", userToEntityMappingEvent.EntityType);
+            Assert.AreEqual("ClientA", userToEntityMappingEvent.Entity);
+
+            Assert.IsInstanceOf<GroupToEntityMappingEventBufferItem<String>>(capturedEvents[3]);
+            var groupToEntityMappingEvent = (GroupToEntityMappingEventBufferItem<String>)capturedEvents[3];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000003"), groupToEntityMappingEvent.EventId);
+            Assert.AreEqual(EventAction.Add, groupToEntityMappingEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000003"), groupToEntityMappingEvent.OccurredTime);
+            Assert.AreEqual(-2, groupToEntityMappingEvent.HashCode);
+            Assert.AreEqual("group1", groupToEntityMappingEvent.Group);
+            Assert.AreEqual("BusinessUnit", groupToEntityMappingEvent.EntityType);
+            Assert.AreEqual("Marketing", groupToEntityMappingEvent.Entity);
+
+            Assert.IsInstanceOf<UserEventBufferItem<String>>(capturedEvents[4]);
+            var userEvent = (UserEventBufferItem<String>)capturedEvents[4];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000004"), userEvent.EventId);
+            Assert.AreEqual(EventAction.Add, userEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000004"), userEvent.OccurredTime);
+            Assert.AreEqual(-1, userEvent.HashCode);
+            Assert.AreEqual("user2", userEvent.User);
+
+            Assert.IsInstanceOf<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>>(capturedEvents[5]);
+            var userToApplicationComponentAndAccessLevelMappingEvent = (UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>)capturedEvents[5];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000005"), userToApplicationComponentAndAccessLevelMappingEvent.EventId);
+            Assert.AreEqual(EventAction.Remove, userToApplicationComponentAndAccessLevelMappingEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000005"), userToApplicationComponentAndAccessLevelMappingEvent.OccurredTime);
+            Assert.AreEqual(0, userToApplicationComponentAndAccessLevelMappingEvent.HashCode);
+            Assert.AreEqual("user3", userToApplicationComponentAndAccessLevelMappingEvent.User);
+            Assert.AreEqual("Order", userToApplicationComponentAndAccessLevelMappingEvent.ApplicationComponent);
+            Assert.AreEqual("Create", userToApplicationComponentAndAccessLevelMappingEvent.AccessLevel);
+
+            Assert.IsInstanceOf<UserToGroupMappingEventBufferItem<String, String>>(capturedEvents[6]);
+            var userToGroupMappingEvent = (UserToGroupMappingEventBufferItem<String, String>)capturedEvents[6];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000006"), userToGroupMappingEvent.EventId);
+            Assert.AreEqual(EventAction.Add, userToGroupMappingEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000006"), userToGroupMappingEvent.OccurredTime);
+            Assert.AreEqual(1, userToGroupMappingEvent.HashCode);
+            Assert.AreEqual("user4", userToGroupMappingEvent.User);
+            Assert.AreEqual("group2", userToGroupMappingEvent.Group);
+
+            Assert.IsInstanceOf<GroupEventBufferItem<String>>(capturedEvents[7]);
+            var groupEvent = (GroupEventBufferItem<String>)capturedEvents[7];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000007"), groupEvent.EventId);
+            Assert.AreEqual(EventAction.Remove, groupEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000007"), groupEvent.OccurredTime);
+            Assert.AreEqual(2, groupEvent.HashCode);
+            Assert.AreEqual("group3", groupEvent.Group);
+
+            Assert.IsInstanceOf<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>>(capturedEvents[8]);
+            var groupToApplicationComponentAndAccessLevelMappingEvent = (GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>)capturedEvents[8];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000008"), groupToApplicationComponentAndAccessLevelMappingEvent.EventId);
+            Assert.AreEqual(EventAction.Add, groupToApplicationComponentAndAccessLevelMappingEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000008"), groupToApplicationComponentAndAccessLevelMappingEvent.OccurredTime);
+            Assert.AreEqual(3, groupToApplicationComponentAndAccessLevelMappingEvent.HashCode);
+            Assert.AreEqual("group4", groupToApplicationComponentAndAccessLevelMappingEvent.Group);
+            Assert.AreEqual("Summary", groupToApplicationComponentAndAccessLevelMappingEvent.ApplicationComponent);
+            Assert.AreEqual("View", groupToApplicationComponentAndAccessLevelMappingEvent.AccessLevel);
+
+            Assert.IsInstanceOf<GroupToGroupMappingEventBufferItem<String>>(capturedEvents[9]);
+            var groupToGroupMappingEvent = (GroupToGroupMappingEventBufferItem<String>)capturedEvents[9];
+            Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000009"), groupToGroupMappingEvent.EventId);
+            Assert.AreEqual(EventAction.Remove, groupToGroupMappingEvent.EventAction);
+            Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000009"), groupToGroupMappingEvent.OccurredTime);
+            Assert.AreEqual(4, groupToGroupMappingEvent.HashCode);
+            Assert.AreEqual("group5", groupToGroupMappingEvent.FromGroup);
+            Assert.AreEqual("group6", groupToGroupMappingEvent.ToGroup);
+
+            // Check the number of times ToString() was called on the *Stringifier classes
+            //   Note that FromString() counts can't be checked as the IUniqueStringifier implementations used for deserialization are fixed in the EventCache.Program class.
+            Assert.AreEqual(4, userStringifier.ToStringCallCount);
+            Assert.AreEqual(6, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.ToStringCallCount);
         }
 
         [Test]

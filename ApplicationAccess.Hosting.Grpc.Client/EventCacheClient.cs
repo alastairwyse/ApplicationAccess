@@ -27,10 +27,8 @@ using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
-using ApplicationAccess.Utilities;
 using ApplicationLogging;
 using ApplicationMetrics;
-using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Hosting.Grpc.Client
 {
@@ -144,7 +142,7 @@ namespace ApplicationAccess.Hosting.Grpc.Client
         public IList<TemporalEventBufferItemBase> GetAllEventsSince(Guid eventId)
         {
             var client = new EventCacheRpc.EventCacheRpcClient(channel);
-            GetAllEventsSinceRequest request = new GetAllEventsSinceRequest() { PriorEventId = ByteString.CopyFrom(eventId.ToByteArray()) };
+            GetAllEventsSinceRequest request = new() { PriorEventId = ByteString.CopyFrom(eventId.ToByteArray()) };
             GetAllEventsSinceReply reply;
             try
             {
@@ -176,12 +174,19 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             return eventBufferItemToGrpcMessageConverter.Convert(reply.Events.Events).ToList();
         }
 
-        #pragma warning restore 0436
-
         /// <inheritdoc/>
         public void PersistEvents(IList<TemporalEventBufferItemBase> events)
         {
-            throw new NotImplementedException();
+            var client = new EventCacheRpc.EventCacheRpcClient(channel);
+            TemporalEventBufferItemList convertedEventList = new();
+            foreach (TemporalEventBufferItemListItem currentConvertedEvent in eventBufferItemToGrpcMessageConverter.Convert(events))
+            {
+                convertedEventList.Events.Add(currentConvertedEvent);
+            }
+            CacheEventsRequest request = new() { Events = convertedEventList };
+            client.CacheEvents(request);
         }
+
+        #pragma warning restore 0436
     }
 }
