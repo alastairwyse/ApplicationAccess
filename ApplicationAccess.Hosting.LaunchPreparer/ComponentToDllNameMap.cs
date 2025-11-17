@@ -28,6 +28,7 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         private static Dictionary<AccessManagerComponent, String> underlyingMap = new Dictionary<AccessManagerComponent, String>()
         {
             { AccessManagerComponent.EventCacheNode, "ApplicationAccess.Hosting.Rest.EventCache.dll" },
+            { AccessManagerComponent.GrpcEventCacheNode, "ApplicationAccess.Hosting.Grpc.EventCache.dll" },
             { AccessManagerComponent.ReaderNode, "ApplicationAccess.Hosting.Rest.Reader.dll" },
             { AccessManagerComponent.ReaderWriterNode, "ApplicationAccess.Hosting.Rest.ReaderWriter.dll" },
             { AccessManagerComponent.ReaderWriterLiteNode, "ApplicationAccess.Hosting.Rest.ReaderWriterLite.dll" },

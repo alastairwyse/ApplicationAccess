@@ -16,13 +16,13 @@
 
 using System;
 using System.Collections.Generic;
+using Google.Protobuf.Collections;
+using Google.Rpc;
+using Grpc.AspNetCore.HealthChecks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Google.Protobuf.Collections;
-using Google.Rpc;
-using Grpc.AspNetCore.HealthChecks;
 using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest;

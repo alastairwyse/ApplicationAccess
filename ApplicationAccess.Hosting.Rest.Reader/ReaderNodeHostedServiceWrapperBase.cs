@@ -21,6 +21,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ApplicationAccess.Hosting.Factories;
 using ApplicationAccess.Hosting.Metrics;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
@@ -64,7 +65,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         /// <summary>Defines how often the reader node will be refreshed.</summary>
         protected LoopingWorkerThreadReaderNodeRefreshStrategy refreshStrategy;
         /// <summary>Interface to a cache for events which change the AccessManager, and which are used to refresh the reader node.</summary>
-        protected EventCacheClient<String, String, String, String> eventCacheClient;
+        protected IAccessManagerEventCache<String, String, String, String> eventCacheClient;
         /// <summary>Used to load data from the AccessManager.</summary>
         protected IAccessManagerTemporalBulkPersister<String, String, String, String> persistentReader;
         /// <summary>The <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
@@ -233,16 +234,6 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 accessManagerDatabaseConnectionOptions
             );
 
-            Uri eventCacheClientBaseUri = null;
-            try
-            {
-                eventCacheClientBaseUri = new Uri(eventCacheConnectionOptions.Host);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to convert event cache host '{eventCacheConnectionOptions.Host}' to a {typeof(Uri).Name}.", e);
-            }
-
             if (metricLoggingOptions.Enabled.Value == false)
             {
                 var eventPersisterFactory = new AccessManagerTemporalBulkPersisterFactory<String, String, String, String>
@@ -254,16 +245,19 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                     eventPersisterLogger
                 );
                 persistentReader = eventPersisterFactory.GetPersister(databaseConnectionParameters, null);
-                eventCacheClient = new EventCacheClient<String, String, String, String>
+                IApplicationLogger eventCacheClientLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
-                    eventCacheClientBaseUri,
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    eventCacheConnectionOptions.RetryCount.Value,
-                    eventCacheConnectionOptions.RetryInterval.Value
+                    loggerFactory.CreateLogger<EventCacheClient<String, String, String, String>>()
                 );
+                var eventCacheClientFactory = new AccessManagerEventCacheClientFactory<String, String, String, String>
+                (
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    eventCacheClientLogger
+                );
+                eventCacheClient = eventCacheClientFactory.GetClient(eventCacheConnectionOptions);
             }
             else
             {
@@ -295,18 +289,16 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 (
                     loggerFactory.CreateLogger<EventCacheClient<String, String, String, String>>()
                 );
-                eventCacheClient = new EventCacheClient<String, String, String, String>
+                var eventCacheClientFactory = new AccessManagerEventCacheClientFactory<String, String, String, String>
                 (
-                    eventCacheClientBaseUri,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    eventCacheConnectionOptions.RetryCount.Value,
-                    eventCacheConnectionOptions.RetryInterval.Value,
-                    eventCacheClientLogger,
+                    eventCacheClientLogger, 
                     metricLogger
                 );
+                eventCacheClient = eventCacheClientFactory.GetClient(eventCacheConnectionOptions);
             }
         }
 

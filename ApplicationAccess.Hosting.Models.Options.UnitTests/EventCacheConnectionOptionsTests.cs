@@ -54,20 +54,6 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
         }
 
         [Test]
-        public void Validate_RetryCountNull()
-        {
-            testEventCacheConnectionOptions.RetryCount = null;
-            var validationContext = new ValidationContext(testEventCacheConnectionOptions);
-
-            var e = Assert.Throws<ValidationException>(delegate
-            {
-                Validator.ValidateObject(testEventCacheConnectionOptions, validationContext, true);
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Error validating EventCacheConnection options.  Configuration for 'RetryCount' is required."));
-        }
-
-        [Test]
         public void Validate_RetryCount0()
         {
             testEventCacheConnectionOptions.RetryCount = 0;
@@ -79,20 +65,6 @@ namespace ApplicationAccess.Hosting.Models.Options.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith($"Error validating EventCacheConnection options.  Value for 'RetryCount' must be between 1 and 2147483647."));
-        }
-
-        [Test]
-        public void Validate_RetryIntervalNull()
-        {
-            testEventCacheConnectionOptions.RetryInterval = null;
-            var validationContext = new ValidationContext(testEventCacheConnectionOptions);
-
-            var e = Assert.Throws<ValidationException>(delegate
-            {
-                Validator.ValidateObject(testEventCacheConnectionOptions, validationContext, true);
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Error validating EventCacheConnection options.  Configuration for 'RetryInterval' is required."));
         }
 
         [Test]

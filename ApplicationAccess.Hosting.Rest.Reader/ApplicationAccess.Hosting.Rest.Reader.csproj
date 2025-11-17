@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Factories\ApplicationAccess.Hosting.Factories.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Metrics\ApplicationAccess.Hosting.Metrics.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Persistence.Sql\ApplicationAccess.Hosting.Persistence.Sql.csproj" />

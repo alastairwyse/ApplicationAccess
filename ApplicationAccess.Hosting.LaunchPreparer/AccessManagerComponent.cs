@@ -21,8 +21,10 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
     /// </summary>
     public enum AccessManagerComponent
     {
-        /// <summary>An event cache node.</summary>
+        /// <summary>An event cache node exposed via REST.</summary>
         EventCacheNode,
+        /// <summary>An event cache node exposed via gRPC.</summary>
+        GrpcEventCacheNode,
         /// <summary>A reader node.</summary>
         ReaderNode,
         /// <summary>A reader/writer node.</summary>

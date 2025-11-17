@@ -30,16 +30,21 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         protected const String ValidationErrorMessagePrefix = $"Error validating {EventCacheConnectionOptionsName} options";
 
+        public Protocol Protocol { get; set; }
+
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(Host)}' is required.")]
         public String? Host { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(RetryCount)}' is required.")]
         [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
         public Int32? RetryCount { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(RetryInterval)}' is required.")]
         [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
         public Int32? RetryInterval { get; set; }
+
+        public EventCacheConnectionOptions()
+        {
+            Protocol = Protocol.Rest;
+        }
 
         #pragma warning restore 0649
     }

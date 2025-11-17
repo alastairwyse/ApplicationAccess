@@ -22,6 +22,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting;
+using ApplicationAccess.Hosting.Factories;
 using ApplicationAccess.Hosting.Metrics;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
@@ -69,7 +70,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         /// <summary>An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</summary>
         protected Action<BufferFlushingException> eventBufferFlushingExceptionAction;
         /// <summary>Interface to a cache for events which change the AccessManager.</summary>
-        protected EventCacheClient<String, String, String, String> eventCacheClient;
+        protected IAccessManagerEventCache<String, String, String, String> eventCacheClient;
         /// <summary>The <see cref="WriterNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
         protected TWriterNode writerNode;
 
@@ -215,16 +216,6 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 accessManagerDatabaseConnectionOptions
             );
 
-            Uri eventCacheClientBaseUri = null;
-            try
-            {
-                eventCacheClientBaseUri = new Uri(eventCacheConnectionOptions.Host);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to convert event cache host '{eventCacheConnectionOptions.Host}' to a {typeof(Uri).Name}.", e);
-            }
-
             eventBufferFlushingExceptionAction = (BufferFlushingException bufferFlushingException) =>
             {
                 tripSwitchActuator.Actuate();
@@ -248,16 +239,19 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     eventPersisterLogger
                 );
                 eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters, eventPersistenceOptions.EventPersisterBackupFilePath);
-                eventCacheClient = new EventCacheClient<String, String, String, String>
+                IApplicationLogger eventCacheClientLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
-                    eventCacheClientBaseUri,
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    eventCacheConnectionOptions.RetryCount.Value,
-                    eventCacheConnectionOptions.RetryInterval.Value
+                    loggerFactory.CreateLogger<EventCacheClient<String, String, String, String>>()
                 );
+                var eventCacheClientFactory = new AccessManagerEventCacheClientFactory<String, String, String, String>
+                (
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    eventCacheClientLogger
+                );
+                eventCacheClient = eventCacheClientFactory.GetClient(eventCacheConnectionOptions);
                 eventBufferFlushStrategy = InitializeBufferFlushStrategy();
             }
             else
@@ -289,18 +283,16 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 (
                     loggerFactory.CreateLogger<EventCacheClient<String, String, String, String>>()
                 );
-                eventCacheClient = new EventCacheClient<String, String, String, String>
+                var eventCacheClientFactory = new AccessManagerEventCacheClientFactory<String, String, String, String>
                 (
-                    eventCacheClientBaseUri,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    eventCacheConnectionOptions.RetryCount.Value,
-                    eventCacheConnectionOptions.RetryInterval.Value,
                     eventCacheClientLogger,
                     metricLogger
                 );
+                eventCacheClient = eventCacheClientFactory.GetClient(eventCacheConnectionOptions);
                 eventBufferFlushStrategy = InitializeBufferFlushStrategyWithMetricLogging();
             }
         }

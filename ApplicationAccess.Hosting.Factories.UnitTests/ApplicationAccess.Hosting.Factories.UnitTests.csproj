@@ -2,11 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
-    <Description>Unit tests for classes in the ApplicationAccess.Persistence.MongoDb namespace.</Description>
-    <Authors>Alastair Wyse</Authors>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Description>Unit tests for classes in the ApplicationAccess.Hosting.Factories namespace.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,8 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationAccess.Persistence.MongoDb\ApplicationAccess.Persistence.MongoDb.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Factories\ApplicationAccess.Hosting.Factories.csproj" />
     <ProjectReference Include="..\ApplicationAccess.UnitTests\ApplicationAccess.UnitTests.csproj" />
   </ItemGroup>
-  
+
+
 </Project>

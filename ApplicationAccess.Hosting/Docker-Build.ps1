@@ -27,6 +27,7 @@
 #
 # EXAMPLES
 #     .\Docker-Build.ps1 "EventCache" "C:\Temp\DockerBuild\EventCache\" "EventCache.tar" -IncludePdbFiles
+#     .\Docker-Build.ps1 "GrpcEventCache" "C:\Temp\DockerBuild\GrpcEventCache\" "GrpcEventCache.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "ReaderWriter" "C:\Temp\DockerBuild\ReaderWriter\" "ReaderWriter.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "ReaderWriterLite" "C:\Temp\DockerBuild\ReaderWriterLite\" "ReaderWriterLite.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "DependencyFreeReaderWriter" "C:\Temp\DockerBuild\DependencyFreeReaderWriter\" "DependencyFreeReaderWriter.tar" -IncludePdbFiles
@@ -79,6 +80,9 @@ elseif ($Component -eq 'ReaderWriterLite') {
 }
 elseif ($Component -eq 'Writer') {
     $componentPath = '..\ApplicationAccess.Hosting.Rest.Writer'
+}
+elseif ($Component -eq 'GrpcEventCache') {
+    $componentPath = '..\ApplicationAccess.Hosting.Grpc.EventCache'
 }
 elseif ($Component -eq 'EventCache') {
     $componentPath = '..\ApplicationAccess.Hosting.Rest.EventCache'

@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <Description>Factory classes used to instantiate components used to host ApplicationAccess nodes.</Description>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Grpc.Client\ApplicationAccess.Hosting.Grpc.Client.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Client\ApplicationAccess.Hosting.Rest.Client.csproj" />
+  </ItemGroup>
+
+</Project>

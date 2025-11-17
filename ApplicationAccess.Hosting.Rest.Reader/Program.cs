@@ -48,11 +48,15 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                         .ValidateDataAnnotations().ValidateOnStart();
                     DatabaseConnectionOptions databaseConnectionOptions = new();
                     builder.Configuration.GetSection(DatabaseConnectionOptions.DatabaseConnectionOptionsName).Bind(databaseConnectionOptions);
-                    DatabaseConnectionOptionsValidator validator = new();
-                    validator.Validate(databaseConnectionOptions);
+                    DatabaseConnectionOptionsValidator databaseConnectionOptionsValidator = new();
+                    databaseConnectionOptionsValidator.Validate(databaseConnectionOptions);
                     builder.Services.AddOptions<EventCacheConnectionOptions>()
                         .Bind(builder.Configuration.GetSection(EventCacheConnectionOptions.EventCacheConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
+                    EventCacheConnectionOptions eventCacheConnectionOptions = new();
+                    builder.Configuration.GetSection(EventCacheConnectionOptions.EventCacheConnectionOptionsName).Bind(eventCacheConnectionOptions);
+                    EventCacheConnectionOptionsValidator eventCacheConnectionOptionsValidator = new();
+                    eventCacheConnectionOptionsValidator.Validate(eventCacheConnectionOptions);
                     builder.Services.AddOptions<EventCacheRefreshOptions>()
                         .Bind(builder.Configuration.GetSection(EventCacheRefreshOptions.EventCacheRefreshOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();

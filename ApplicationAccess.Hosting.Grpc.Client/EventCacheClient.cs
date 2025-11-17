@@ -39,7 +39,7 @@ namespace ApplicationAccess.Hosting.Grpc.Client
     /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class EventCacheClient<TUser, TGroup, TComponent, TAccess> : AccessManagerClientBase, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>
+    public class EventCacheClient<TUser, TGroup, TComponent, TAccess> : AccessManagerClientBase, IAccessManagerEventCache<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>Used to convert <see cref="TemporalEventBufferItemBase"/> instances to gRPC messages and vice versa.</summary>
         protected EventBufferItemToGrpcMessageConverter<TUser, TGroup, TComponent, TAccess> eventBufferItemToGrpcMessageConverter;

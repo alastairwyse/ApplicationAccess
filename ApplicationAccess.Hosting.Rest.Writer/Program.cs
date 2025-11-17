@@ -51,14 +51,18 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     builder.Configuration.GetSection(DatabaseConnectionOptions.DatabaseConnectionOptionsName).Bind(databaseConnectionOptions);
                     DatabaseConnectionOptionsValidator validator = new();
                     validator.Validate(databaseConnectionOptions);
+                    builder.Services.AddOptions<EventCacheConnectionOptions>()
+                        .Bind(builder.Configuration.GetSection(EventCacheConnectionOptions.EventCacheConnectionOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                    EventCacheConnectionOptions eventCacheConnectionOptions = new();
+                    builder.Configuration.GetSection(EventCacheConnectionOptions.EventCacheConnectionOptionsName).Bind(eventCacheConnectionOptions);
+                    EventCacheConnectionOptionsValidator eventCacheConnectionOptionsValidator = new();
+                    eventCacheConnectionOptionsValidator.Validate(eventCacheConnectionOptions);
                     builder.Services.AddOptions<EventBufferFlushingOptions>()
                         .Bind(builder.Configuration.GetSection(EventBufferFlushingOptions.EventBufferFlushingOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<EventPersistenceOptions>()
                         .Bind(builder.Configuration.GetSection(EventPersistenceOptions.EventPersistenceOptionsName))
-                        .ValidateDataAnnotations().ValidateOnStart();
-                    builder.Services.AddOptions<EventCacheConnectionOptions>()
-                        .Bind(builder.Configuration.GetSection(EventCacheConnectionOptions.EventCacheConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<ErrorHandlingOptions>()
                         .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))

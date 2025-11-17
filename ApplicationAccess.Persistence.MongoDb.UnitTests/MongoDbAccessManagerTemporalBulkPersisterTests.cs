@@ -15,9 +15,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using ApplicationAccess.UnitTests;
 using ApplicationLogging;
 using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 using NUnit.Framework;
 using NSubstitute;
 
@@ -147,6 +150,46 @@ namespace ApplicationAccess.Persistence.MongoDb.UnitTests
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'databaseName' must contain a value."));
             Assert.AreEqual("databaseName", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor()
+        {
+            using (testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>
+            (
+                "mongodb://testServer:27017",
+                "ApplicationAccess",
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                true,
+                logger
+            ))
+            {
+
+                NonPublicFieldAssert.HasValue(new List<String>() { "logger" }, logger, testMongoDbAccessManagerTemporalBulkPersister, true);
+                NonPublicFieldAssert.IsOfType<NullMetricLogger>(new List<String>() { "metricLogger" }, testMongoDbAccessManagerTemporalBulkPersister);
+            }
+
+
+            using (testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersister<String, String, String, String>
+            (
+                "mongodb://testServer:27017",
+                "ApplicationAccess",
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                true,
+                logger, 
+                metricLogger
+            ))
+            {
+
+                NonPublicFieldAssert.HasValue(new List<String>() { "logger" }, logger, testMongoDbAccessManagerTemporalBulkPersister, true);
+                NonPublicFieldAssert.HasValue(new List<String>() { "metricLogger" }, metricLogger, testMongoDbAccessManagerTemporalBulkPersister, true);
+            }
         }
 
         [Test]

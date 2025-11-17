@@ -183,6 +183,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests", "ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests\ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests.csproj", "{317C9A3F-C0D6-46FA-B779-9BE14E07E4B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Factories", "ApplicationAccess.Hosting.Factories\ApplicationAccess.Hosting.Factories.csproj", "{D3CD280A-9500-4C71-9D13-D819638D2AAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Factories.UnitTests", "ApplicationAccess.Hosting.Factories.UnitTests\ApplicationAccess.Hosting.Factories.UnitTests.csproj", "{6FF18ADC-1D41-442B-8967-F9030BD66817}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -549,6 +553,14 @@ Global
 		{317C9A3F-C0D6-46FA-B779-9BE14E07E4B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{317C9A3F-C0D6-46FA-B779-9BE14E07E4B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{317C9A3F-C0D6-46FA-B779-9BE14E07E4B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3CD280A-9500-4C71-9D13-D819638D2AAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3CD280A-9500-4C71-9D13-D819638D2AAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3CD280A-9500-4C71-9D13-D819638D2AAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3CD280A-9500-4C71-9D13-D819638D2AAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FF18ADC-1D41-442B-8967-F9030BD66817}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FF18ADC-1D41-442B-8967-F9030BD66817}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FF18ADC-1D41-442B-8967-F9030BD66817}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FF18ADC-1D41-442B-8967-F9030BD66817}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
