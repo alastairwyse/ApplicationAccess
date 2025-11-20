@@ -40,7 +40,7 @@ CREATE TABLE $(DatabaseName).dbo.Users
 );
 
 CREATE INDEX UsersUserIndex ON $(DatabaseName).dbo.Users ([User], TransactionTo);
-CREATE INDEX UsersTransactionIndex ON $(DatabaseName).dbo.Users (TransactionFrom, TransactionTo);
+CREATE INDEX UsersTransactionIndex ON $(DatabaseName).dbo.Users (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.Groups
 (
@@ -51,7 +51,7 @@ CREATE TABLE $(DatabaseName).dbo.Groups
 );
 
 CREATE INDEX GroupsGroupIndex ON $(DatabaseName).dbo.Groups ([Group], TransactionTo);
-CREATE INDEX GroupsTransactionIndex ON $(DatabaseName).dbo.Groups (TransactionFrom, TransactionTo);
+CREATE INDEX GroupsTransactionIndex ON $(DatabaseName).dbo.Groups (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.UserToGroupMappings
 (
@@ -64,7 +64,7 @@ CREATE TABLE $(DatabaseName).dbo.UserToGroupMappings
 
 CREATE INDEX UserToGroupMappingsUserIndex ON UserToGroupMappings (UserId, TransactionTo);
 CREATE INDEX UserToGroupMappingsGroupIndex ON UserToGroupMappings (GroupId, TransactionTo);
-CREATE INDEX UserToGroupMappingsTransactionIndex ON UserToGroupMappings (TransactionFrom, TransactionTo);
+CREATE INDEX UserToGroupMappingsTransactionIndex ON UserToGroupMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.GroupToGroupMappings
 (
@@ -77,7 +77,7 @@ CREATE TABLE $(DatabaseName).dbo.GroupToGroupMappings
 
 CREATE INDEX GroupToGroupMappingsFromGroupIndex ON GroupToGroupMappings (FromGroupId, TransactionTo);
 CREATE INDEX GroupToGroupMappingsToGroupIndex ON GroupToGroupMappings (ToGroupId, TransactionTo);
-CREATE INDEX GroupToGroupMappingsTransactionIndex ON GroupToGroupMappings (TransactionFrom, TransactionTo);
+CREATE INDEX GroupToGroupMappingsTransactionIndex ON GroupToGroupMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.ApplicationComponents
 (
@@ -88,7 +88,7 @@ CREATE TABLE $(DatabaseName).dbo.ApplicationComponents
 );
 
 CREATE INDEX ApplicationComponentsApplicationComponentIndex ON $(DatabaseName).dbo.ApplicationComponents (ApplicationComponent, TransactionTo);
-CREATE INDEX ApplicationComponentsTransactionIndex ON $(DatabaseName).dbo.ApplicationComponents (TransactionFrom, TransactionTo);
+CREATE INDEX ApplicationComponentsTransactionIndex ON $(DatabaseName).dbo.ApplicationComponents (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.AccessLevels
 (
@@ -99,7 +99,7 @@ CREATE TABLE $(DatabaseName).dbo.AccessLevels
 );
 
 CREATE INDEX AccessLevelsAccessLevelIndex ON $(DatabaseName).dbo.AccessLevels (AccessLevel, TransactionTo);
-CREATE INDEX AccessLevelsTransactionIndex ON $(DatabaseName).dbo.AccessLevels (TransactionFrom, TransactionTo);
+CREATE INDEX AccessLevelsTransactionIndex ON $(DatabaseName).dbo.AccessLevels (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings
 (
@@ -113,7 +113,7 @@ CREATE TABLE $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMapping
 
 CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsUserIndex ON $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings (UserId, ApplicationComponentId, AccessLevelId, TransactionTo);
 CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsApplicationComponentIndex ON $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings (ApplicationComponentId, AccessLevelId, TransactionTo);
-CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsTransactionIndex ON $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
+CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsTransactionIndex ON $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings
 (
@@ -127,7 +127,7 @@ CREATE TABLE $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappin
 
 CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsGroupIndex ON $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings (GroupId, ApplicationComponentId, AccessLevelId, TransactionTo);
 CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsApplicationComponentIndex ON $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings (ApplicationComponentId, AccessLevelId, TransactionTo);
-CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsTransactionIndex ON $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
+CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsTransactionIndex ON $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.EntityTypes
 (
@@ -138,7 +138,7 @@ CREATE TABLE $(DatabaseName).dbo.EntityTypes
 );
 
 CREATE INDEX EntityTypesEntityTypeIndex ON $(DatabaseName).dbo.EntityTypes (EntityType, TransactionTo);
-CREATE INDEX EntityTypesTransactionIndex ON $(DatabaseName).dbo.EntityTypes (TransactionFrom, TransactionTo);
+CREATE INDEX EntityTypesTransactionIndex ON $(DatabaseName).dbo.EntityTypes (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.Entities
 (
@@ -150,7 +150,7 @@ CREATE TABLE $(DatabaseName).dbo.Entities
 );
 
 CREATE INDEX EntitiesEntityIndex ON $(DatabaseName).dbo.Entities (EntityTypeId, Entity, TransactionTo);
-CREATE INDEX EntitiesTransactionIndex ON $(DatabaseName).dbo.Entities (TransactionFrom, TransactionTo);
+CREATE INDEX EntitiesTransactionIndex ON $(DatabaseName).dbo.Entities (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.UserToEntityMappings
 (
@@ -164,7 +164,7 @@ CREATE TABLE $(DatabaseName).dbo.UserToEntityMappings
 
 CREATE INDEX UserToEntityMappingsUserIndex ON $(DatabaseName).dbo.UserToEntityMappings (UserId, EntityTypeId, EntityId, TransactionTo);
 CREATE INDEX UserToEntityMappingsEntityIndex ON $(DatabaseName).dbo.UserToEntityMappings (EntityTypeId, EntityId, TransactionTo);
-CREATE INDEX UserToEntityMappingsTransactionIndex ON $(DatabaseName).dbo.UserToEntityMappings (TransactionFrom, TransactionTo);
+CREATE INDEX UserToEntityMappingsTransactionIndex ON $(DatabaseName).dbo.UserToEntityMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.GroupToEntityMappings
 (
@@ -178,7 +178,7 @@ CREATE TABLE $(DatabaseName).dbo.GroupToEntityMappings
 
 CREATE INDEX GroupToEntityMappingsGroupIndex ON $(DatabaseName).dbo.GroupToEntityMappings (GroupId, EntityTypeId, EntityId, TransactionTo);
 CREATE INDEX GroupToEntityMappingsEntityIndex ON $(DatabaseName).dbo.GroupToEntityMappings (EntityTypeId, EntityId, TransactionTo);
-CREATE INDEX GroupToEntityMappingsTransactionIndex ON $(DatabaseName).dbo.GroupToEntityMappings (TransactionFrom, TransactionTo);
+CREATE INDEX GroupToEntityMappingsTransactionIndex ON $(DatabaseName).dbo.GroupToEntityMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE $(DatabaseName).dbo.SchemaVersions
 (

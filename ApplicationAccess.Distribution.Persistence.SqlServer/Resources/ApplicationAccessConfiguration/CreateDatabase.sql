@@ -26,7 +26,7 @@ CREATE TABLE $(DatabaseName).dbo.ShardConfiguration
 );
 
 CREATE INDEX ShardConfigurationKeyIndex ON ShardConfiguration (DataElementType, OperationType, HashRangeStart, TransactionTo);
-CREATE INDEX ShardConfigurationTransactionIndex ON ShardConfiguration (TransactionFrom, TransactionTo);
+CREATE INDEX ShardConfigurationTransactionIndex ON ShardConfiguration (TransactionTo, TransactionFrom);
 
 
 --------------------------------------------------------------------------------
