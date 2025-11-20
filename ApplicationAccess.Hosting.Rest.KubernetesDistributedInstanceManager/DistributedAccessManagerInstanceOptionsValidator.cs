@@ -117,7 +117,6 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
             try
             {
                 ResourceQuantity resourceQuantity = new(resourceValue);
-                resourceQuantity.Validate();
             }
             catch (Exception e)
             {

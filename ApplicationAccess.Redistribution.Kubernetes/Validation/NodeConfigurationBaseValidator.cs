@@ -49,7 +49,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Validation
             try
             {
                 var resourceQuantity = new ResourceQuantity(propertyValue);
-                resourceQuantity.Validate();
             }
             catch (Exception e)
             {

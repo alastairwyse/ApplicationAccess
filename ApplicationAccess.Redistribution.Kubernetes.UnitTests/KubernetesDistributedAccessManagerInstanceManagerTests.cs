@@ -544,27 +544,25 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             UInt16 port = 7001;
             mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
-            V1ServiceList returnServices = new
-            (
-                new List<V1Service>
+            V1ServiceList returnServices = new();
+            returnServices.Items = new List<V1Service>
+            {
+                new V1Service() { Metadata = new V1ObjectMeta() { Name = "OtherService" } },
+                new V1Service()
                 {
-                    new V1Service() { Metadata = new V1ObjectMeta() { Name = "OtherService" } },
-                    new V1Service()
+                    Metadata = new V1ObjectMeta() { Name = "operation-router-externalservice" },
+                    Status = new V1ServiceStatus()
                     {
-                        Metadata = new V1ObjectMeta() { Name = "operation-router-externalservice" },
-                        Status = new V1ServiceStatus()
+                        LoadBalancer = new V1LoadBalancerStatus()
                         {
-                            LoadBalancer = new V1LoadBalancerStatus()
+                            Ingress = new List<V1LoadBalancerIngress>()
                             {
-                                Ingress = new List<V1LoadBalancerIngress>()
-                                {
-                                    new V1LoadBalancerIngress() { Ip = "10.104.198.18" }
-                                }
+                                new V1LoadBalancerIngress() { Ip = "10.104.198.18" }
                             }
                         }
                     }
                 }
-            );
+            };
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
             mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns
             (
@@ -591,27 +589,25 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             UInt16 port = 7001;
             mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
-            V1ServiceList returnServices = new
-            (
-                new List<V1Service>
+            V1ServiceList returnServices = new();
+            returnServices.Items = new List<V1Service>
+            {
+                new V1Service() { Metadata = new V1ObjectMeta() { Name = "OtherService" } },
+                new V1Service()
                 {
-                    new V1Service() { Metadata = new V1ObjectMeta() { Name = "OtherService" } },
-                    new V1Service()
+                    Metadata = new V1ObjectMeta() { Name = "operation-router-externalservice" },
+                    Status = new V1ServiceStatus()
                     {
-                        Metadata = new V1ObjectMeta() { Name = "operation-router-externalservice" },
-                        Status = new V1ServiceStatus()
+                        LoadBalancer = new V1LoadBalancerStatus()
                         {
-                            LoadBalancer = new V1LoadBalancerStatus()
+                            Ingress = new List<V1LoadBalancerIngress>()
                             {
-                                Ingress = new List<V1LoadBalancerIngress>()
-                                {
-                                    new V1LoadBalancerIngress() { Ip = "10.104.198.18" }
-                                }
+                                new V1LoadBalancerIngress() { Ip = "10.104.198.18" }
                             }
                         }
                     }
                 }
-            );
+            };
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
             mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromResult<V1ServiceList>(returnServices));
 
@@ -660,26 +656,24 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateWriter1LoadBalancerServiceAsync()
         {
             UInt16 port = 7001;
-            V1ServiceList returnServices = new
-            (
-                new List<V1Service>
+            V1ServiceList returnServices = new();
+            returnServices.Items = new List<V1Service>
+            {
+                new V1Service()
                 {
-                    new V1Service()
+                    Metadata = new V1ObjectMeta() { Name = "writer1-externalservice" },
+                    Status = new V1ServiceStatus()
                     {
-                        Metadata = new V1ObjectMeta() { Name = "writer1-externalservice" },
-                        Status = new V1ServiceStatus()
+                        LoadBalancer = new V1LoadBalancerStatus()
                         {
-                            LoadBalancer = new V1LoadBalancerStatus()
+                            Ingress = new List<V1LoadBalancerIngress>()
                             {
-                                Ingress = new List<V1LoadBalancerIngress>()
-                                {
-                                    new V1LoadBalancerIngress() { Ip = "10.104.198.18" }
-                                }
+                                new V1LoadBalancerIngress() { Ip = "10.104.198.18" }
                             }
                         }
                     }
                 }
-            );
+            };
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
             mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromResult<V1ServiceList>(returnServices));
 
@@ -725,26 +719,24 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateWriter2LoadBalancerServiceAsync()
         {
             UInt16 port = 7005;
-            V1ServiceList returnServices = new
-            (
-                new List<V1Service>
+            V1ServiceList returnServices = new();
+            returnServices.Items = new List<V1Service>
+            {
+                new V1Service()
                 {
-                    new V1Service()
+                    Metadata = new V1ObjectMeta() { Name = "writer2-externalservice" },
+                    Status = new V1ServiceStatus()
                     {
-                        Metadata = new V1ObjectMeta() { Name = "writer2-externalservice" },
-                        Status = new V1ServiceStatus()
+                        LoadBalancer = new V1LoadBalancerStatus()
                         {
-                            LoadBalancer = new V1LoadBalancerStatus()
+                            Ingress = new List<V1LoadBalancerIngress>()
                             {
-                                Ingress = new List<V1LoadBalancerIngress>()
-                                {
-                                    new V1LoadBalancerIngress() { Ip = "10.104.198.20" }
-                                }
+                                new V1LoadBalancerIngress() { Ip = "10.104.198.20" }
                             }
                         }
                     }
                 }
-            );
+            };
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
             mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromResult<V1ServiceList>(returnServices));
 
@@ -912,22 +904,20 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            String persistentStorageInstanceName = "applicationaccesstest_shard_configuration"; 
-            V1DeploymentList returnDeployments = new
-            (
-                new List<V1Deployment>
-                {
-                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
-                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
-                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
-                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-eventcache-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
-                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
-                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-writer-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
-                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "group-eventcache-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
-                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "group-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
-                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "group-writer-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
-                }
-            );
+            String persistentStorageInstanceName = "applicationaccesstest_shard_configuration";
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items = new List<V1Deployment>
+            {
+                new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-eventcache-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-writer-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "group-eventcache-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "group-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "group-writer-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+            };
             List<ShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfiguration = new()
             {
                 new ShardGroupConfiguration<TestPersistentStorageLoginCredentials>(Int32.MinValue)
@@ -969,7 +959,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items = 
             (
                 new List<V1Deployment>
                 {
@@ -1030,7 +1021,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             TestPersistentStorageLoginCredentials groupN2147483648Credentials = new("groupN2147483648ConnectionString");
             TestPersistentStorageLoginCredentials groupN715827882Credentials = new("groupN715827882ConnectionString");
             TestPersistentStorageLoginCredentials group715827884Credentials = new("group715827884ConnectionString");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>
                 {
@@ -1055,7 +1047,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-coordinator" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             ); 
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -1249,7 +1242,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             TestPersistentStorageLoginCredentials groupN2147483648Credentials = new("groupN2147483648ConnectionString");
             TestPersistentStorageLoginCredentials groupN715827882Credentials = new("groupN715827882ConnectionString");
             TestPersistentStorageLoginCredentials group715827884Credentials = new("group715827884ConnectionString");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>
                 {
@@ -1274,7 +1268,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-coordinator" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -1483,7 +1478,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             TestPersistentStorageLoginCredentials groupN2147483648Credentials = new("groupN2147483648ConnectionString");
             TestPersistentStorageLoginCredentials groupN715827882Credentials = new("groupN715827882ConnectionString");
             TestPersistentStorageLoginCredentials group715827884Credentials = new("group715827884ConnectionString");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>
                 {
@@ -1508,7 +1504,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "operation-coordinator" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
                 }
             );
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -1755,7 +1752,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
@@ -1791,7 +1789,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
@@ -1827,7 +1826,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
@@ -1863,7 +1863,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
@@ -1900,7 +1901,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
@@ -1996,7 +1998,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("applicationaccesstest");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
@@ -2139,7 +2142,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             String appLabelValue = "writer1";
             UInt16 port = 7001;
             mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -2187,7 +2191,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             String appLabelValue = "writer1";
             UInt16 port = 7001;
             mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -2848,7 +2853,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid routerCreateBeginId = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -2910,7 +2916,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -2967,7 +2974,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3025,7 +3033,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid eventCopyBeginId = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3111,7 +3120,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3178,7 +3188,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3241,7 +3252,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3304,7 +3316,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3380,7 +3393,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3449,7 +3463,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3512,7 +3527,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3576,11 +3592,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3661,11 +3679,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3742,11 +3762,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3816,11 +3838,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3886,11 +3910,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupSplitBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_user_0";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -3956,12 +3982,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid persistentStorageCreateBeginId = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
             Guid eventCopyBeginId = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
             // This is returned whilst restarting the source shard group
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
             // This is returned whilst creating the router, creating the target shard group, and restarting the source shard group
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -4190,12 +4218,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid persistentStorageCreateBeginId = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
             Guid eventCopyBeginId = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
             // This is returned whilst restarting the source shard group
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
             // This is returned whilst creating the router, creating the target shard group, and restarting the source shard group
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5207,7 +5237,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid routerCreateBeginId = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5269,7 +5300,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5327,7 +5359,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5385,7 +5418,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5444,7 +5478,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid eventMergeBeginId = Guid.Parse("22908a07-eaac-42e4-ad1d-6794a835e3bd");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5519,7 +5554,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5580,11 +5616,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid persistentStorageInstanceRenameBeginId = Guid.Parse("22908a07-eaac-42e4-ad1d-6794a835e3bd");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5650,11 +5688,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid persistentStorageInstanceRenameBeginId2 = Guid.Parse("044c68d4-990d-4d53-939f-a0d7d7456eea");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5718,11 +5758,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5786,11 +5828,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5857,11 +5901,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -5928,11 +5974,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -6010,11 +6058,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -6086,11 +6136,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String tempPersistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={tempPersistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -6157,11 +6209,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String tempPersistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={tempPersistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -6228,11 +6282,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String tempPersistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={tempPersistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -6303,11 +6359,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String tempPersistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={tempPersistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -6374,11 +6432,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid shardGroupMergeBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             String tempPersistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={tempPersistentStorageInstanceName}");
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -6448,12 +6508,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid eventMergeBeginId = Guid.Parse("c220cc98-3f1d-4c36-8051-cd540c41b7d7");
             String persistentStorageInstanceName = "applicationaccesstest_kwllkgqulnfb";
             // This is returned whilst shutting down the first source shard group
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
             // This is returned both whilst creating router and whilst restarting the first source shard group
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -6642,12 +6704,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid eventMergeBeginId = Guid.Parse("c220cc98-3f1d-4c36-8051-cd540c41b7d7");
             String persistentStorageInstanceName = "kwllkgqulnfb";
             // This is returned whilst shutting down the first source shard group
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
             );
             // This is returned both whilst creating router and whilst restarting the first source shard group
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -7147,7 +7211,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Int32 hashRangeStart = 20_000;
             String persistentStorageInstanceName = "applicationaccesstest_grouptogroupmapping_20000";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>{ new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-eventcache-20000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 }  } }
             );
@@ -7187,7 +7252,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Int32 hashRangeStart = 20_000;
             String persistentStorageInstanceName = "applicationaccesstest_grouptogroupmapping_20000";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>
                 {
@@ -7237,7 +7303,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Int32 hashRangeStart = -400_000;
             String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>
                 {
@@ -7286,7 +7353,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Int32 hashRangeStart = -400_000;
             String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>
                 {
@@ -7335,7 +7403,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Int32 hashRangeStart = -400_000;
             String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>
                 {
@@ -7401,7 +7470,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.Group;
             Int32 hashRangeStart = 0;
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
                 {
@@ -7443,7 +7513,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -1;
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
                 {
@@ -7453,7 +7524,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     }
                 }
             );
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -7490,7 +7562,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32"); 
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
                 {
@@ -7524,7 +7597,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
                 {
@@ -7562,7 +7636,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
                 {
@@ -7597,7 +7672,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
                 {
@@ -7635,7 +7711,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
                 {
@@ -7678,7 +7755,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>()
                 {
@@ -7760,7 +7838,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -7795,7 +7874,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -7830,7 +7910,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -7872,7 +7953,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8002,7 +8084,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8034,7 +8117,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=grouptogroupmapping_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8063,7 +8147,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8093,7 +8178,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateEventCacheNodeAsync()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8124,7 +8210,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n1");
             Uri eventCacheServiceUrl = new("http://user-writer-n1-service:5000");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8156,7 +8243,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_0");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8186,7 +8274,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccess_shard_configuration");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8235,7 +8324,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=applicationaccess_shard_configuration");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8262,7 +8352,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8301,7 +8392,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8374,7 +8466,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateDistributedOperationRouterNodeAsync()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8414,7 +8507,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String deploymentName = "user-reader-n2147483648";
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8439,7 +8533,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String deploymentName = "user-reader-n2147483648";
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8479,7 +8574,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateApplicationAccessNodeAsync()
         {
             String deploymentName = "group-eventcache-n2147483648";
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8594,7 +8690,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             UInt16 port = 7001;
             mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -8641,7 +8738,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             UInt16 port = 7001;
             mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -8853,7 +8951,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task GetLoadBalancerServiceIpAddressAsync_LoadBalancerServiceNotFound()
         {
             String serviceName = "operation-router-externalservice";
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -8875,7 +8974,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task GetLoadBalancerServiceIpAddressAsync_IngressPointNull()
         {
             String serviceName = "operation-router-externalservice";
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -8905,7 +9005,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task GetLoadBalancerServiceIpAddressAsync_IngressPointListEmpty()
         {
             String serviceName = "operation-router-externalservice";
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -8938,7 +9039,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task GetLoadBalancerServiceIpAddressAsync_FailureToConvertIngressIpToIPAddress()
         {
             String serviceName = "operation-router-externalservice";
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -8974,7 +9076,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task GetLoadBalancerServiceIpAddressAsync()
         {
             String serviceName = "operation-router-externalservice";
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -9704,7 +9807,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void WaitForLoadBalancerServiceAsync_AbortTimeoutExpires()
         {
             String serviceName = "operation-router-externalservice";
-            V1ServiceList returnServices = new
+            V1ServiceList returnServices = new();
+            returnServices.Items =
             (
                 new List<V1Service>
                 {
@@ -9753,7 +9857,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task WaitForLoadBalancerServiceAsync()
         {
             String serviceName = "operation-router-externalservice";
-            V1ServiceList unavailableServices = new
+            V1ServiceList unavailableServices = new();
+            unavailableServices.Items =
             (
                 new List<V1Service>
                 {
@@ -9771,7 +9876,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     }
                 }
             );
-            V1ServiceList availableServices = new
+            V1ServiceList availableServices = new();
+            availableServices.Items =
             (
                 new List<V1Service>
                 {
@@ -9809,7 +9915,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void WaitForDeploymentAvailabilityAsync_AbortTimeoutExpires()
         {
             String name = "user-reader-n2147483648";
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -9853,7 +9960,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task WaitForDeploymentAvailabilityAsync()
         {
             String name = "user-reader-n2147483648";
-            V1DeploymentList unavailableDeployments = new
+            V1DeploymentList unavailableDeployments = new();
+            unavailableDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -9865,7 +9973,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     }
                 }
             );
-            V1DeploymentList availableDeployments = new
+            V1DeploymentList availableDeployments = new();
+            availableDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -9939,7 +10048,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void WaitForDeploymentScaleDownAsync_AbortTimeoutExpires()
         {
             String name = "user-reader-n2147483648";
-            V1PodList returnPods = new
+            V1PodList returnPods = new();
+            returnPods.Items =
             (
                 new List<V1Pod>
                 {
@@ -9961,7 +10071,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task WaitForDeploymentScaleDownAsync()
         {
             String name = "user-reader-n2147483648";
-            V1PodList podsBeforeScaleDown = new
+            V1PodList podsBeforeScaleDown = new();
+            podsBeforeScaleDown.Items =
             (
                 new List<V1Pod>
                 {
@@ -9969,7 +10080,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Pod() { Metadata = new V1ObjectMeta() { Name = name } }
                 }
             );
-            V1PodList podsAfterScaleDown = new
+            V1PodList podsAfterScaleDown = new();
+            podsAfterScaleDown.Items =
             (
                 new List<V1Pod>
                 {
@@ -10017,7 +10129,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void WaitForDeploymentPredicateAsync_AbortTimeoutExpires()
         {
             String name = "user-reader-n2147483648";
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -10035,7 +10148,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(1000, e.Timeout);
 
 
-            returnDeployments = new
+            returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -10069,7 +10183,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task WaitForDeploymentPredicateAsync()
         {
             String name = "user-reader-n2147483648";
-            V1DeploymentList returnDeployments = new
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -10128,7 +10243,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task ScaleDownAndDeleteDeploymentAsync()
         {
             String name = "user-reader-n2147483648";
-            V1PodList podsBeforeScaleDown = new
+            V1PodList podsBeforeScaleDown = new();
+            podsBeforeScaleDown.Items =
             (
                 new List<V1Pod>
                 {
@@ -10136,7 +10252,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new V1Pod() { Metadata = new V1ObjectMeta() { Name = name } }
                 }
             );
-            V1PodList podsAfterScaleDown = new
+            V1PodList podsAfterScaleDown = new();
+            podsAfterScaleDown.Items =
             (
                 new List<V1Pod>
                 {
