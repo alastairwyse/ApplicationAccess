@@ -122,7 +122,7 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
                 userStringifier,
                 groupStringifier,
                 applicationComponentStringifier,
-                accessLevelStringifier, 
+                accessLevelStringifier,
                 false, 
                 logger, 
                 metricLogger
@@ -663,6 +663,79 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
         {
             PopulateTestDatabase();
             AccessManager<String, String, String, String> accessManager = new();
+
+            AccessManagerState result = testMongoDbAccessManagerTemporalBulkPersister.Load(accessManager);
+
+            Assert.AreEqual(Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32"), result.EventId);
+            Assert.AreEqual(CreateDataTimeFromString("2025-10-20 16:30:52.0000000"), result.StateTime);
+            Assert.AreEqual(2, result.StateSequence);
+            List<String> allUsers = new(accessManager.Users);
+            Assert.AreEqual(1, allUsers.Count);
+            Assert.AreEqual("user1", allUsers[0]);
+            List<String> allGroups = new(accessManager.Groups);
+            Assert.AreEqual(2, allGroups.Count);
+            Assert.IsTrue(allGroups.Contains("group1"));
+            Assert.IsTrue(allGroups.Contains("group2"));
+            List<String> userToGroupMappings = new(accessManager.GetUserToGroupMappings("user1", false));
+            Assert.AreEqual(1, userToGroupMappings.Count);
+            Assert.AreEqual("group1", userToGroupMappings[0]);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<String> groupToGroupMappings = new(accessManager.GetGroupToGroupMappings("group1", false));
+            Assert.AreEqual(1, groupToGroupMappings.Count);
+            Assert.AreEqual("group2", groupToGroupMappings[0]);
+            List<Tuple<String, String>> userToApplicationComponentAndAccessLevelMappings = new(accessManager.GetUserToApplicationComponentAndAccessLevelMappings("user1"));
+            Assert.AreEqual(1, userToApplicationComponentAndAccessLevelMappings.Count);
+            Assert.AreEqual("OrderScreen", userToApplicationComponentAndAccessLevelMappings[0].Item1);
+            Assert.AreEqual("Create", userToApplicationComponentAndAccessLevelMappings[0].Item2);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<Tuple<String, String>> groupToApplicationComponentAndAccessLevelMappings = new(accessManager.GetGroupToApplicationComponentAndAccessLevelMappings("group1"));
+            Assert.AreEqual(1, groupToApplicationComponentAndAccessLevelMappings.Count);
+            Assert.AreEqual("OrderScreen", groupToApplicationComponentAndAccessLevelMappings[0].Item1);
+            Assert.AreEqual("Create", groupToApplicationComponentAndAccessLevelMappings[0].Item2);
+            groupToApplicationComponentAndAccessLevelMappings = new(accessManager.GetGroupToApplicationComponentAndAccessLevelMappings("group2"));
+            Assert.AreEqual(0, groupToApplicationComponentAndAccessLevelMappings.Count);
+            List<String> allEntityTypes = new(accessManager.EntityTypes);
+            Assert.AreEqual(1, allEntityTypes.Count);
+            Assert.AreEqual("ClientAccount", allEntityTypes[0]);
+            List<String> allEntities = new(accessManager.GetEntities("ClientAccount"));
+            Assert.AreEqual(1, allEntities.Count);
+            Assert.AreEqual("CompanyA", allEntities[0]);
+            Assert.IsFalse(accessManager.ContainsEntityType("BusinessUnit"));
+            List<Tuple<String, String>> userToEntityMappings = new(accessManager.GetUserToEntityMappings("user1"));
+            Assert.AreEqual(1, userToEntityMappings.Count);
+            Assert.AreEqual("ClientAccount", userToEntityMappings[0].Item1);
+            Assert.AreEqual("CompanyA", userToEntityMappings[0].Item2);
+            Assert.IsFalse(accessManager.ContainsUser("user2"));
+            List<Tuple<String, String>> groupToEntityMappings = new(accessManager.GetGroupToEntityMappings("group1"));
+            Assert.AreEqual(1, groupToEntityMappings.Count);
+            Assert.AreEqual("ClientAccount", groupToEntityMappings[0].Item1);
+            Assert.AreEqual("CompanyA", groupToEntityMappings[0].Item2);
+            groupToEntityMappings = new(accessManager.GetGroupToEntityMappings("group2"));
+            Assert.AreEqual(0, groupToEntityMappings.Count);
+            Assert.AreEqual(4, userStringifier.FromStringCallCount);
+            Assert.AreEqual(7, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+        }
+
+        [Test]
+        public void LoadWithTransaction()
+        {
+            PopulateTestDatabase();
+            AccessManager<String, String, String, String> accessManager = new();
+            testMongoDbAccessManagerTemporalBulkPersister.Dispose();
+            testMongoDbAccessManagerTemporalBulkPersister = new MongoDbAccessManagerTemporalBulkPersisterWithProtectedMembers<String, String, String, String>
+            (
+                mongoRunner.ConnectionString,
+                "ApplicationAccess",
+                userStringifier,
+                groupStringifier,
+                applicationComponentStringifier,
+                accessLevelStringifier,
+                true,
+                logger,
+                metricLogger
+            );
 
             AccessManagerState result = testMongoDbAccessManagerTemporalBulkPersister.Load(accessManager);
 

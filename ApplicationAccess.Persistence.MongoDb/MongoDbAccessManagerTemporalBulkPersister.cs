@@ -1181,77 +1181,100 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
         protected void LoadToAccessManager(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            accessManagerToLoadTo.Clear();
-            foreach (String currentUser in GetUsers(stateTime))
+            #pragma warning disable 8600, 8602, 8604
+
+            IClientSessionHandle session = null;
+            if (useTransactions == true)
             {
-                accessManagerToLoadTo.AddUser(userStringifier.FromString(currentUser));
+                var clientSessionOptions = new ClientSessionOptions();
+                clientSessionOptions.CausalConsistency = false;
+                clientSessionOptions.Snapshot = true;
+                session = mongoClient.StartSession(clientSessionOptions);
             }
-            foreach (String currentGroup in GetGroups(stateTime))
+            try
             {
-                accessManagerToLoadTo.AddGroup(groupStringifier.FromString(currentGroup));
+                accessManagerToLoadTo.Clear();
+                foreach (String currentUser in GetUsers(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddUser(userStringifier.FromString(currentUser));
+                }
+                foreach (String currentGroup in GetGroups(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddGroup(groupStringifier.FromString(currentGroup));
+                }
+                foreach (Tuple<String, String> currentUserToGroupMapping in GetUserToGroupMappings(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddUserToGroupMapping(userStringifier.FromString(currentUserToGroupMapping.Item1), groupStringifier.FromString(currentUserToGroupMapping.Item2));
+                }
+                foreach (Tuple<String, String> currentGroupToGroupMapping in GetGroupToGroupMappings(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddGroupToGroupMapping(groupStringifier.FromString(currentGroupToGroupMapping.Item1), groupStringifier.FromString(currentGroupToGroupMapping.Item2));
+                }
+                foreach (Tuple<String, String, String> currentUserToApplicationComponentAndAccessLevelMapping in GetUserToApplicationComponentAndAccessLevelMappings(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddUserToApplicationComponentAndAccessLevelMapping
+                    (
+                        userStringifier.FromString(currentUserToApplicationComponentAndAccessLevelMapping.Item1),
+                        applicationComponentStringifier.FromString(currentUserToApplicationComponentAndAccessLevelMapping.Item2),
+                        accessLevelStringifier.FromString(currentUserToApplicationComponentAndAccessLevelMapping.Item3)
+                    );
+                }
+                foreach (Tuple<String, String, String> currentGroupToApplicationComponentAndAccessLevelMapping in GetGroupToApplicationComponentAndAccessLevelMappings(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddGroupToApplicationComponentAndAccessLevelMapping
+                    (
+                        groupStringifier.FromString(currentGroupToApplicationComponentAndAccessLevelMapping.Item1),
+                        applicationComponentStringifier.FromString(currentGroupToApplicationComponentAndAccessLevelMapping.Item2),
+                        accessLevelStringifier.FromString(currentGroupToApplicationComponentAndAccessLevelMapping.Item3)
+                    );
+                }
+                foreach (String currentEntityType in GetEntityTypes(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddEntityType(currentEntityType);
+                }
+                foreach (Tuple<String, String> currentEntityTypeAndEntity in GetEntities(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddEntity(currentEntityTypeAndEntity.Item1, currentEntityTypeAndEntity.Item2);
+                }
+                foreach (Tuple<String, String, String> currentUserToEntityMapping in GetUserToEntityMappings(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddUserToEntityMapping
+                    (
+                        userStringifier.FromString(currentUserToEntityMapping.Item1),
+                        currentUserToEntityMapping.Item2,
+                        currentUserToEntityMapping.Item3
+                    );
+                }
+                foreach (Tuple<String, String, String> currentGroupToEntityMapping in GetGroupToEntityMappings(session, stateTime))
+                {
+                    accessManagerToLoadTo.AddGroupToEntityMapping
+                    (
+                        groupStringifier.FromString(currentGroupToEntityMapping.Item1),
+                        currentGroupToEntityMapping.Item2,
+                        currentGroupToEntityMapping.Item3
+                    );
+                }
             }
-            foreach (Tuple<String, String> currentUserToGroupMapping in GetUserToGroupMappings(stateTime))
+            finally
             {
-                accessManagerToLoadTo.AddUserToGroupMapping(userStringifier.FromString(currentUserToGroupMapping.Item1), groupStringifier.FromString(currentUserToGroupMapping.Item2));
+                if (useTransactions == true)
+                {
+                    session.Dispose();
+                }
             }
-            foreach (Tuple<String, String> currentGroupToGroupMapping in GetGroupToGroupMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddGroupToGroupMapping(groupStringifier.FromString(currentGroupToGroupMapping.Item1), groupStringifier.FromString(currentGroupToGroupMapping.Item2));
-            }
-            foreach (Tuple<String, String, String> currentUserToApplicationComponentAndAccessLevelMapping in GetUserToApplicationComponentAndAccessLevelMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddUserToApplicationComponentAndAccessLevelMapping
-                (
-                    userStringifier.FromString(currentUserToApplicationComponentAndAccessLevelMapping.Item1),
-                    applicationComponentStringifier.FromString(currentUserToApplicationComponentAndAccessLevelMapping.Item2),
-                    accessLevelStringifier.FromString(currentUserToApplicationComponentAndAccessLevelMapping.Item3)
-                );
-            }
-            foreach (Tuple<String, String, String> currentGroupToApplicationComponentAndAccessLevelMapping in GetGroupToApplicationComponentAndAccessLevelMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddGroupToApplicationComponentAndAccessLevelMapping
-                (
-                    groupStringifier.FromString(currentGroupToApplicationComponentAndAccessLevelMapping.Item1),
-                    applicationComponentStringifier.FromString(currentGroupToApplicationComponentAndAccessLevelMapping.Item2),
-                    accessLevelStringifier.FromString(currentGroupToApplicationComponentAndAccessLevelMapping.Item3)
-                );
-            }
-            foreach (String currentEntityType in GetEntityTypes(stateTime))
-            {
-                accessManagerToLoadTo.AddEntityType(currentEntityType);
-            }
-            foreach (Tuple<String, String> currentEntityTypeAndEntity in GetEntities(stateTime))
-            {
-                accessManagerToLoadTo.AddEntity(currentEntityTypeAndEntity.Item1, currentEntityTypeAndEntity.Item2);
-            }
-            foreach (Tuple<String, String, String> currentUserToEntityMapping in GetUserToEntityMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddUserToEntityMapping
-                (
-                    userStringifier.FromString(currentUserToEntityMapping.Item1),
-                    currentUserToEntityMapping.Item2,
-                    currentUserToEntityMapping.Item3
-                );
-            }
-            foreach (Tuple<String, String, String> currentGroupToEntityMapping in GetGroupToEntityMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddGroupToEntityMapping
-                (
-                    groupStringifier.FromString(currentGroupToEntityMapping.Item1),
-                    currentGroupToEntityMapping.Item2,
-                    currentGroupToEntityMapping.Item3
-                );
-            }
+
+            #pragma warning restore 8600, 8602, 8604
         }
 
         #pragma warning disable 1591
 
         // The following Get*() methods return all elements in the database valid at the specified state time
 
-        protected IEnumerable<String> GetUsers(DateTime stateTime)
+        protected IEnumerable<String> GetUsers(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session, 
                 stateTime, 
                 usersCollectionName, 
                 "users",
@@ -1259,10 +1282,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             );
         }
 
-        protected IEnumerable<String> GetGroups(DateTime stateTime)
+        protected IEnumerable<String> GetGroups(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session,
                 stateTime,
                 groupsCollectionName,
                 "groups",
@@ -1270,10 +1294,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             );
         }
 
-        protected IEnumerable<Tuple<String, String>> GetUserToGroupMappings(DateTime stateTime)
+        protected IEnumerable<Tuple<String, String>> GetUserToGroupMappings(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session,
                 stateTime,
                 userToGroupMappingsCollectionName,
                 "user to group mappings",
@@ -1281,10 +1306,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             );
         }
 
-        protected IEnumerable<Tuple<String, String>> GetGroupToGroupMappings(DateTime stateTime)
+        protected IEnumerable<Tuple<String, String>> GetGroupToGroupMappings(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session,
                 stateTime,
                 groupToGroupMappingsCollectionName,
                 "group to group mappings",
@@ -1292,10 +1318,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             );
         }
 
-        protected IEnumerable<Tuple<String, String, String>> GetUserToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
+        protected IEnumerable<Tuple<String, String, String>> GetUserToApplicationComponentAndAccessLevelMappings(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session,
                 stateTime,
                 userToApplicationComponentAndAccessLevelMappingsCollectionName,
                 "user to application component and access level mappings",
@@ -1303,10 +1330,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             );
         }
 
-        protected IEnumerable<Tuple<String, String, String>> GetGroupToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
+        protected IEnumerable<Tuple<String, String, String>> GetGroupToApplicationComponentAndAccessLevelMappings(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session,
                 stateTime,
                 groupToApplicationComponentAndAccessLevelMappingsCollectionName,
                 "group to application component and access level mappings",
@@ -1314,10 +1342,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             );
         }
 
-        protected IEnumerable<String> GetEntityTypes(DateTime stateTime)
+        protected IEnumerable<String> GetEntityTypes(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session,
                 stateTime,
                 entityTypesCollectionName,
                 "entity types",
@@ -1325,10 +1354,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             );
         }
 
-        protected IEnumerable<Tuple<String, String>> GetEntities(DateTime stateTime)
+        protected IEnumerable<Tuple<String, String>> GetEntities(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session,
                 stateTime,
                 entitiesCollectionName,
                 "entities",
@@ -1336,10 +1366,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             );
         }
 
-        protected IEnumerable<Tuple<String, String, String>> GetUserToEntityMappings(DateTime stateTime)
+        protected IEnumerable<Tuple<String, String, String>> GetUserToEntityMappings(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session,
                 stateTime,
                 userToEntityMappingsCollectionName,
                 "user to entity mappings",
@@ -1347,10 +1378,11 @@ namespace ApplicationAccess.Persistence.MongoDb
             );
         }
 
-        protected IEnumerable<Tuple<String, String, String>> GetGroupToEntityMappings(DateTime stateTime)
+        protected IEnumerable<Tuple<String, String, String>> GetGroupToEntityMappings(IClientSessionHandle session, DateTime stateTime)
         {
             return GetElements
             (
+                session,
                 stateTime,
                 groupToEntityMappingsCollectionName,
                 "group to entity mappings",
@@ -1365,11 +1397,13 @@ namespace ApplicationAccess.Persistence.MongoDb
         /// </summary>
         /// <typeparam name="TElement">The type of element to read/return.</typeparam>
         /// <typeparam name="TDocument">The type of document the elements are stored in in MongoDB.</typeparam>
+        /// <param name="session">The (optional) session to execute the queries in.  Set to null to not run in a session.</param>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
         /// <param name="collectionName">The name of the collection to read the elements from.</param>
         /// <param name="elementName">The name of the element being read (e.g. 'users', to use in exception messages).</param>
+        /// <param name="documentToElementConversionFunction">An expression which converts the element type stored in the collection being read, to the type of the elements in the returned <see cref="IEnumerable{T}"/>.</param>
         /// <returns>A collection of all elements in the database valid at the specified state time.</returns>
-        protected IEnumerable<TElement> GetElements<TElement, TDocument>(DateTime stateTime, String collectionName, String elementName, Expression<Func<TDocument, TElement>> documentToElementConversionFunction)
+        protected IEnumerable<TElement> GetElements<TElement, TDocument>(IClientSessionHandle session, DateTime stateTime, String collectionName, String elementName, Expression<Func<TDocument, TElement>> documentToElementConversionFunction)
             where TDocument : DocumentBase
         {
             var elementCollection = database.GetCollection<TDocument>(collectionName);
@@ -1377,7 +1411,7 @@ namespace ApplicationAccess.Persistence.MongoDb
             ProjectionDefinition<TDocument, TElement> projection = new FindExpressionProjectionDefinition<TDocument, TElement>(documentToElementConversionFunction);
             try
             {
-                return Find(null, elementCollection, filterDefinition).Project(projection).ToEnumerable();
+                return Find(session, elementCollection, filterDefinition).Project(projection).ToEnumerable();
             }
             catch (Exception e)
             {
