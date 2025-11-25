@@ -22,6 +22,8 @@ using Grpc.Core.Interceptors;
 using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using ApplicationAccess.Utilities;
+using ApplicationLogging;
 
 namespace ApplicationAccess.Hosting.Grpc
 {
@@ -34,6 +36,8 @@ namespace ApplicationAccess.Hosting.Grpc
         protected ErrorHandlingOptions errorHandlingOptions;
         /// <summary>Used to convert exceptions to <see cref="Google.Rpc.Status"/> objects.</summary>
         protected ExceptionToGrpcStatusConverter exceptionToGrpcStatusConverter;
+        /// <summary>The logger for general logging.</summary>
+        protected IApplicationLogger logger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Grpc.ExceptionHandlingInterceptor class.
@@ -48,6 +52,24 @@ namespace ApplicationAccess.Hosting.Grpc
         {
             this.errorHandlingOptions = errorHandlingOptions;
             this.exceptionToGrpcStatusConverter = exceptionToGrpcStatusConverter;
+            logger = new NullLogger(); 
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Grpc.ExceptionHandlingInterceptor class.
+        /// </summary>
+        /// <param name="errorHandlingOptions">A set of application error handling options.</param>
+        /// <param name="exceptionToGrpcStatusConverter">Used to convert exceptions to <see cref="Google.Rpc.Status"/> objects.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        public ExceptionHandlingInterceptor
+        (
+            ErrorHandlingOptions errorHandlingOptions,
+            ExceptionToGrpcStatusConverter exceptionToGrpcStatusConverter,
+            IApplicationLogger logger
+        )
+            : this(errorHandlingOptions, exceptionToGrpcStatusConverter)
+        {
+            this.logger = logger;
         }
 
         /// <inheritdoc/>
@@ -64,6 +86,7 @@ namespace ApplicationAccess.Hosting.Grpc
             }
             catch (Exception e)
             {
+                logger.Log(LogLevel.Warning, e.Message, e);
                 Google.Rpc.Status grpcStatus = exceptionToGrpcStatusConverter.Convert(e);
                 if (grpcStatus.Code == (Int32)Code.Internal && errorHandlingOptions.OverrideInternalServerErrors.Value == true)
                 {

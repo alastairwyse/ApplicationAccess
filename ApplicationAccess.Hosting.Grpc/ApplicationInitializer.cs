@@ -113,6 +113,7 @@ namespace ApplicationAccess.Hosting.Grpc
             {
                 exceptionToGrpcStatusConverter.AddConversionFunction(currentMapping.Item1, currentMapping.Item2);
             }
+            // TODO: Find a way to construct this with IApplicationLogger parameter... either getting logger/factory here, or by having the interceptor created through dependency injection
             ExceptionHandlingInterceptor exceptionHandlingInterceptor = new(errorHandlingOptions, exceptionToGrpcStatusConverter);
             builder.Services.AddSingleton<ExceptionHandlingInterceptor>(exceptionHandlingInterceptor);
 
