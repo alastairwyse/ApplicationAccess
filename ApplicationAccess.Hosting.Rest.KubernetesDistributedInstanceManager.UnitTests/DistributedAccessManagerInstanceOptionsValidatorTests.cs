@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager;
 using ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.Options;
+using ApplicationAccess.Redistribution.Kubernetes.Models;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
@@ -278,6 +279,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
                     NameSpace = "default",
                     PersistentStorageInstanceNamePrefix = "appaccesstest",
                     LoadBalancerServicesHttps = false,
+                    NodeInterconnectionProtocol = Protocol.Rest,
                     DeploymentWaitPollingInterval = 100,
                     ServiceAvailabilityWaitAbortTimeout = 5000,
                     DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 1000,

@@ -39,6 +39,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
         /// <summary>Whether HTTPS should be used to connect to load balancer services exposed outside the Kubernetes cluster.</summary>
         public required Boolean LoadBalancerServicesHttps { get; init; }
 
+        /// <summary>The protocol to use to connect between nodes.</summary>
+        public required Protocol NodeInterconnectionProtocol { get; init; }
+
         /// <summary>
         /// The time in milliseconds between polls to check whether a deployment has either become available or scaled down.
         /// </summary>

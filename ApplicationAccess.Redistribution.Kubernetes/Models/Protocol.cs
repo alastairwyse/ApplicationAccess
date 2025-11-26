@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2024 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2025 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-using ApplicationAccess.Hosting.Rest.Controllers;
+using System;
 
-namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
+namespace ApplicationAccess.Redistribution.Kubernetes.Models
 {
     /// <summary>
-    /// Derives from abstract base controller class <see cref="StatusControllerBase"/> to expose it as a controller.
+    /// Protocols used to connect between ApplicationAccess nodes.
     /// </summary>
-    public class StatusController : StatusControllerBase
+    public enum Protocol
     {
+        /// <summary>REST.</summary>
+        Rest,
+        /// <summary>gRPC.</summary>
+        Grpc
     }
 }

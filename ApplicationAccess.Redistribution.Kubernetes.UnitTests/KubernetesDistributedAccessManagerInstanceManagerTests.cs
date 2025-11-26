@@ -10385,6 +10385,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 NameSpace = testNameSpace,
                 PersistentStorageInstanceNamePrefix = "applicationaccesstest",
                 LoadBalancerServicesHttps = false,
+                NodeInterconnectionProtocol = Protocol.Rest,
                 DeploymentWaitPollingInterval = 100,
                 ServiceAvailabilityWaitAbortTimeout = 5000,
                 DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 1000,

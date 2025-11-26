@@ -3593,63 +3593,88 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         protected V1Deployment EventCacheNodeDeploymentTemplate
         {
-            get => new V1Deployment()
+            get
             {
-                ApiVersion = $"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}",
-                Kind = V1Deployment.KubeKind,
-                Metadata = new V1ObjectMeta(),
-                Spec = new V1DeploymentSpec
+                V1Deployment deploymentTemplate = new()
                 {
-                    Replicas = 1,
-                    Selector = new V1LabelSelector()
+                    ApiVersion = $"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}",
+                    Kind = V1Deployment.KubeKind,
+                    Metadata = new V1ObjectMeta(),
+                    Spec = new V1DeploymentSpec
                     {
-                        MatchLabels = new Dictionary<string, string>()
-                    },
-                    Template = new V1PodTemplateSpec()
-                    {
-                        Metadata = new V1ObjectMeta()
+                        Replicas = 1,
+                        Selector = new V1LabelSelector()
                         {
-                            Labels = new Dictionary<string, string>()
+                            MatchLabels = new Dictionary<string, string>()
                         },
-                        Spec = new V1PodSpec
+                        Template = new V1PodTemplateSpec()
                         {
-                            TerminationGracePeriodSeconds = staticConfiguration.EventCacheNodeConfigurationTemplate.TerminationGracePeriod,
-                            Containers = new List<V1Container>()
+                            Metadata = new V1ObjectMeta()
                             {
-                                new V1Container()
+                                Labels = new Dictionary<string, string>()
+                            },
+                            Spec = new V1PodSpec
+                            {
+                                TerminationGracePeriodSeconds = staticConfiguration.EventCacheNodeConfigurationTemplate.TerminationGracePeriod,
+                                Containers = new List<V1Container>()
                                 {
-                                    Image = staticConfiguration.EventCacheNodeConfigurationTemplate.ContainerImage,
-                                    Ports = new List<V1ContainerPort>()
+                                    new V1Container()
                                     {
-                                        new V1ContainerPort
+                                        Image = staticConfiguration.EventCacheNodeConfigurationTemplate.ContainerImage,
+                                        Ports = new List<V1ContainerPort>()
                                         {
-                                            ContainerPort = staticConfiguration.PodPort
-                                        }
-                                    },
-                                    Resources = new V1ResourceRequirements
-                                    {
-                                        Requests = new Dictionary<String, ResourceQuantity>()
-                                        {
-                                           [requestsCpuKey] = new ResourceQuantity(staticConfiguration.EventCacheNodeConfigurationTemplate.CpuResourceRequest),
-                                           [requestsMemoryKey] = new ResourceQuantity(staticConfiguration.EventCacheNodeConfigurationTemplate.MemoryResourceRequest)
-                                        }
-                                    }, 
-                                    StartupProbe = new V1Probe
-                                    {
-                                        HttpGet = new V1HTTPGetAction
-                                        {
-                                            Path = nodeStatusApiEndpointUrl,
-                                            Port = staticConfiguration.PodPort
+                                            new V1ContainerPort
+                                            {
+                                                ContainerPort = staticConfiguration.PodPort
+                                            }
                                         },
-                                        FailureThreshold = staticConfiguration.EventCacheNodeConfigurationTemplate.StartupProbeFailureThreshold,
-                                        PeriodSeconds = staticConfiguration.EventCacheNodeConfigurationTemplate.StartupProbePeriod
+                                        Resources = new V1ResourceRequirements
+                                        {
+                                            Requests = new Dictionary<String, ResourceQuantity>()
+                                            {
+                                               [requestsCpuKey] = new ResourceQuantity(staticConfiguration.EventCacheNodeConfigurationTemplate.CpuResourceRequest),
+                                               [requestsMemoryKey] = new ResourceQuantity(staticConfiguration.EventCacheNodeConfigurationTemplate.MemoryResourceRequest)
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                };
+
+                if (staticConfiguration.NodeInterconnectionProtocol == Protocol.Rest)
+                {
+                    deploymentTemplate.Spec.Template.Spec.Containers[0].StartupProbe = new V1Probe
+                    {
+                        HttpGet = new V1HTTPGetAction
+                        {
+                            Path = nodeStatusApiEndpointUrl,
+                            Port = staticConfiguration.PodPort
+                        },
+                        FailureThreshold = staticConfiguration.EventCacheNodeConfigurationTemplate.StartupProbeFailureThreshold,
+                        PeriodSeconds = staticConfiguration.EventCacheNodeConfigurationTemplate.StartupProbePeriod
+                    };
                 }
-            };
+                else if (staticConfiguration.NodeInterconnectionProtocol == Protocol.Grpc)
+                {
+                    deploymentTemplate.Spec.Template.Spec.Containers[0].StartupProbe = new V1Probe
+                    {
+                        Grpc = new V1GRPCAction
+                        {
+                            Port = staticConfiguration.PodPort,
+                        },
+                        FailureThreshold = staticConfiguration.EventCacheNodeConfigurationTemplate.StartupProbeFailureThreshold,
+                        PeriodSeconds = staticConfiguration.EventCacheNodeConfigurationTemplate.StartupProbePeriod
+                    };
+                }
+                else
+                {
+                    throw new ArgumentException($"Parameter '{nameof(staticConfiguration)}' contains unhandled {nameof(staticConfiguration.NodeInterconnectionProtocol)} property value '{staticConfiguration.NodeInterconnectionProtocol}'.", nameof(staticConfiguration));
+                }
+
+                return deploymentTemplate;
+            }
         }
 
         /// <summary>

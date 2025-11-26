@@ -50,6 +50,9 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(LoadBalancerServicesHttps)}' is required.")]
         public Boolean? LoadBalancerServicesHttps { get; set; }
 
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(NodeInterconnectionProtocol)}' is required.")]
+        public Protocol? NodeInterconnectionProtocol { get; set; }
+
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DeploymentWaitPollingInterval)}' is required.")]
         [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
         public Int32? DeploymentWaitPollingInterval { get; set; }

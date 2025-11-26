@@ -16,7 +16,7 @@
 
 using ApplicationAccess.Hosting.Rest.Controllers;
 
-namespace ApplicationAccess.Hosting.Rest.ReaderWriter.Controllers
+namespace ApplicationAccess.Hosting.Rest.Reader.Controllers
 {
     /// <summary>
     /// Derives from abstract base controller class <see cref="StatusControllerBase"/> to expose it as a controller.

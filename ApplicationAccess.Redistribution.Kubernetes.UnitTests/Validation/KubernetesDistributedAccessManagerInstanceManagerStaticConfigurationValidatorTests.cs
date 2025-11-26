@@ -46,6 +46,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 NameSpace = "default",
                 PersistentStorageInstanceNamePrefix = "applicationaccesstest",
                 LoadBalancerServicesHttps = false,
+                NodeInterconnectionProtocol = Protocol.Rest,
                 DeploymentWaitPollingInterval = 100,
                 ServiceAvailabilityWaitAbortTimeout = 5000,
                 DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 1000,

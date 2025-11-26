@@ -226,6 +226,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 NameSpace = staticConfigurationOptions.NameSpace,
                 PersistentStorageInstanceNamePrefix = staticConfigurationOptions.PersistentStorageInstanceNamePrefix,
                 LoadBalancerServicesHttps = staticConfigurationOptions.LoadBalancerServicesHttps.Value,
+                NodeInterconnectionProtocol = staticConfigurationOptions.NodeInterconnectionProtocol.Value,
                 DeploymentWaitPollingInterval = staticConfigurationOptions.DeploymentWaitPollingInterval.Value,
                 ServiceAvailabilityWaitAbortTimeout = staticConfigurationOptions.ServiceAvailabilityWaitAbortTimeout.Value,
                 DistributedOperationCoordinatorRefreshIntervalWaitBuffer = staticConfigurationOptions.DistributedOperationCoordinatorRefreshIntervalWaitBuffer.Value,
