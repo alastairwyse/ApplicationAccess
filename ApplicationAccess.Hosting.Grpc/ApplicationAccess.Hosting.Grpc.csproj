@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <Protobuf Include="Models\Protos\grpc_error.proto" GrpcServices="None" />
+    <Protobuf Include="Models\Protos\temporal_event_buffer_items.proto" GrpcServices="None" />
   </ItemGroup>
   
   <ItemGroup>

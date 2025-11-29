@@ -22,7 +22,7 @@ syntax = "proto3";
 import "google/protobuf/empty.proto";
 import "Models/Protos/temporal_event_buffer_items.proto"; 
 
-package ApplicationAccess.Hosting.Grpc.EventCache.V1;
+package ApplicationAccess.Hosting.Grpc.GeneratedCode.EventCache.V1;
 
 message GetAllEventsSinceRequest {
 	bytes prior_event_id = 1;

@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using ApplicationAccess.Hosting.Grpc.EventCache.V1;
+using ApplicationAccess.Hosting.Grpc.GeneratedCode.EventCache.V1;
 using ApplicationAccess.Hosting.Rest.EventCache;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;

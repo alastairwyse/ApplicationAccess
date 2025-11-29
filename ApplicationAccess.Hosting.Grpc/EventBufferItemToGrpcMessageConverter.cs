@@ -21,7 +21,7 @@ using Google.Protobuf.Collections;
 using ApplicationAccess.Hosting.Grpc.Models;
 using ApplicationAccess.Persistence.Models;
 
-namespace ApplicationAccess.Hosting.Grpc.EventCache
+namespace ApplicationAccess.Hosting.Grpc
 {
     /// <summary>
     /// Converts between subclasses of <see cref="TemporalEventBufferItemBase"/> and their equivalent gRPC message.
@@ -42,7 +42,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Grpc.EventCache.EventBufferItemToGrpcMessageConverter class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Grpc.EventBufferItemToGrpcMessageConverter class.
         /// </summary>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>

@@ -39,6 +39,8 @@ namespace ApplicationAccess.Hosting.Grpc
             this.actuator = actuator;
         }
 
+        #pragma warning disable 1998
+
         /// <inheritdoc/>
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
@@ -51,5 +53,7 @@ namespace ApplicationAccess.Hosting.Grpc
                 return new HealthCheckResult(HealthStatus.Unhealthy);
             }
         }
+        
+        #pragma warning restore 1998
     }
 }
