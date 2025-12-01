@@ -31,5 +31,12 @@ namespace ApplicationAccess.Redistribution
         /// <param name="persistentStorageCredentials">The persistent storage credentials.</param>
         /// <param name="appsettingsJson">The 'appsettings.json' configuration.</param>
         void ConfigureAppsettingsJsonWithPersistentStorageCredentials(TPersistentStorageCredentials persistentStorageCredentials, JObject appsettingsJson);
+
+        /// <summary>
+        /// Configures a <see cref="JObject"/> containing an AccessManager component's 'appsettings.json' configuration (which includes partial persistent storage credentials) with a persistent storage instance name.
+        /// </summary>
+        /// <param name="persistentStorageInstanceName">The name of the persistent storage instance (e.g. database name).</param>
+        /// <param name="appsettingsJson">The 'appsettings.json' configuration.</param>
+        void ConfigureAppsettingsJsonWithPersistentStorageInstanceName(String persistentStorageInstanceName, JObject appsettingsJson);
     }
 }

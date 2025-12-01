@@ -15,9 +15,11 @@
  */
 
 using System;
+using System.Data.SqlClient;
 using System.Text.Json;
-using ApplicationAccess.Persistence.Sql.SqlServer;
+using Microsoft.Data.SqlClient;
 using Newtonsoft.Json.Linq;
+using ApplicationAccess.Persistence.Sql.SqlServer;
 
 namespace ApplicationAccess.Redistribution.Persistence.SqlServer
 {
@@ -53,6 +55,41 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
             }
 
             appsettingsJson[appsettingsDatabaseConnectionPropertyName][appsettingsSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsConnectionStringPropertyName] = persistentStorageCredentials.ConnectionString;
+        }
+
+        /// <summary>
+        /// Configures a <see cref="JObject"/> containing an AccessManager component's 'appsettings.json' configuration (which includes a server name (data source), user, and password) with a database name (i.e. initial catalog).
+        /// </summary>
+        /// <param name="persistentStorageInstanceName">The name of the persistent storage instance (e.g. database name).</param>
+        /// <param name="appsettingsJson">The 'appsettings.json' configuration.</param>
+        public void ConfigureAppsettingsJsonWithPersistentStorageInstanceName(String persistentStorageInstanceName, JObject appsettingsJson)
+        {
+            if (String.IsNullOrWhiteSpace(persistentStorageInstanceName) == true)
+                throw new ArgumentException($"Parameter '{nameof(persistentStorageInstanceName)}' must contain a value.", nameof(persistentStorageInstanceName));
+
+            String connectionStringPath = $"{appsettingsDatabaseConnectionPropertyName}.{appsettingsSqlDatabaseConnectionPropertyName}.{appsettingsConnectionParametersPropertyName}.{appsettingsConnectionStringPropertyName}";
+            String connectionString;
+            try
+            {
+                JToken connectionStringToken = appsettingsJson.SelectToken(connectionStringPath, true);
+                connectionString = connectionStringToken.ToString();
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"JSON path '{connectionStringPath}' was not found in the specified 'appsettings.json' configuration.", e);
+            }
+            SqlConnectionStringBuilder connectionStringBuilder;
+            try
+            {
+                connectionStringBuilder = new(connectionString);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"'{appsettingsConnectionStringPropertyName}' property with value '{connectionString}' contained an invalid SQL Server connection string, in the specified 'appsettings.json' configuration.", e);
+            }
+            connectionStringBuilder.InitialCatalog = persistentStorageInstanceName;
+
+            appsettingsJson[appsettingsDatabaseConnectionPropertyName][appsettingsSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsConnectionStringPropertyName] = connectionStringBuilder.ToString();
         }
     }
 }

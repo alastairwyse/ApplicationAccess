@@ -9110,6 +9110,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void CreateReaderNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
         {
             String name = "user-reader-n2147483648";
+            String persistentStorageInstanceName = "user_n2147483648";
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
@@ -9119,7 +9120,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'EventCacheConnection' was not found in JSON document containing appsettings configuration for reader nodes."));
@@ -9132,7 +9133,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for reader nodes."));
@@ -9143,13 +9144,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String name = "user-reader-n2147483648";
+            String persistentStorageInstanceName = "user_n2147483648";
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
@@ -9161,6 +9163,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateReaderNodeDeploymentAsync()
         {
             String name = "user-reader-n2147483648";
+            String persistentStorageInstanceName = "user_n2147483648";
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             V1Deployment capturedDeploymentDefinition = null;
@@ -9174,7 +9177,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             ));
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
 
             mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
@@ -9214,6 +9217,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateReaderNodeDeploymentAsync_SetReaderWriterNodePersistentStorageCredentialsFalse()
         {
             String name = "user-reader-n2147483648";
+            String persistentStorageInstanceName = "user_n2147483648";
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration() with { SetReaderWriterNodePersistentStorageCredentials = false };
@@ -9224,9 +9228,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
 
-            mockAppSettingsConfigurer.DidNotReceive().ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
+            mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageInstanceName(persistentStorageInstanceName, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
             Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
@@ -9336,6 +9340,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void CreateWriterNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
         {
             String name = "user-writer-n2147483648";
+            String persistentStorageInstanceName = "user_n2147483648";
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
@@ -9345,7 +9350,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'EventPersistence' was not found in JSON document containing appsettings configuration for writer nodes."));
@@ -9358,7 +9363,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'EventCacheConnection' was not found in JSON document containing appsettings configuration for writer nodes."));
@@ -9371,7 +9376,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for writer nodes."));
@@ -9382,13 +9387,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String name = "user-writer-n2147483648";
+            String persistentStorageInstanceName = "user_n2147483648";
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromException<V1Deployment>(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
@@ -9400,6 +9406,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateWriterNodeDeploymentAsync()
         {
             String name = "user-writer-n2147483648";
+            String persistentStorageInstanceName = "user_n2147483648";
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             V1Deployment capturedDeploymentDefinition = null;
@@ -9414,7 +9421,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             ));
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
 
             mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
@@ -9453,6 +9460,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateWriterNodeDeploymentAsync_SetReaderWriterNodePersistentStorageCredentialsFalse()
         {
             String name = "user-writer-n2147483648";
+            String persistentStorageInstanceName = "user_n2147483648";
             TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration() with { SetReaderWriterNodePersistentStorageCredentials = false };
@@ -9464,9 +9472,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
 
-            mockAppSettingsConfigurer.DidNotReceive().ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
+            mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageInstanceName(persistentStorageInstanceName, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
             Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
@@ -11125,9 +11133,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 return await base.GetLoadBalancerServiceIpAddressAsync(serviceName);
             }
 
-            public new async Task CreateReaderNodeDeploymentAsync(String name, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
+            public new async Task CreateReaderNodeDeploymentAsync(String name, String persistentStorageInstanceName, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
             {
-                await base.CreateReaderNodeDeploymentAsync(name, persistentStorageCredentials, eventCacheServiceUrl);
+                await base.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, persistentStorageCredentials, eventCacheServiceUrl);
             }
 
             public new async Task CreateEventCacheNodeDeploymentAsync(String name)
@@ -11135,9 +11143,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await base.CreateEventCacheNodeDeploymentAsync(name);
             }
 
-            public new async Task CreateWriterNodeDeploymentAsync(String name, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
+            public new async Task CreateWriterNodeDeploymentAsync(String name, String persistentStorageInstanceName, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
             {
-                await base.CreateWriterNodeDeploymentAsync(name, persistentStorageCredentials, eventCacheServiceUrl);
+                await base.CreateWriterNodeDeploymentAsync(name, persistentStorageInstanceName, persistentStorageCredentials, eventCacheServiceUrl);
             }
 
             public new async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync(String name, TestPersistentStorageLoginCredentials persistentStorageCredentials)

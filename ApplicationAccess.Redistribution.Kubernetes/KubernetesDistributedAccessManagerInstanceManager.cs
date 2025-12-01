@@ -2486,7 +2486,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             String nameSpace = staticConfiguration.NameSpace;
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
-            Func<Task> createDeploymentFunction = () => CreateReaderNodeDeploymentAsync(deploymentName, persistentStorageCredentials, eventCacheServiceUrl);
+            String persistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, hashRangeStart);
+            Func<Task> createDeploymentFunction = () => CreateReaderNodeDeploymentAsync(deploymentName, persistentStorageInstanceName, persistentStorageCredentials, eventCacheServiceUrl);
             Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.ReaderNodeConfigurationTemplate);
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating reader node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new ReaderNodeCreateTime());
@@ -2543,7 +2544,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             String nameSpace = staticConfiguration.NameSpace;
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
-            Func<Task> createDeploymentFunction = () => CreateWriterNodeDeploymentAsync(deploymentName, persistentStorageCredentials, eventCacheServiceUrl);
+            String persistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, hashRangeStart);
+            Func<Task> createDeploymentFunction = () => CreateWriterNodeDeploymentAsync(deploymentName, persistentStorageInstanceName, persistentStorageCredentials, eventCacheServiceUrl);
             Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.WriterNodeConfigurationTemplate);
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating writer node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new WriterNodeCreateTime());
@@ -2975,9 +2977,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Creates a Kubernetes deployment for a reader node.
         /// </summary>
         /// <param name="name">The name of the deployment.</param>
+        /// <param name="persistentStorageInstanceName">The name of the persistent storage instance for the reader node.</param>
         /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the reader node.</param>
         /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the reader node should consume events from.</param>
-        protected async Task CreateReaderNodeDeploymentAsync(String name, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
+        protected async Task CreateReaderNodeDeploymentAsync(String name, String persistentStorageInstanceName, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
         {
             // Prepare and encode the 'appsettings.json' file contents
             JObject appsettingsContents = staticConfiguration.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
@@ -2992,6 +2995,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             if (staticConfiguration.SetReaderWriterNodePersistentStorageCredentials == true)
             {
                 credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(persistentStorageCredentials, appsettingsContents);
+            }
+            else
+            {
+                credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageInstanceName(persistentStorageInstanceName, appsettingsContents);
             }
             var encoder = new Base64StringEncoder();
             var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
@@ -3060,9 +3067,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Creates a Kubernetes deployment for a writer node.
         /// </summary>
         /// <param name="name">The name of the deployment.</param>
-        /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the reader node.</param>
+        /// <param name="persistentStorageInstanceName">The name of the persistent storage instance for the writer node.</param>
+        /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the writer node.</param>
         /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the writer node should write events to.</param>
-        protected async Task CreateWriterNodeDeploymentAsync(String name, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
+        protected async Task CreateWriterNodeDeploymentAsync(String name, String persistentStorageInstanceName, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
         {
             // Prepare and encode the 'appsettings.json' file contents
             JObject appsettingsContents = staticConfiguration.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
@@ -3079,6 +3087,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             if (staticConfiguration.SetReaderWriterNodePersistentStorageCredentials == true)
             {
                 credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(persistentStorageCredentials, appsettingsContents);
+            }
+            else
+            {
+                credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageInstanceName(persistentStorageInstanceName, appsettingsContents);
             }
             var encoder = new Base64StringEncoder();
             var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());

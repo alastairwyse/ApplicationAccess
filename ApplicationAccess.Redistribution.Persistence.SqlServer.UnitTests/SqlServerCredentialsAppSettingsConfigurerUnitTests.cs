@@ -15,8 +15,8 @@
  */
 
 using System;
-using ApplicationAccess.Persistence.Sql.SqlServer;
 using Newtonsoft.Json.Linq;
+using ApplicationAccess.Persistence.Sql.SqlServer;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -59,6 +59,7 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith($"JSON path 'DatabaseConnection.SqlDatabaseConnection.ConnectionParameters' was not found in the specified 'appsettings.json' configuration."));
+            Assert.IsNotNull(e.InnerException);
         }
 
         [Test]
@@ -99,6 +100,128 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             );
 
             testSqlServerCredentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(testSqlServerLoginCredentials, testAppsettingsJson);
+
+            Assert.AreEqual(expectedAppsettingsJson, testAppsettingsJson);
+        }
+
+        [Test]
+        public void ConfigureAppsettingsJsonWithPersistentStorageInstanceName_PersistentStorageInstanceNameNull()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testSqlServerCredentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageInstanceName(null, new JObject());
+            });
+
+            Assert.That(e.Message, Does.StartWith("Parameter 'persistentStorageInstanceName' must contain a value."));
+            Assert.AreEqual("persistentStorageInstanceName", e.ParamName);
+        }
+
+        [Test]
+        public void ConfigureAppsettingsJsonWithPersistentStorageInstanceName_PersistentStorageInstanceNameWhitespace()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testSqlServerCredentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageInstanceName(" ", new JObject());
+            });
+
+            Assert.That(e.Message, Does.StartWith("Parameter 'persistentStorageInstanceName' must contain a value."));
+            Assert.AreEqual("persistentStorageInstanceName", e.ParamName);
+        }
+
+        [Test]
+        public void ConfigureAppsettingsJsonWithPersistentStorageInstanceName_AppsettingsJsonDoesntContainConnectionStringProperty()
+        {
+            JObject testAppsettingsJson = JObject.Parse
+            (
+                @"
+                { 
+                    ""DatabaseConnection"": {
+                        ""SqlDatabaseConnection"": {
+                            ""DatabaseType"": ""SqlServer"", 
+                            ""ConnectionParameters"": {
+                            }
+                        }
+                    }
+
+                }"
+            );
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testSqlServerCredentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageInstanceName("applicationaccess_user_n2147483648", testAppsettingsJson);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"JSON path 'DatabaseConnection.SqlDatabaseConnection.ConnectionParameters.ConnectionString' was not found in the specified 'appsettings.json' configuration."));
+            Assert.IsNotNull(e.InnerException);
+        }
+
+        [Test]
+        public void ConfigureAppsettingsJsonWithPersistentStorageInstanceName_AppsettingsJsonContainConnectionStringPropertyInvalid()
+        {
+            JObject testAppsettingsJson = JObject.Parse
+            (
+                @"
+                { 
+                    ""DatabaseConnection"": {
+                        ""SqlDatabaseConnection"": {
+                            ""DatabaseType"": ""SqlServer"", 
+                            ""ConnectionParameters"": {
+                                ""ConnectionString"": ""Invalid""
+                            }
+                        }
+                    }
+
+                }"
+            );
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testSqlServerCredentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageInstanceName("applicationaccess_user_n2147483648", testAppsettingsJson);
+            });
+
+            Assert.That(e.Message, Does.StartWith("'ConnectionString' property with value 'Invalid' contained an invalid SQL Server connection string, in the specified 'appsettings.json' configuration."));
+            Assert.IsNotNull(e.InnerException);
+        }
+
+        [Test]
+        public void ConfigureAppsettingsJsonWithPersistentStorageInstanceName()
+        {
+            JObject testAppsettingsJson = JObject.Parse
+            (
+                @"
+                { 
+                    ""DatabaseConnection"": {
+                        ""SqlDatabaseConnection"": {
+                            ""DatabaseType"": ""SqlServer"", 
+                            ""ConnectionParameters"": {
+                                ""RetryCount"": 5,
+                                ""RetryInterval"": 10,
+                                ""OperationTimeout"": 0, 
+                                ""ConnectionString"": ""Data Source=127.0.0.1;User ID=sa;Password=password;Encrypt=False;Authentication=SqlPassword""
+                            }
+                        }
+                    }
+                }"
+            );
+            JObject expectedAppsettingsJson = JObject.Parse
+            (
+                @"
+                { 
+                    ""DatabaseConnection"": {
+                        ""SqlDatabaseConnection"": {
+                            ""DatabaseType"": ""SqlServer"", 
+                            ""ConnectionParameters"": {
+                                ""RetryCount"": 5,
+                                ""RetryInterval"": 10,
+                                ""OperationTimeout"": 0, 
+                                ""ConnectionString"": ""Data Source=127.0.0.1;Initial Catalog=applicationaccess_user_n2147483648;User ID=sa;Password=password;Encrypt=False;Authentication=SqlPassword""
+                            }
+                        }
+                    }
+                }"
+            );
+
+            testSqlServerCredentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageInstanceName("applicationaccess_user_n2147483648", testAppsettingsJson);
 
             Assert.AreEqual(expectedAppsettingsJson, testAppsettingsJson);
         }
