@@ -340,12 +340,21 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         /// </summary>
         /// <param name="ShardGroupConfigurationDtos">The <see cref="ShardGroupConfiguration"/> DTO parse.</param>
         /// <returns>The converted <see cref="ShardGroupConfiguration{TPersistentStorageCredentials}"/>.</returns>
-        protected List<ShardGroupConfiguration<SqlServerLoginCredentials>> ParseShardGroupConfiguration(List<ShardGroupConfiguration> ShardGroupConfigurationDtos)
+        protected List<ShardGroupConfiguration<SqlServerLoginCredentials>> ParseShardGroupConfiguration(List<ShardGroupConfigurationWithSqlServerConnectionString> ShardGroupConfigurationDtos)
         {
             List<ShardGroupConfiguration<SqlServerLoginCredentials>> returnConfiguration = new();
-            foreach (ShardGroupConfiguration currentShardGroupConfigurationDto in ShardGroupConfigurationDtos)
+            foreach (ShardGroupConfigurationWithSqlServerConnectionString currentShardGroupConfigurationDto in ShardGroupConfigurationDtos)
             {
-                var newShardGroupConfiguration = new ShardGroupConfiguration<SqlServerLoginCredentials>(currentShardGroupConfigurationDto.HashRangeStart);
+                ShardGroupConfiguration<SqlServerLoginCredentials> newShardGroupConfiguration;
+                if (currentShardGroupConfigurationDto.SqlServerConnectionString == null)
+                {
+                    newShardGroupConfiguration = new ShardGroupConfiguration<SqlServerLoginCredentials>(currentShardGroupConfigurationDto.HashRangeStart);
+                }
+                else
+                {
+                    SqlServerLoginCredentials persistentStorageCredentials = new(currentShardGroupConfigurationDto.SqlServerConnectionString);
+                    newShardGroupConfiguration = new ShardGroupConfiguration<SqlServerLoginCredentials>(currentShardGroupConfigurationDto.HashRangeStart, persistentStorageCredentials);
+                }
                 returnConfiguration.Add(newShardGroupConfiguration);
             }
 

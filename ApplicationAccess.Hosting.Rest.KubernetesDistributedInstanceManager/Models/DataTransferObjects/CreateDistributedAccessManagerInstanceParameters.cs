@@ -27,9 +27,9 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
     {
         #pragma warning disable 1591
 
-        public List<ShardGroupConfiguration> UserShardGroupConfiguration { get; set; }
-        public List<ShardGroupConfiguration> GroupToGroupMappingShardGroupConfiguration { get; set; }
-        public List<ShardGroupConfiguration> GroupShardGroupConfiguration { get; set; }
+        public List<ShardGroupConfigurationWithSqlServerConnectionString> UserShardGroupConfiguration { get; set; }
+        public List<ShardGroupConfigurationWithSqlServerConnectionString> GroupToGroupMappingShardGroupConfiguration { get; set; }
+        public List<ShardGroupConfigurationWithSqlServerConnectionString> GroupShardGroupConfiguration { get; set; }
 
         #pragma warning restore 1591
     }

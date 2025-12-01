@@ -17,16 +17,15 @@
 using System;
 
 namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Models.DataTransferObjects
-{
+{    
     /// <summary>
-    /// DTO container class holding Kubernetes shard group configuration.
+    /// DTO container class holding shard group configuration and including a connection string for Microsoft SQL Server.
     /// </summary>
-    public class KubernetesShardGroupConfiguration : ShardGroupConfigurationWithSqlServerConnectionString
+    public class ShardGroupConfigurationWithSqlServerConnectionString : ShardGroupConfiguration
     {
         #pragma warning disable 1591
 
-        public String ReaderNodeClientUrl { get; set; }
-        public String WriterNodeClientUrl { get; set; }
+        public String SqlServerConnectionString { get; set; }
 
         #pragma warning restore 1591
     }
