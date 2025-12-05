@@ -16,6 +16,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using Serilog.Events;
 
 namespace ApplicationAccess.Hosting.Models.Options
 {
@@ -32,10 +33,13 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public String? LogFileNamePrefix { get; set; }
 
+        public LogEventLevel? LogLevel { get; set; }
+
         public FileLoggingOptions()
         {
             LogFilePath = null;
             LogFileNamePrefix = null;
+            LogLevel = null;
         }
 
         #pragma warning restore 0649

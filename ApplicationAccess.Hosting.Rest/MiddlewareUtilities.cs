@@ -29,6 +29,7 @@ using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using Serilog;
+using Serilog.Events;
 
 namespace ApplicationAccess.Hosting.Rest
 {
@@ -104,12 +105,13 @@ namespace ApplicationAccess.Hosting.Rest
         /// <param name="builder">The builder for the application.</param>
         /// <param name="logFileFolder">The folder to write the log file to.</param>
         /// <param name="logFileNamePrefix">The prefix for the log file name.</param>
+        /// <param name="logLevel">The minimum level of logs to write to the log file.</param>
         /// <remarks>This has a sependency on Serilog which I want to remove, and once everything is containerized this won't be needed anyway.  Keeping for the short term as its useful for testing when running non-containerized.</remarks>
-        public void SetupFileLogging(WebApplicationBuilder builder, String logFileFolder, String logFileNamePrefix)
+        public void SetupFileLogging(WebApplicationBuilder builder, String logFileFolder, String logFileNamePrefix, LogEventLevel logLevel)
         {
             String logFilePath = Path.Combine(logFileFolder, $"{logFileNamePrefix}.log");
             var fileLoggingConfiguration = new LoggerConfiguration()
-                .MinimumLevel.Warning()
+                .MinimumLevel.Is(logLevel)
                 .WriteTo.RollingFile(logFilePath);
             ILogger fileLogger = fileLoggingConfiguration.CreateLogger();
             builder.Logging.AddSerilog(fileLogger);

@@ -22,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
+using Serilog.Events;
 
 namespace ApplicationAccess.Hosting.Rest
 {
@@ -119,9 +120,17 @@ namespace ApplicationAccess.Hosting.Rest
         {
             String logFilePath = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFilePath)}");
             String logFileNamePrefix = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFileNamePrefix)}");
+            LogEventLevel? minimumLogLevel = builder.Configuration.GetValue<LogEventLevel>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogLevel)}");
             if (logFilePath != null && logFileNamePrefix != null)
             {
-                middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix);
+                if (minimumLogLevel != null)
+                {
+                    middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix, minimumLogLevel.Value);
+                }
+                else
+                {
+                    middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix, LogEventLevel.Warning);
+                }
             }
         }
 
