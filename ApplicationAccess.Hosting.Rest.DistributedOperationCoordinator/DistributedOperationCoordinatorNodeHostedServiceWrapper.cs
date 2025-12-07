@@ -47,7 +47,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
     public class DistributedOperationCoordinatorNodeHostedServiceWrapper : NodeHostedServiceWrapperBase, IHostedService
     {
         /// <summary>The category to use for metric logging.</summary>
-        protected const String metricLoggerCategoryName = "DistributedOperationCoordinatorNode";
+        protected const String metricLoggerCategoryName = "ApplicationAccessDistributedOperationCoordinatorNode";
 
         #pragma warning disable 1591
 

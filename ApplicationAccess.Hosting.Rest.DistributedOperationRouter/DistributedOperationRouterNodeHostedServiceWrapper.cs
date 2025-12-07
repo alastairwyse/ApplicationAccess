@@ -43,7 +43,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
     public class DistributedOperationRouterNodeHostedServiceWrapper : NodeHostedServiceWrapperBase, IHostedService
     {
         /// <summary>The category to use for metric logging.</summary>
-        protected const String metricLoggerCategoryName = "DistributedOperationRoutingNode";
+        protected const String metricLoggerCategoryName = "ApplicationAccessDistributedOperationRoutingNode";
 
         #pragma warning disable 1591
 
