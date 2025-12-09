@@ -36,6 +36,8 @@ namespace ApplicationAccess.TestHarness
         protected Thread workerThread;
         /// <summary>The name to assign to the worker thread.</summary>
         protected String workerThreadName;
+        /// <summary>Signal which is used to pause and resume the process executed by the class.</summary>
+        protected ManualResetEvent pauseSignal;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected Boolean disposed;
 
@@ -59,6 +61,7 @@ namespace ApplicationAccess.TestHarness
             counterpart = null;
             stopMethodCalled = false;
             workerThreadIterationCompletedSignal = new AutoResetEvent(false);
+            pauseSignal = new ManualResetEvent(true);
             disposed = false;
         }
 
@@ -76,6 +79,7 @@ namespace ApplicationAccess.TestHarness
             {
                 while (stopMethodCalled == false)
                 {
+                    pauseSignal.WaitOne();
                     workerThreadIterationAction.Invoke();
                     counterpart.SetSignal();
                     workerThreadIterationCompletedSignal.WaitOne();
@@ -112,6 +116,22 @@ namespace ApplicationAccess.TestHarness
             workerThreadIterationCompletedSignal.Set();
         }
 
+        /// <summary>
+        /// Pauses the classes' processing.
+        /// </summary>
+        public void Pause()
+        {
+            pauseSignal.Reset();
+        }
+
+        /// <summary>
+        /// Resumes the classes' processing.
+        /// </summary>
+        public void Resume()
+        {
+            pauseSignal.Set();
+        }
+
         #region Finalize / Dispose Methods
 
         /// <summary>
@@ -144,6 +164,7 @@ namespace ApplicationAccess.TestHarness
                 {
                     // Free other state (managed objects).
                     workerThreadIterationCompletedSignal.Dispose();
+                    pauseSignal.Dispose();
                 }
                 // Free your own state (unmanaged objects).
 

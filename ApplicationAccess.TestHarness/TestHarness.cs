@@ -165,10 +165,33 @@ namespace ApplicationAccess.TestHarness
         }
 
         /// <summary>
+        /// Pauses the testing.
+        /// </summary>
+        public void Pause()
+        {
+            for (Int32 i = 0; i < workerThreadCount; i++)
+            {
+                operationTriggerers[i].Pause();
+            }
+        }
+
+        /// <summary>
+        /// Resumes the testing after a previous pause.
+        /// </summary>
+        public void Resume()
+        {
+            for (Int32 i = 0; i < workerThreadCount; i++)
+            {
+                operationTriggerers[i].Resume();
+            }
+        }
+
+        /// <summary>
         /// Stops the testing.
         /// </summary>
         public void Stop()
         {
+            Resume();
             for (Int32 i = 0; i < workerThreadCount; i++)
             {
                 operationTriggerers[i].Stop();

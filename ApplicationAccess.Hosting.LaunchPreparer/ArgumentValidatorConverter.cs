@@ -99,7 +99,7 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         /// Returns all values of the specified enum in a comma-separated string.
         /// </summary>
         /// <typeparam name="TEnum">The type of enum to stringify the values of.</typeparam>
-        /// <returns>All values of the specified enum in a comma-separated string.</returns>
+        /// <returns>All values of the specified enum values in a comma-separated string.</returns>
         public String StringifyEnumValues<TEnum>()
             where TEnum : struct, System.Enum
         {

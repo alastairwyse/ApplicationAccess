@@ -16,23 +16,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Net.Http;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using ApplicationAccess.TestHarness.Configuration;
 using ApplicationAccess.Hosting;
 using ApplicationAccess.Hosting.Rest.Client;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Sql.SqlServer;
+using ApplicationAccess.TestHarness.Configuration;
 using ApplicationAccess.Utilities;
 using ApplicationLogging;
 using ApplicationLogging.Adapters;
-using ApplicationMetrics.MetricLoggers;
 using ApplicationMetrics.Filters;
+using ApplicationMetrics.MetricLoggers;
 using ApplicationMetrics.MetricLoggers.SqlServer;
 using log4net;
 using log4net.Config;
@@ -49,6 +49,7 @@ namespace ApplicationAccess.TestHarness
         protected static String operationGeneratorConfigurationFileProperty = "OperationGeneratorConfiguration";
         protected static String testHarnessConfigurationFileProperty = "TestHarnessConfiguration";
 
+        protected static TestHarness<String, String, TestApplicationComponent, TestAccessLevel> testHarnessField;
         protected static HashSet<String> validTestProfiles;
         protected static ManualResetEvent stopNotifySignal;
         protected static volatile Boolean stopped;
@@ -93,12 +94,44 @@ namespace ApplicationAccess.TestHarness
             }
         }
 
-        protected static void StopThreadTask()
+        protected static void ReadAndProcessCommandLine()
         {
-            Console.ReadLine();
-            if (stopped == false)
+            CommandValidatorConverter commandValidatorConverter = new();
+            while (true)
             {
-                stopNotifySignal.Set();
+                String readCommand = Console.ReadLine();
+                try
+                {
+                    Command convertedCommand = commandValidatorConverter.Convert(readCommand);
+                    switch (convertedCommand)
+                    {
+                        case Command.Quit:
+                            if (stopped == false)
+                            {
+                                stopNotifySignal.Set();
+                            }
+                            break;
+                        case Command.Pause:
+                            testHarnessField.Pause();
+                            break;
+                        case Command.Resume:
+                            testHarnessField.Resume();
+                            break;
+                        default:
+                            throw new Exception($"Encountered unhanded command '{convertedCommand.ToString()}'.");
+                    }
+                    if (convertedCommand == Command.Quit)
+                    {
+                        break;
+                    }
+                }
+                catch (CommandValidationException cve)
+                {
+                    ConsoleColor previousColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine(cve.Message);
+                    Console.ForegroundColor = previousColor;
+                }
             }
         }
 
@@ -333,11 +366,12 @@ namespace ApplicationAccess.TestHarness
                                     generatePrimaryAddOperations
                                 ))
                                 {
+                                    testHarnessField = testHarness;
                                     metricLogger.Start();
                                     accessManagerEventBufferFlushStrategyAndActions.StartAction.Invoke();
                                     try
                                     {
-                                        var stopSignalThread = new Thread(StopThreadTask);
+                                        var stopSignalThread = new Thread(ReadAndProcessCommandLine);
                                         stopSignalThread.Start();
                                         if (testHarnessConfiguration.AddUrlReservedCharacterElements == true)
                                         {
@@ -447,7 +481,7 @@ namespace ApplicationAccess.TestHarness
                 // Setup the test harness
                 Int32 workerThreadCount = testHarnessConfiguration.ThreadCount;
                 Boolean loadExistingData = testHarnessConfiguration.LoadExistingData;
-                var targetStorateStructureCounts = new Dictionary<StorageStructure, Int32>()
+                var targetStorageStructureCounts = new Dictionary<StorageStructure, Int32>()
                 {
                     { StorageStructure.Users, operationGeneratorConfiguration.ElementTargetStorageCounts.Users },
                     { StorageStructure.Groups, operationGeneratorConfiguration.ElementTargetStorageCounts.Groups },
@@ -596,7 +630,7 @@ namespace ApplicationAccess.TestHarness
                     var operationGenerator = new DefaultOperationGenerator<String, String, TestApplicationComponent, TestAccessLevel>
                     (
                         dataElementStorer,
-                        targetStorateStructureCounts,
+                        targetStorageStructureCounts,
                         new EnumAvailableDataElementCounter<TestApplicationComponent>(),
                         new EnumAvailableDataElementCounter<TestAccessLevel>(),
                         operationGeneratorConfiguration.QueryToEventOperationRatio,
@@ -644,6 +678,7 @@ namespace ApplicationAccess.TestHarness
                     generatePrimaryAddOperations
                 ))
                 {
+                    testHarnessField = testHarness;
                     foreach (SqlServerMetricLogger currentmetricLogger in metricsLoggers)
                     {
                         // If 'LogMetrics' is false we won't get here, as 'metricsLoggers' will be an empty List
@@ -651,7 +686,7 @@ namespace ApplicationAccess.TestHarness
                     }
                     try
                     {
-                        var stopSignalThread = new Thread(StopThreadTask);
+                        var stopSignalThread = new Thread(ReadAndProcessCommandLine);
                         stopSignalThread.Start();
                         if (testHarnessConfiguration.AddUrlReservedCharacterElements == true)
                         {
