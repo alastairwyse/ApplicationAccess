@@ -125,7 +125,7 @@ namespace ApplicationAccess.Hosting.Grpc
                 TripSwitchInterceptor tripSwitchInterceptor = new (tripSwitchActuator, parameters.TripSwitchTrippedException, () => { });
                 builder.Services.AddSingleton<TripSwitchInterceptor>(tripSwitchInterceptor);
 
-                // Add gRPC health checks (using the TripSwicth to report the health)
+                // Add gRPC health checks (using the TripSwitch to report the health)
                 TripSwitchHealthCheck tripSwitchHealthCheck = new(tripSwitchActuator);
                 builder.Services.AddSingleton<TripSwitchHealthCheck>(tripSwitchHealthCheck);
             }
