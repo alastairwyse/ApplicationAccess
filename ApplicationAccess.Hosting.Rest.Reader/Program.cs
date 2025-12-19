@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -23,7 +24,6 @@ using Microsoft.Extensions.DependencyInjection;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
-using System.Net;
 
 namespace ApplicationAccess.Hosting.Rest.Reader
 {
