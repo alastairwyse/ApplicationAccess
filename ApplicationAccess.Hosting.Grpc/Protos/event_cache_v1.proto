@@ -36,7 +36,6 @@ message CacheEventsRequest {
 	TemporalEventBufferItemList events = 1;
 }
 
-// N.b. 'EventCache' alone would have been an more appropriate name.  However that then clashes with the ApplicationAccess.Hosting.Grpc.EventCache namespace during gRPC code generation.
 service EventCacheRpc {
 	rpc GetAllEventsSince (GetAllEventsSinceRequest) returns (GetAllEventsSinceReply);
 

@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
@@ -31,6 +32,7 @@ using ApplicationAccess.Hosting.Persistence.Sql;
 using ApplicationAccess.Hosting.Rest.Client;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationMetrics.MetricLoggers;
@@ -146,6 +148,13 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             if (metricLoggingOptions.Enabled.Value == true)
             {
                 StartMetricLogging();
+            }
+            // Check for any events which failed to persist previously and persist them now
+            if (eventPersister.GetType().IsAssignableTo(typeof(AccessManagerRedundantTemporalBulkPersister<String, String, String, String>)) == true)
+            {
+                logger.LogInformation($"Persisting any failed events from previous session...");
+                eventPersister.PersistEvents(new List<TemporalEventBufferItemBase>());
+                logger.LogInformation($"Completed persisting failed events.");
             }
             // Load the current state of the WriterNode from storage
             logger.LogInformation($"Loading data into {nameof(writerNode)}...");
