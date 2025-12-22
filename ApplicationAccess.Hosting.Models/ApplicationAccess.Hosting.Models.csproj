@@ -6,6 +6,7 @@
     <Authors>Alastair Wyse</Authors>
     <Company />
     <Description>Common container/model classes used in ApplicationAccess hosting environments.</Description>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
 </Project>

@@ -8,6 +8,7 @@
     <Description>Compares the data in multiple ApplicationAccess instances/environments.</Description>
     <Company />
     <Authors>Alastair Wyse</Authors>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

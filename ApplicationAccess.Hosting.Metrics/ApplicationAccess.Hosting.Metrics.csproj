@@ -8,6 +8,7 @@
     <Description>Classes which facilitate metric logging in an ApplicationAccess hosting environment.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -8,6 +8,7 @@
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Authors>Alastair Wyse</Authors>
     <Description>Command line utility which prepares to launch hosted ApplicationAccess components (e.g. parameter validation, appsettings setup).  Used when the components are hosted inside Docker containers.</Description>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -9,8 +9,7 @@
     <Description>Classes which serialize and deserialize data associated with AccessManager classes to and from formats suitable for sending remotely.</Description>
     <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
-    <PackageReleaseNotes>First release.</PackageReleaseNotes>
-    <PackageTags>application access authorization authorisation permission permissions user group users groups serialize deserialize serialization deserialization json</PackageTags>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

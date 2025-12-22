@@ -6,6 +6,7 @@
     <Nullable>disable</Nullable>
     <Description>Factory classes used to instantiate components used to host ApplicationAccess nodes.</Description>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -6,6 +6,7 @@
     <Authors>Alastair Wyse</Authors>
     <Company />
     <Description>Utility classes which support hosting an AccessManager instance as a REST web API.</Description>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

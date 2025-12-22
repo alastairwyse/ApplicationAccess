@@ -6,7 +6,7 @@
     <Description>Provides metrics capture for classes in the ApplicationAccess.Serialization namespace.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
-    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

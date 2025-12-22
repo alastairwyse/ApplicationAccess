@@ -8,20 +8,8 @@
     <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
     <Description>Core and foundational classes which provide flexible and configurable user permission and authorization management for applications.</Description>
-    <PackageReleaseNotes>First release.</PackageReleaseNotes>
-    <PackageTags>application access authorization authorisation permission permissions user group users groups</PackageTags>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>
-    <DocumentationFile>.\ApplicationAccess.xml</DocumentationFile>
-    <WarningLevel>5</WarningLevel>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PlatformTarget>x64</PlatformTarget>
-    <DocumentationFile>.\ApplicationAccess.xml</DocumentationFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

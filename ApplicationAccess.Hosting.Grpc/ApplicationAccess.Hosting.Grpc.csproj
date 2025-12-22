@@ -6,6 +6,7 @@
     <Nullable>disable</Nullable>
     <Description>Utilities for hosting ApplicationAccess nodes as gRPC services.</Description>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

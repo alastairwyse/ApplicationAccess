@@ -7,6 +7,7 @@
     <Authors>Alastair Wyse</Authors>
     <Company />
     <Description>Classes which host an ApplicationAccess TemporalEventBulkCachingNode as a REST-based web API.</Description>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

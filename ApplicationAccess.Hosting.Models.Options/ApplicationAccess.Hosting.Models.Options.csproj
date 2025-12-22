@@ -8,6 +8,7 @@
     <Description>Container/model classes used in the ApplicationAccess.Hosting namespace, which follow the ASP.NET Core Options pattern.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
