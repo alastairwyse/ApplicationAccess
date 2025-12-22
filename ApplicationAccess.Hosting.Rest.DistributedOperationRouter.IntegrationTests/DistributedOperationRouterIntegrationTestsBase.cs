@@ -23,7 +23,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient;
-using ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests;
+using ApplicationAccess.Hosting.Rest.Writer.IntegrationTests;
 using ApplicationAccess.Utilities;
 using NSubstitute;
 using NUnit.Framework;

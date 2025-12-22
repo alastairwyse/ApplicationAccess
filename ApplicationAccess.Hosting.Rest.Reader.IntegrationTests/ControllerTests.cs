@@ -22,59 +22,13 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NSubstitute;
 
-namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
+namespace ApplicationAccess.Hosting.Rest.Reader.IntegrationTests
 {
     /// <summary>
-    /// Tests various patterns of controller method parameter sets and return types in the ApplicationAccess.Hosting.Rest.ReaderWriter namespace.
+    /// Tests various patterns of controller method parameter sets and return types in the ApplicationAccess.Hosting.Rest.Reader namespace.
     /// </summary>
-    public class ControllerTests : ReaderWriterIntegrationTestsBase
+    public class ControllerTests : ReaderIntegrationTestsBase
     {
-        /// <summary>
-        /// Success test for a POST method endpoint that creates a resource.
-        /// </summary>
-        [Test]
-        public void PostCreateResourceMethod()
-        {
-            const String user = "user1";
-            const String group = "group1";
-            const String requestUrl = $"/api/v1/userToGroupMappings/user/{user}/group/{group}";
-            using (var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUrl))
-            {
-
-                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
-                {
-
-                    mockUserEventProcessor.Received(1).AddUserToGroupMapping(user, group);
-                    String responseBody = response.Content.ReadAsStringAsync().Result;
-                    Assert.IsEmpty(responseBody);
-                    Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Success test for a DELETE method endpoint that removes a resource.
-        /// </summary>
-        [Test]
-        public void DeleteRemoveResourceMethod()
-        {
-            const String user = "user1";
-            const String group = "group1";
-            const String requestUrl = $"/api/v1/userToGroupMappings/user/{user}/group/{group}";
-            using (var requestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUrl))
-            {
-
-                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
-                {
-
-                    mockUserEventProcessor.Received(1).RemoveUserToGroupMapping(user, group);
-                    String responseBody = response.Content.ReadAsStringAsync().Result;
-                    Assert.IsEmpty(responseBody);
-                    Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                }
-            }
-        }
-
         /// <summary>
         /// Success test for a GET method endpoint that returns a string.
         /// </summary>

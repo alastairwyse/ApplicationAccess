@@ -22,7 +22,7 @@ using Microsoft.Extensions.Hosting;
 using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Hosting.Rest.AsyncClient;
 using ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient;
-using ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests;
+using ApplicationAccess.Hosting.Rest.Writer.IntegrationTests;
 using ApplicationAccess.Utilities;
 using NSubstitute;
 using NUnit.Framework;

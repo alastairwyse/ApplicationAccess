@@ -22,7 +22,8 @@ using System.Net.Http;
 using System.Runtime.ExceptionServices;
 using Microsoft.AspNetCore.Mvc.Testing;
 using ApplicationAccess.Hosting.Rest.AsyncClient;
-using ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests;
+using ApplicationAccess.Hosting.Rest.Reader.IntegrationTests;
+using ApplicationAccess.UnitTests;
 using ApplicationLogging;
 using ApplicationMetrics;
 using NUnit.Framework;
@@ -32,9 +33,9 @@ using Polly;
 namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
 {
     /// <summary>
-    /// Integration tests for the ApplicationAccess.Hosting.Rest.Client.AccessManagerClient class.
+    /// Integration tests for query methods in the ApplicationAccess.Hosting.Rest.Client.AccessManagerClient class.
     /// </summary>
-    public class AccessManagerClientTests : ReaderWriterIntegrationTestsBase
+    public class AccessManagerClientQueryTests : ReaderIntegrationTestsBase
     {
         private const String urlReservedCharcters = "! * ' ( ) ; : @ & = + $ , / ? % # [ ]";
 
@@ -45,7 +46,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         private MethodCallCountingStringUniqueStringifier accessLevelStringifier;
         private IApplicationLogger mockLogger;
         private IMetricLogger mockMetricLogger;
-        private TestAccessManagerClient<String, String, String, String> testAccessManagerClient;
+        private IAccessManagerQueryProcessor<String, String, String, String> testAccessManagerClient;
 
         [OneTimeSetUp]
         protected override void OneTimeSetUp()
@@ -82,20 +83,16 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
                 mockLogger,
                 mockMetricLogger
             );
-            mockEntityEventProcessor.ClearReceivedCalls();
             mockEntityQueryProcessor.ClearReceivedCalls();
-            mockGroupEventProcessor.ClearReceivedCalls();
             mockGroupQueryProcessor.ClearReceivedCalls();
-            mockGroupToGroupEventProcessor.ClearReceivedCalls();
             mockGroupToGroupQueryProcessor.ClearReceivedCalls();
-            mockUserEventProcessor.ClearReceivedCalls();
             mockUserQueryProcessor.ClearReceivedCalls();
         }
 
         [TearDown]
         protected void TearDown()
         {
-            testAccessManagerClient.Dispose();
+            ((IDisposable)testAccessManagerClient).Dispose();
         }
 
         [Test]
@@ -148,29 +145,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
-        public void AddUser()
-        {
-            const String testUser = "user1";
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddUser(testUser);
-
-            mockUserEventProcessor.Received(1).AddUser(testUser);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddUser_UrlEncoding()
-        {
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddUser(urlReservedCharcters);
-
-            mockUserEventProcessor.Received(1).AddUser(urlReservedCharcters);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-        }
-
-        [Test]
         public void ContainsUser()
         {
             const String testUser = "user1";
@@ -208,52 +182,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
-        public void RemoveUser()
-        {
-            const String testUser = "user1";
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveUser(testUser);
-
-            mockUserEventProcessor.Received(1).RemoveUser(testUser);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void RemoveUser_UrlEncoding()
-        {
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveUser(urlReservedCharcters);
-
-            mockUserEventProcessor.Received(1).RemoveUser(urlReservedCharcters);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddGroup()
-        {
-            const String testGroup = "group1";
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddGroup(testGroup);
-
-            mockGroupEventProcessor.Received(1).AddGroup(testGroup);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddGroup_UrlEncoding()
-        {
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddGroup(urlReservedCharcters);
-
-            mockGroupEventProcessor.Received(1).AddGroup(urlReservedCharcters);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
         public void ContainsGroup()
         {
             const String testGroup = "group1";
@@ -288,55 +216,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             mockGroupQueryProcessor.Received(1).ContainsGroup(urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void RemoveGroup()
-        {
-            const String testGroup = "group1";
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveGroup(testGroup);
-
-            mockGroupEventProcessor.Received(1).RemoveGroup(testGroup);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void RemoveGroup_UrlEncoding()
-        {
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveGroup(urlReservedCharcters);
-
-            mockGroupEventProcessor.Received(1).RemoveGroup(urlReservedCharcters);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddUserToGroupMapping()
-        {
-            const String testUser = "user1";
-            const String testGroup = "group1";
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddUserToGroupMapping(testUser, testGroup);
-
-            mockUserEventProcessor.Received(1).AddUserToGroupMapping(testUser, testGroup);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddUserToGroupMapping_UrlEncoding()
-        {
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
-
-            mockUserEventProcessor.Received(1).AddUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
         [Test]
@@ -424,56 +303,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
-        public void RemoveUserToGroupMapping()
-        {
-            const String testUser = "user1";
-            const String testGroup = "group1";
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveUserToGroupMapping(testUser, testGroup);
-
-            mockUserEventProcessor.Received(1).RemoveUserToGroupMapping(testUser, testGroup);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void RemoveUserToGroupMapping_UrlEncoding()
-        {
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
-
-            mockUserEventProcessor.Received(1).RemoveUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddGroupToGroupMapping()
-        {
-            const String testFromGroup = "group1";
-            const String testToGroup = "group2";
-            mockGroupToGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddGroupToGroupMapping(testFromGroup, testToGroup);
-
-            mockGroupToGroupEventProcessor.Received(1).AddGroupToGroupMapping(testFromGroup, testToGroup);
-            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddGroupToGroupMapping_UrlEncoding()
-        {
-            mockGroupToGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
-
-            mockGroupToGroupEventProcessor.Received(1).AddGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
         public void GetGroupToGroupMappings()
         {
             const String testFromGroup = "group1";
@@ -555,59 +384,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
             Assert.AreEqual(3, groupStringifier.FromStringCallCount);
             Assert.AreEqual(3, result.Count);
-        }
-
-        [Test]
-        public void RemoveGroupToGroupMapping()
-        {
-            const String testFromGroup = "group1";
-            const String testToGroup = "group2";
-            mockGroupToGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveGroupToGroupMapping(testFromGroup, testToGroup);
-
-            mockGroupToGroupEventProcessor.Received(1).RemoveGroupToGroupMapping(testFromGroup, testToGroup);
-            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void RemoveGroupToGroupMapping_UrlEncoding()
-        {
-            mockGroupToGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
-
-            mockGroupToGroupEventProcessor.Received(1).RemoveGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddUserToApplicationComponentAndAccessLevelMapping()
-        {
-            const String testUser = "user1";
-            const String testApplicationComponent = "ManageProductsScreen";
-            const String testAccessLevel = "View";
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel);
-
-            mockUserEventProcessor.Received(1).AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
-            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddUserToApplicationComponentAndAccessLevelMapping_UrlEncoding()
-        {
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-
-            mockUserEventProcessor.Received(1).AddUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
-            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
         }
 
         [Test]
@@ -711,64 +487,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
-        public void RemoveUserToApplicationComponentAndAccessLevelMapping()
-        {
-            const String testUser = "user1";
-            const String testApplicationComponent = "ManageProductsScreen";
-            const String testAccessLevel = "View";
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel);
-
-            mockUserEventProcessor.Received(1).RemoveUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
-            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void RemoveUserToApplicationComponentAndAccessLevelMapping_UrlEncoding()
-        {
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-
-            mockUserEventProcessor.Received(1).RemoveUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
-            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddGroupToApplicationComponentAndAccessLevelMapping()
-        {
-            const String testGroup = "group1";
-            const String testApplicationComponent = "ManageProductsScreen";
-            const String testAccessLevel = "View";
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel);
-
-            mockGroupEventProcessor.Received(1).AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
-            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddGroupToApplicationComponentAndAccessLevelMapping_UrlEncoding()
-        {
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-
-            mockGroupEventProcessor.Received(1).AddGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
-            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
-        }
-
-        [Test]
         public void GetGroupToApplicationComponentAndAccessLevelMappings()
         {
             const String testGroup = "group1";
@@ -869,56 +587,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
-        public void RemoveGroupToApplicationComponentAndAccessLevelMapping()
-        {
-            const String testGroup = "group1";
-            const String testApplicationComponent = "ManageProductsScreen";
-            const String testAccessLevel = "View";
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel);
-
-            mockGroupEventProcessor.Received(1).RemoveGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
-            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void RemoveGroupToApplicationComponentAndAccessLevelMapping_UrlEncoding()
-        {
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-
-            mockGroupEventProcessor.Received(1).RemoveGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
-            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddEntityType()
-        {
-            const String testEntityType = "BusinessUnit";
-            mockEntityEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddEntityType(testEntityType);
-
-            mockEntityEventProcessor.Received(1).AddEntityType(testEntityType);
-        }
-
-        [Test]
-        public void AddEntityType_UrlEncoding()
-        {
-            mockEntityEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddEntityType(urlReservedCharcters);
-
-            mockEntityEventProcessor.Received(1).AddEntityType(urlReservedCharcters);
-        }
-
-        [Test]
         public void ContainsEntityType()
         {
             const String testEntityType = "BusinessUnit";
@@ -950,49 +618,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
 
             mockEntityQueryProcessor.Received(1).ContainsEntityType(urlReservedCharcters);
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void RemoveEntityType()
-        {
-            const String testEntityType = "BusinessUnit";
-            mockEntityEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveEntityType(testEntityType);
-
-            mockEntityEventProcessor.Received(1).RemoveEntityType(testEntityType);
-        }
-
-        [Test]
-        public void RemoveEntityType_UrlEncoding()
-        {
-            mockEntityEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveEntityType(urlReservedCharcters);
-
-            mockEntityEventProcessor.Received(1).RemoveEntityType(urlReservedCharcters);
-        }
-
-        [Test]
-        public void AddEntity()
-        {
-            const String testEntityType = "BusinessUnit";
-            const String testEntity = "Sales";
-            mockEntityEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddEntity(testEntityType, testEntity);
-
-            mockEntityEventProcessor.Received(1).AddEntity(testEntityType, testEntity);
-        }
-
-        [Test]
-        public void AddEntity_UrlEncoding()
-        {
-            mockEntityEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddEntity(urlReservedCharcters, urlReservedCharcters);
-
-            mockEntityEventProcessor.Received(1).AddEntity(urlReservedCharcters, urlReservedCharcters);
         }
 
         [Test]
@@ -1058,53 +683,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
 
             mockEntityQueryProcessor.Received(1).ContainsEntity(urlReservedCharcters, urlReservedCharcters);
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void RemoveEntity()
-        {
-            const String testEntityType = "BusinessUnit";
-            const String testEntity = "Sales";
-            mockEntityEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveEntity(testEntityType, testEntity);
-
-            mockEntityEventProcessor.Received(1).RemoveEntity(testEntityType, testEntity);
-        }
-
-        [Test]
-        public void RemoveEntity_UrlEncoding()
-        {
-            mockEntityEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveEntity(urlReservedCharcters, urlReservedCharcters);
-
-            mockEntityEventProcessor.Received(1).RemoveEntity(urlReservedCharcters, urlReservedCharcters);
-        }
-
-        [Test]
-        public void AddUserToEntityMapping()
-        {
-            const String testUser = "user1";
-            const String testEntityType = "BusinessUnit";
-            const String testEntity = "Sales";
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddUserToEntityMapping(testUser, testEntityType, testEntity);
-
-            mockUserEventProcessor.Received(1).AddUserToEntityMapping(testUser, testEntityType, testEntity);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddUserToEntityMapping_UrlEncoding()
-        {
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-
-            mockUserEventProcessor.Received(1).AddUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
         }
 
         [Test]
@@ -1232,56 +810,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
-        public void RemoveUserToEntityMapping()
-        {
-            const String testUser = "user1";
-            const String testEntityType = "BusinessUnit";
-            const String testEntity = "Sales";
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveUserToEntityMapping(testUser, testEntityType, testEntity);
-
-            mockUserEventProcessor.Received(1).RemoveUserToEntityMapping(testUser, testEntityType, testEntity);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void RemoveUserToEntityMapping_UrlEncoding()
-        {
-            mockUserEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-
-            mockUserEventProcessor.Received(1).RemoveUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, userStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddGroupToEntityMapping()
-        {
-            const String testGroup = "group1";
-            const String testEntityType = "BusinessUnit";
-            const String testEntity = "Sales";
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
-
-            mockGroupEventProcessor.Received(1).AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void AddGroupToEntityMapping_UrlEncoding()
-        {
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.AddGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-
-            mockGroupEventProcessor.Received(1).AddGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
         public void GetGroupToEntityMappings()
         {
             const String testGroup = "group1";
@@ -1403,31 +931,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             mockGroupQueryProcessor.Received(1).GetEntityToGroupMappings(urlReservedCharcters, urlReservedCharcters, false);
             Assert.AreEqual(3, groupStringifier.FromStringCallCount);
             Assert.AreEqual(3, result.Count);
-        }
-
-        [Test]
-        public void RemoveGroupToEntityMapping()
-        {
-            const String testGroup = "group1";
-            const String testEntityType = "BusinessUnit";
-            const String testEntity = "Sales";
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveGroupToEntityMapping(testGroup, testEntityType, testEntity);
-
-            mockGroupEventProcessor.Received(1).RemoveGroupToEntityMapping(testGroup, testEntityType, testEntity);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
-        }
-
-        [Test]
-        public void RemoveGroupToEntityMapping_UrlEncoding()
-        {
-            mockGroupEventProcessor.ClearReceivedCalls();
-
-            testAccessManagerClient.RemoveGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-
-            mockGroupEventProcessor.Received(1).RemoveGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
-            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
         [Test]
@@ -1792,42 +1295,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.That(e.Message, Does.StartWith(exceptionMessage));
         }
         
-        [Test]
-        public void RetryOnHttpRequestException()
-        {
-            using (var testClient = new HttpClient())
-            {
-                testBaseUrl = new Uri("http://www.acd8aac2-cb88-4296-b604-285f6132e449.com/");
-                var testAccessManagerClient = new AccessManagerClient<String, String, String, String>
-                (
-                    testBaseUrl,
-                    testClient,
-                    userStringifier,
-                    groupStringifier,
-                    applicationComponentStringifier,
-                    accessLevelStringifier,
-                    5,
-                    1,
-                    mockLogger,
-                    mockMetricLogger
-                );
-                const String testEntityType = "BusinessUnit";
-                mockEntityEventProcessor.ClearReceivedCalls();
-
-                var e = Assert.Throws<HttpRequestException>(delegate
-                {
-                    testAccessManagerClient.RemoveEntityType(testEntityType);
-                });
-
-                mockLogger.Received(1).Log(testAccessManagerClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 1 of 5).", Arg.Any<HttpRequestException>());
-                mockLogger.Received(1).Log(testAccessManagerClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 2 of 5).", Arg.Any<HttpRequestException>());
-                mockLogger.Received(1).Log(testAccessManagerClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 3 of 5).", Arg.Any<HttpRequestException>());
-                mockLogger.Received(1).Log(testAccessManagerClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 4 of 5).", Arg.Any<HttpRequestException>());
-                mockLogger.Received(1).Log(testAccessManagerClient, LogLevel.Warning, "Exception occurred when sending HTTP request.  Retrying in 1 seconds (retry 5 of 5).", Arg.Any<HttpRequestException>());
-                mockMetricLogger.Received(5).Increment(Arg.Any<HttpRequestRetried>());
-            }
-        }
-
         #region Nested Classes
 
         /// <summary>

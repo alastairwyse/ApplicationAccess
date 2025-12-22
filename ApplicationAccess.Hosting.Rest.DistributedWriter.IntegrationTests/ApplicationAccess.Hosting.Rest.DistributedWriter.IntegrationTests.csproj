@@ -23,7 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient\ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedWriter\ApplicationAccess.Hosting.Rest.DistributedWriter.csproj" />
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Writer.IntegrationTests\ApplicationAccess.Hosting.Rest.Writer.IntegrationTests.csproj" />
   </ItemGroup>
 
 </Project>

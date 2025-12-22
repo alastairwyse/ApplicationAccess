@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2024 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
+namespace ApplicationAccess.Hosting.Rest.Writer.IntegrationTests
 {
     public class Program
     {

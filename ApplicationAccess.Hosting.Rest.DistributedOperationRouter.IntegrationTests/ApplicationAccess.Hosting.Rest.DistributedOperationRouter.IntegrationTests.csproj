@@ -25,7 +25,7 @@
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator\ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient\ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedOperationRouter\ApplicationAccess.Hosting.Rest.DistributedOperationRouter.csproj" />
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Writer.IntegrationTests\ApplicationAccess.Hosting.Rest.Writer.IntegrationTests.csproj" />
   </ItemGroup>
 
 </Project>

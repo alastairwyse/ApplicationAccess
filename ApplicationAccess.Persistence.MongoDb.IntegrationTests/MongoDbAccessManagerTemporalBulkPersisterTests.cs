@@ -22,6 +22,7 @@ using EphemeralMongo;
 using MongoDB.Driver;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Persistence.MongoDb.Models.Documents;
+using ApplicationAccess.UnitTests;
 using ApplicationLogging;
 using ApplicationMetrics;
 using NUnit.Framework;
@@ -2959,45 +2960,6 @@ namespace ApplicationAccess.Persistence.MongoDb.IntegrationTests
             }
 
             #pragma warning restore 1591
-        }
-
-        /// <summary>
-        /// Implementation of <see cref="IUniqueStringifier{T}"/> which counts the number of calls to the FromString() and ToString() methods.
-        /// </summary>
-        private class MethodCallCountingStringUniqueStringifier : IUniqueStringifier<String>
-        {
-            public Int32 FromStringCallCount { get; protected set; }
-            public Int32 ToStringCallCount { get; protected set; }
-
-            public MethodCallCountingStringUniqueStringifier()
-            {
-                Reset();
-            }
-
-            /// <inheritdoc/>
-            public String FromString(String stringifiedObject)
-            {
-                FromStringCallCount++;
-
-                return stringifiedObject;
-            }
-
-            /// <inheritdoc/>
-            public String ToString(String inputObject)
-            {
-                ToStringCallCount++;
-
-                return inputObject;
-            }
-
-            /// <summary>
-            /// Resets the method call counts to 0.
-            /// </summary>
-            public void Reset()
-            {
-                FromStringCallCount = 0;
-                ToStringCallCount = 0;
-            }
         }
 
         #endregion

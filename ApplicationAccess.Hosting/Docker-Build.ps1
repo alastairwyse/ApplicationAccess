@@ -73,10 +73,10 @@ if ($Component -eq 'Reader') {
     $componentPath = '..\ApplicationAccess.Hosting.Rest.Reader'
 }
 elseif ($Component -eq 'ReaderWriter') {
-    $componentPath = '..\ApplicationAccess.Hosting.Rest.ReaderWriter'
+    $componentPath = '..\..\..\C#\ApplicationAccess.Hosting.Rest.ReaderWriter\ApplicationAccess.Hosting.Rest.ReaderWriter'
 }
 elseif ($Component -eq 'ReaderWriterLite') {
-    $componentPath = '..\ApplicationAccess.Hosting.Rest.ReaderWriterLite'
+    $componentPath = '..\..\..\C#\ApplicationAccess.Hosting.Rest.ReaderWriterLite\ApplicationAccess.Hosting.Rest.ReaderWriterLite'
 }
 elseif ($Component -eq 'Writer') {
     $componentPath = '..\ApplicationAccess.Hosting.Rest.Writer'
@@ -88,7 +88,7 @@ elseif ($Component -eq 'EventCache') {
     $componentPath = '..\ApplicationAccess.Hosting.Rest.EventCache'
 }
 elseif ($Component -eq 'DependencyFreeReaderWriter') {
-    $componentPath = '..\ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter'
+    $componentPath = '..\..\..\C#\ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter\ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter'
 }
 elseif ($Component -eq 'DistributedReader') {
     $componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedReader'
@@ -132,7 +132,12 @@ foreach ($currentAppsettingsFile in $appsettingsFiles) {
 }
 
 # Build the LaunchPreparer tool
-cd ..\ApplicationAccess.Hosting.LaunchPreparer\
+if (($Component -eq 'ReaderWriter') -or ($Component -eq 'ReaderWriterLite') -or ($Component -eq 'DependencyFreeReaderWriter')) {
+    cd ..\..\..\Multi-Language\ApplicationAccess\ApplicationAccess.Hosting.LaunchPreparer\
+}
+else {
+    cd ..\ApplicationAccess.Hosting.LaunchPreparer\
+}
 dotnet build -c Release -o $OutputFolder 
 
 # Remove .pdb files

@@ -25,6 +25,7 @@ using ApplicationAccess.Hosting.Grpc.Client;
 using ApplicationAccess.Hosting.Rest;
 using ApplicationAccess.Hosting.Rest.EventCache;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.UnitTests;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -92,40 +93,6 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         #region Nested Classes
-
-        // TODO: This class is also defined in the ApplicationAccess.Hosting.Rest.Client.IntegrationTests, and ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests namespaces
-        //   Could look at moving somewhere common
-
-        /// <summary>
-        /// Implementation of <see cref="IUniqueStringifier{T}"/> which counts the number of calls to the FromString() and ToString() methods.
-        /// </summary>
-        protected class MethodCallCountingStringUniqueStringifier : IUniqueStringifier<String>
-        {
-            public Int32 FromStringCallCount { get; protected set; }
-            public Int32 ToStringCallCount { get; protected set; }
-
-            public MethodCallCountingStringUniqueStringifier()
-            {
-                FromStringCallCount = 0;
-                ToStringCallCount = 0;
-            }
-
-            /// <inheritdoc/>
-            public String FromString(String stringifiedObject)
-            {
-                FromStringCallCount++;
-
-                return stringifiedObject;
-            }
-
-            /// <inheritdoc/>
-            public String ToString(String inputObject)
-            {
-                ToStringCallCount++;
-
-                return inputObject;
-            }
-        }
 
         /// <summary>
         /// Subclass of <see cref="EventCache.Program"/> which instantiates a hosted version of the <see cref="TemporalEventBulkCachingNode{TUser, TGroup, TComponent, TAccess}"/> class for testing.

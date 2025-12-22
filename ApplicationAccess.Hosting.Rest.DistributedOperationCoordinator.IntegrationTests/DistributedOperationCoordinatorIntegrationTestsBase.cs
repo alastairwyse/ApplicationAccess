@@ -21,7 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
-using ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests;
+using ApplicationAccess.Hosting.Rest.Writer.IntegrationTests;
 using NUnit.Framework;
 using NSubstitute;
 

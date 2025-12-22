@@ -18,7 +18,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.AsyncClient\ApplicationAccess.Hosting.Rest.AsyncClient.csproj" />
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Reader.IntegrationTests\ApplicationAccess.Hosting.Rest.Reader.IntegrationTests.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Writer.IntegrationTests\ApplicationAccess.Hosting.Rest.Writer.IntegrationTests.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.UnitTests\ApplicationAccess.UnitTests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

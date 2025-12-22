@@ -25,6 +25,7 @@ using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Serialization;
+using ApplicationAccess.UnitTests;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NSubstitute;
@@ -411,44 +412,6 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
             DateTime returnDateTime = DateTime.ParseExact(stringifiedDateTime, "yyyy-MM-dd HH:mm:ss.fffffff", DateTimeFormatInfo.InvariantInfo);
 
             return DateTime.SpecifyKind(returnDateTime, DateTimeKind.Utc);
-        }
-
-        #endregion
-
-        #region Nested Classes
-
-        // TODO: This class is also defined in the ApplicationAccess.Hosting.Rest.Client.IntegrationTests namespace
-        //   Could look at moving somewhere common
-
-        /// <summary>
-        /// Implementation of <see cref="IUniqueStringifier{T}"/> which counts the number of calls to the FromString() and ToString() methods.
-        /// </summary>
-        private class MethodCallCountingStringUniqueStringifier : IUniqueStringifier<String>
-        {
-            public Int32 FromStringCallCount { get; protected set; }
-            public Int32 ToStringCallCount { get; protected set; }
-
-            public MethodCallCountingStringUniqueStringifier()
-            {
-                FromStringCallCount = 0;
-                ToStringCallCount = 0;
-            }
-
-            /// <inheritdoc/>
-            public String FromString(String stringifiedObject)
-            {
-                FromStringCallCount++;
-
-                return stringifiedObject;
-            }
-
-            /// <inheritdoc/>
-            public String ToString(String inputObject)
-            {
-                ToStringCallCount++;
-
-                return inputObject;
-            }
         }
 
         #endregion

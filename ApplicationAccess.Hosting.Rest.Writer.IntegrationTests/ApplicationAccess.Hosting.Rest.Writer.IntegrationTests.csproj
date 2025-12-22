@@ -4,10 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <GenerateProgramFile>false</GenerateProgramFile>
     <Authors>Alastair Wyse</Authors>
     <Company></Company>
-    <Description>Integration tests for the ApplicationAccess.Hosting.Rest.EventCache namespace... i.e. tests which instantiate the web host using the WebApplicationFactory class.</Description>
+    <Description>Integration tests for the ApplicationAccess.Hosting.Rest.Writer namespace... i.e. tests which instantiate the web host using the WebApplicationFactory class.</Description>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
@@ -17,16 +18,15 @@
     <PackageReference Include="NSubstitute" Version="5.1.0" />
     <PackageReference Include="NUnit" Version="3.14.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.EventCache\ApplicationAccess.Hosting.Rest.EventCache.csproj" />
-    <ProjectReference Include="..\ApplicationAccess.UnitTests\ApplicationAccess.UnitTests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Writer\ApplicationAccess.Hosting.Rest.Writer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />
   </ItemGroup>
 
 </Project>

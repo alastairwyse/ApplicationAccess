@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedAsyncClient\ApplicationAccess.Hosting.Rest.DistributedAsyncClient.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedReader\ApplicationAccess.Hosting.Rest.DistributedReader.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.UnitTests\ApplicationAccess.UnitTests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

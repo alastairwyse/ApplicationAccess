@@ -16,7 +16,7 @@
 
 using System;
 
-namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
+namespace ApplicationAccess.UnitTests
 {
     /// <summary>
     /// Implementation of <see cref="IUniqueStringifier{T}"/> which counts the number of calls to the FromString() and ToString() methods.

@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Persistence.MongoDb\ApplicationAccess.Persistence.MongoDb.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.UnitTests\ApplicationAccess.UnitTests.csproj" />
   </ItemGroup>
   
 </Project>

@@ -19,7 +19,7 @@ using System.Net.Http;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
+namespace ApplicationAccess.Hosting.Rest.Writer.IntegrationTests
 {
     /// <summary>
     /// Base class for integration test classes.

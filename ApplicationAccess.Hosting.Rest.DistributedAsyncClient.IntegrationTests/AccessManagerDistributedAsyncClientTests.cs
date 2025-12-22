@@ -25,6 +25,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Hosting.Rest.AsyncClient;
+using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities; 
 using ApplicationLogging;
 using ApplicationMetrics;
@@ -487,37 +488,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
                 builder.UseEnvironment(ApplicationInitializer.IntegrationTestingEnvironmentName);
 
                 return base.CreateHost(builder);
-            }
-        }
-
-        /// <summary>
-        /// Implementation of <see cref="IUniqueStringifier{T}"/> which counts the number of calls to the FromString() and ToString() methods.
-        /// </summary>
-        private class MethodCallCountingStringUniqueStringifier : IUniqueStringifier<String>
-        {
-            public Int32 FromStringCallCount { get; protected set; }
-            public Int32 ToStringCallCount { get; protected set; }
-
-            public MethodCallCountingStringUniqueStringifier()
-            {
-                FromStringCallCount = 0;
-                ToStringCallCount = 0;
-            }
-
-            /// <inheritdoc/>
-            public String FromString(String stringifiedObject)
-            {
-                FromStringCallCount++;
-
-                return stringifiedObject;
-            }
-
-            /// <inheritdoc/>
-            public String ToString(String inputObject)
-            {
-                ToStringCallCount++;
-
-                return inputObject;
             }
         }
 
