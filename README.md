@@ -86,10 +86,22 @@ public enum AccessLevel
 }
 ```
 
-We create the access manager class and add all the company staff as below...
+We create the access manager client (or class) and add all the company staff as below...
 
 ```c#
-var accessManager = new AccessManager<String, String, Screen, AccessLevel>();
+
+IAccessManager accessManager = new AccessManagerClient<String, String, Screen, AccessLevel>
+(
+    new Uri("http://127.0.0.1:5000/"),         // Base URL of the hosted instance of ApplicationAccess
+    new StringUniqueStringifier(),             // Stringifier for users
+    new StringUniqueStringifier(),             // Stringifier for groups
+    new EnumUniqueStringifier<Screen>(),       // Stringifier for application components
+    new EnumUniqueStringifier<AccessLevel>(),  // Stringifier for access levels
+    10,                                        // Transient error retry count
+    5                                          // Transient error retry interval in seconds
+);
+// OR...
+// IAccessManager accessManager = new AccessManager<String, String, Screen, AccessLevel>();
 
 // Add the staff members
 accessManager.AddUser("Livia.Bowe@printweave.biz");
