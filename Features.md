@@ -6,7 +6,7 @@ ApplicationAccess is a containerized, REST-based service for authorization and p
 
 It manages users of a client application, and mappings of those users to groups and components within the client application.  It provides minimal latency when servicing requests from the client application by maintaining its data model in memory (and writing changes downstream to persistent storage).  The persisted data model is fully temporal allowing an accurate, point-in-time view of any historic state of the data.
 
-ApplicationAccess supports varying deployment profiles, from a single docker container up to sharded, scalable, multi-node, Kubernetes deployments.  A an example of a distributed deployment is depicted below...
+ApplicationAccess supports varying deployment profiles, from a single docker container up to sharded, scalable, multi-node, Kubernetes deployments.  An example of a distributed deployment is depicted below...
 
 [![ApplicationAccess Distributed Deployment Example](https://alastairwyse.net/applicationaccess/images/distributed-deployment-example-small.gif)](https://alastairwyse.net/applicationaccess/images/distributed-deployment-example.gif)
 
