@@ -6,7 +6,9 @@ ApplicationAccess is a containerized, REST-based service for authorization and p
 
 It manages users of a client application, and mappings of those users to groups and components within the client application.  It provides minimal latency when servicing requests from the client application by maintaining its data model in memory (and writing changes downstream to persistent storage).  The persisted data model is fully temporal allowing an accurate, point-in-time view of any historic state of the data.
 
-ApplicationAccess supports varying deployment profiles, from a single docker container up to sharded, scalable, multi-node, Kubernetes deployments.
+ApplicationAccess supports varying deployment profiles, from a single docker container up to sharded, scalable, multi-node, Kubernetes deployments.  A an example of a distributed deployment is depicted below...
+
+[![ApplicationAccess Distributed Deployment Example](https://alastairwyse.net/applicationaccess/images/distributed-deployment-example-small.gif)](https://alastairwyse.net/applicationaccess/images/distributed-deployment-example.gif)
 
 Further detail of the functionality offered can be found in the [project README](https://github.com/alastairwyse/ApplicationAccess/blob/main/README.md), and the complete [API surface is documented below](#rest-endpoints).
 
@@ -34,7 +36,7 @@ Further detail of the functionality offered can be found in the [project README]
 
 * **Concurrency Management**
   * Any object locks required as part of event writing are handled by a dedicated LockManager class, which guarantees to apply locks in a consistent order and hence avoid deadlocks.
-  * Base classes provding thread-safe core functionality (e.g. [ConcurrentAccessManager](https://github.com/alastairwyse/ApplicationAccess/blob/main/ApplicationAccess/ConcurrentAccessManager.cs)) expose methods which allow sub/derived classes to extend functinality, executing additional code/routines whilst still under lock context.  This allows these derived classes to implement extended functionality whist still maintaining thread-safety, and without requiring changes to the core/base classes.
+  * Base classes provding thread-safe core functionality (e.g. [ConcurrentAccessManager](https://github.com/alastairwyse/ApplicationAccess/blob/main/ApplicationAccess/ConcurrentAccessManager.cs)) expose methods which allow sub/derived classes to extend functionality, executing additional code/routines whilst still under lock context.  This allows these derived classes to implement extended functionality whist still maintaining thread-safety, and without requiring changes to the core/base classes.
 
 * **Metrics / Observability** - The [ApplicationMetrics](https://github.com/alastairwyse/ApplicationMetrics) package is extensively utilized to provide highly detailed and granular metrics if required.  Raw/granular metrics can be stored in a SQL Server or PostgreSQL database, or exported to any platform supporting the OpenTelemetry protocol (Grafana, Elastic, Splunk, cloud provders, etc...).
 

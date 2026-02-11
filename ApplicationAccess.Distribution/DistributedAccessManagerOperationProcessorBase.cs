@@ -904,6 +904,7 @@ namespace ApplicationAccess.Distribution
 
             while (shardTasks.Count > 0)
             {
+                // TODO: Look at using WhenEach() (https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.wheneach?view=net-9.0) instead whehn moving to .NET 9.0+
                 Task<T> completedTask = await Task.WhenAny(shardTasks);
                 try
                 {
