@@ -52,9 +52,9 @@ Further detail of the functionality offered can be found in the [project README]
 
 * **Testing** - ApplicationAccess has been through 1000's of hours of pseudorandom load, stress, and performance testing, to ensure the final product is robust, performant, and bug-free.
 
-Layers in the architecture of ApplicationAccess are depicted below...
-
 ## Architecture / Design
+
+Layers in the architecture of ApplicationAccess are depicted below...
 
 [![ApplicationAccess Architecture Layers](https://alastairwyse.net/applicationaccess/images/architecture-layers-small.gif)](https://alastairwyse.net/applicationaccess/images/architecture-layers.gif)
 
