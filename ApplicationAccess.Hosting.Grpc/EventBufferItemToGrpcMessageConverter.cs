@@ -332,13 +332,10 @@ namespace ApplicationAccess.Hosting.Grpc
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="TemporalEventBufferItem"> to use as the 'baseProperties' field in a <see cref="TemporalEventBufferItemListItem"/>.
+        /// Creates an instance of <see cref="TemporalEventBufferItem"/> to use as the 'baseProperties' field in a <see cref="TemporalEventBufferItemListItem"/>.
         /// </summary>
         /// <param name="eventBufferItem">The event to create the base properties from.</param>
-        /// <param name="eventAction">The action of the event.</param>
-        /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="hashCode">The hash code for the key primary element of the event.</param>
-        /// <returns>The <see cref="TemporalEventBufferItem">.</returns>
+        /// <returns>The <see cref="TemporalEventBufferItem" />.</returns>
         protected TemporalEventBufferItem CreateBaseProperties(TemporalEventBufferItemBase eventBufferItem)
         {
             TemporalEventBufferItem baseProperties = new();

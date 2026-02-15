@@ -33,6 +33,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
     [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
+    [Produces(MediaTypeNames.Application.Json)]
     public abstract class GroupQueryProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerGroupQueryProcessor<String, String, String> groupQueryProcessor;
@@ -53,7 +54,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>All groups.</returns>
         [HttpGet]
         [Route("groups")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<String> Groups()
         {
             return groupQueryProcessor.Groups;
@@ -67,7 +67,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="404">The group doesn't exist.</response>
         [HttpGet]
         [Route("groups/{group}")]
-        [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<String> ContainsGroup([FromRoute] String group)
         {
@@ -90,7 +89,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a group, and an application component and access level.</returns>
         [HttpGet]
         [Route("groupToApplicationComponentAndAccessLevelMappings/group/{group}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<GroupAndApplicationComponentAndAccessLevel<String, String, String>> GetGroupToApplicationComponentAndAccessLevelMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
@@ -118,7 +116,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a group, and an application component and access level.</returns>
         [HttpGet]
         [Route("groupToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<GroupAndApplicationComponentAndAccessLevel<String, String, String>> GetApplicationComponentAndAccessLevelToGroupMappings([FromRoute] String applicationComponent, [FromRoute] String accessLevel, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
@@ -137,7 +134,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a group, and an entity type and entity.</returns>
         [HttpGet]
         [Route("groupToEntityMappings/group/{group}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<GroupAndEntity<String>> GetGroupToEntityMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
@@ -165,7 +161,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a group, and an entity type and entity.</returns>
         [HttpGet]
         [Route("groupToEntityMappings/group/{group}/entityType/{entityType}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<GroupAndEntity<String>> GetGroupToEntityMappings([FromRoute] String group, [FromRoute] String entityType, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<String> methodReturnValue = null;
@@ -194,7 +189,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a group, and an entity type and entity.</returns>
         [HttpGet]
         [Route("groupToEntityMappings/entityType/{entityType}/entity/{entity}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<GroupAndEntity<String>> GetEntityToGroupMappings([FromRoute] String entityType, [FromRoute] String entity, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             String decodedEntityType = Uri.UnescapeDataString(entityType);

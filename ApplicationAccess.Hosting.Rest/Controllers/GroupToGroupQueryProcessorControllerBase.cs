@@ -31,6 +31,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
     [ApiExplorerSettings(GroupName = "GroupToGroupQueryProcessor")]
+    [Produces(MediaTypeNames.Application.Json)]
     public abstract class GroupToGroupQueryProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerGroupToGroupQueryProcessor<String> groupToGroupQueryProcessor;
@@ -53,7 +54,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>>A collection of mappings between two groups.</returns>
         [HttpGet]
         [Route("groupToGroupMappings/group/{group}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             String decodedGroup = Uri.UnescapeDataString(group);
@@ -71,7 +71,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between two groups.</returns>
         [HttpGet]
         [Route("groupToGroupReverseMappings/group/{group}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupReverseMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
 

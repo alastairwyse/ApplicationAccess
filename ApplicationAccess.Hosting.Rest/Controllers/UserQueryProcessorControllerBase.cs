@@ -33,6 +33,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
     [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
+    [Produces(MediaTypeNames.Application.Json)]
     public abstract class UserQueryProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerUserQueryProcessor<String, String, String, String> userQueryProcessor;
@@ -53,7 +54,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>All users.</returns>
         [HttpGet]
         [Route("users")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<String> Users()
         {
             return userQueryProcessor.Users;
@@ -67,7 +67,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="404">The user doesn't exist.</response>
         [HttpGet]
         [Route("users/{user}")]
-        [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<String> ContainsUser([FromRoute] String user)
         {
@@ -90,7 +89,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user and a group.</returns>
         [HttpGet]
         [Route("userToGroupMappings/user/{user}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndGroup<String, String>> GetUserToGroupMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             String decodedUser = Uri.UnescapeDataString(user);
@@ -108,7 +106,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user and a group.</returns>
         [HttpGet]
         [Route("userToGroupMappings/group/{group}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndGroup<String, String>> GetGroupToUserMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             String decodedGroup = Uri.UnescapeDataString(group);
@@ -126,7 +123,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user, and an application component and access level.</returns>
         [HttpGet]
         [Route("userToApplicationComponentAndAccessLevelMappings/user/{user}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetUserToApplicationComponentAndAccessLevelMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
@@ -154,7 +150,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user, and an application component and access level.</returns>
         [HttpGet]
         [Route("userToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetApplicationComponentAndAccessLevelToUserMappings([FromRoute] String applicationComponent, [FromRoute] String accessLevel, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
@@ -173,7 +168,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user, and an entity type and entity.</returns>
         [HttpGet]
         [Route("userToEntityMappings/user/{user}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndEntity<String>> GetUserToEntityMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
@@ -201,7 +195,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user, and an entity type and entity.</returns>
         [HttpGet]
         [Route("userToEntityMappings/user/{user}/entityType/{entityType}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndEntity<String>> GetUserToEntityMappings([FromRoute] String user, [FromRoute] String entityType, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<String> methodReturnValue = null;
@@ -230,7 +223,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user, and an entity type and entity.</returns>
         [HttpGet]
         [Route("userToEntityMappings/entityType/{entityType}/entity/{entity}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndEntity<String>> GetEntityToUserMappings([FromRoute] String entityType, [FromRoute] String entity, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             String decodedEntityType = Uri.UnescapeDataString(entityType);
@@ -250,7 +242,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>True if the user has access the component.  False otherwise.</returns>
         [HttpGet]
         [Route("dataElementAccess/applicationComponent/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public ActionResult<Boolean> HasAccessToApplicationComponent([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             String decodedUser = Uri.UnescapeDataString(user);
@@ -269,7 +260,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>True if the user has access the entity.  False otherwise.</returns>
         [HttpGet]
         [Route("dataElementAccess/entity/user/{user}/entityType/{entityType}/entity/{entity}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public ActionResult<Boolean> HasAccessToEntity([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             String decodedUser = Uri.UnescapeDataString(user);

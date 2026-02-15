@@ -25,7 +25,7 @@ using ApplicationAccess.Persistence;
 namespace ApplicationAccess.Hosting.Metrics
 {
     /// <summary>
-    /// Factory for instances of <see cref="WorkerThreadBufferProcessorBase/>.
+    /// Factory for instances of <see cref="WorkerThreadBufferProcessorBase"/>.
     /// </summary>
     public class MetricsBufferProcessorFactory
     {

@@ -28,6 +28,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
+    [Produces(MediaTypeNames.Application.Json)]
     [ApiExplorerSettings(IgnoreApi = true)]
     public abstract class StatusControllerBase : ControllerBase
     {
@@ -37,7 +38,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>The current status of the node.</returns>
         [HttpGet]
         [Route("status")]
-        [Produces(MediaTypeNames.Application.Json)]
         public NodeStatus Status()
         {
             var nodeStatus = new NodeStatus(Process.GetCurrentProcess().StartTime.ToUniversalTime());

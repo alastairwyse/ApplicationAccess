@@ -56,7 +56,7 @@ namespace ApplicationAccess.InstanceComparer
         protected HashSet<String> excludeUsers;
         /// <summary>The source instance groups to exclude from comparison.</summary>
         protected HashSet<String> excludeGroups;
-        /// <summary>The source instance entities to exclude from comparison.<</summary>
+        /// <summary>The source instance entities to exclude from comparison.</summary>
         protected Dictionary<String, HashSet<String>> excludeEntities;
 
         /// <summary>

@@ -25,7 +25,7 @@ namespace ApplicationAccess.Hosting.Models.Options
     public class OptionsUtilities
     {
         /// <summary>
-        /// Generates a common/standard prefix for <see cref="ValidationException"> messages.
+        /// Generates a common/standard prefix for <see cref="ValidationException"/> messages.
         /// </summary>
         /// <param name="optionsName">The name of the Options object validation failed for.</param>
         /// <returns>The exception message prefix.</returns>

@@ -31,6 +31,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
     [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
+    [Produces(MediaTypeNames.Application.Json)]
     public abstract class DistributedUserQueryProcessorControllerBase : ControllerBase
     {
         protected IDistributedAccessManagerUserQueryProcessor<String, String> distributedUserQueryProcessor;
@@ -52,7 +53,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of users that are mapped to the specified groups.</returns>
         [HttpGet]
         [Route("userToGroupMappings")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<String> GetGroupToUserMappings([FromBody, BindRequired] IEnumerable<String> groups)
         {
             return distributedUserQueryProcessor.GetGroupToUserMappings(groups);

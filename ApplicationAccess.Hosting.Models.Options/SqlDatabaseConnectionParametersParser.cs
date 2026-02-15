@@ -21,7 +21,7 @@ using ApplicationAccess.Hosting.Models;
 namespace ApplicationAccess.Hosting.Models.Options
 {
     /// <summary>
-    /// Parses the <see cref="SqlDatabaseConnectionOptions.ConnectionParameters"/> property of a <see cref="SqlDatabaseConnectionOptions"/> instance, converting it to an instance of a subclass of <see cref="SqlDatabaseConnectionParametersBase/>.
+    /// Parses the <see cref="SqlDatabaseConnectionOptions.ConnectionParameters"/> property of a <see cref="SqlDatabaseConnectionOptions"/> instance, converting it to an instance of a subclass of <see cref="SqlDatabaseConnectionParametersBase"/>.
     /// </summary>
     public class SqlDatabaseConnectionParametersParser
     {

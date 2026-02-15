@@ -31,6 +31,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
+    [Produces(MediaTypeNames.Application.Json)]
     public abstract class DistributedAsyncQueryProcessorControllerBase : ControllerBase
     {
         // TODO: Could consider splitting this into separate *ControllerBases for users and groups
@@ -57,7 +58,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("userToGroupMappings")]
         [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
-        [Produces(MediaTypeNames.Application.Json)]
         public async Task<List<String>> GetGroupToUserMappingsAsync([FromBody, BindRequired] IEnumerable<String> groups)
         {
             return await distributedAccessManagerAsyncQueryProcessor.GetGroupToUserMappingsAsync(groups);
@@ -76,7 +76,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("dataElementAccess/applicationComponent/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
-        [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<Boolean>> HasAccessToApplicationComponentAsync([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
@@ -95,7 +94,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("dataElementAccess/entity/entityType/{entityType}/entity/{entity}")]
         [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
-        [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<Boolean>> HasAccessToEntityAsync([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType, [FromRoute] String entity)
         {
             String decodedEntityType = Uri.UnescapeDataString(entityType);
@@ -112,7 +110,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("groupToApplicationComponentAndAccessLevelMappings")]
         [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
-        [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<ApplicationComponentAndAccessLevel<String, String>> GetApplicationComponentsAccessibleByGroupsAsync([FromBody, BindRequired] IEnumerable<String> groups)
         {
             foreach (Tuple<String, String> currentTuple in await distributedAccessManagerAsyncQueryProcessor.GetApplicationComponentsAccessibleByGroupsAsync(groups))
@@ -129,7 +126,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Route("groupToEntityMappings")]
-        [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<EntityTypeAndEntity> GetEntitiesAccessibleByGroupsAsync([FromBody, BindRequired] IEnumerable<String> groups)
         {
             foreach (Tuple<String, String> currentTuple in await distributedAccessManagerAsyncQueryProcessor.GetEntitiesAccessibleByGroupsAsync(groups))
@@ -147,7 +143,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Route("groupToEntityMappings/entityType/{entityType}")]
-        [Produces(MediaTypeNames.Application.Json)]
         public async Task<IEnumerable<String>> GetEntitiesAccessibleByGroupsAsync([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType)
         {
             String decodedEntityType = Uri.UnescapeDataString(entityType);

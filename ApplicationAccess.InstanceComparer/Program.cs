@@ -137,7 +137,7 @@ namespace ApplicationAccess.InstanceComparer
         }
 
         /// <summary>
-        /// Creates an AccessManagerClient<String, String, String, String> from configuration.
+        /// Creates an AccessManagerClient&lt;String, String, String, String&gt; from configuration.
         /// </summary>
         /// <param name="configuration">The client configuration.</param>
         /// <param name="logger">Logger.</param>

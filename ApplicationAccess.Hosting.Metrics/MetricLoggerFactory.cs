@@ -38,7 +38,6 @@ namespace ApplicationAccess.Hosting.Metrics
         /// </summary>
         /// <param name="metricLoggingOptions">The configuration to use to create the instances.</param>
         /// <param name="categoryNamePrefix">The prefix for the category to log metrics under.</param>
-        /// <param name="processingFailureAction">The action to take if a critical/non-recoverable error occurs whilst attempting to process the buffer(s).</param>
         /// <param name="metricLoggingComponentRetrievalFunction">A func which returns the hosting component which logs the metrics.</param>
         /// <param name="tripSwitchActuator">A <see cref="TripSwitchActuator"/> for the hosting component.</param>
         /// <param name="metricBufferProcessorLogger">The logger to set on the returned metric buffer processor.</param>

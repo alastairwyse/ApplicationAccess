@@ -32,6 +32,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
     [ApiExplorerSettings(GroupName = "EntityQueryProcessor")]
+    [Produces(MediaTypeNames.Application.Json)]
     public abstract class EntityQueryProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerEntityQueryProcessor entityQueryProcessor;
@@ -52,7 +53,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>All entity types.</returns>
         [HttpGet]
         [Route("entityTypes")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<String> EntityTypes()
         {
             return entityQueryProcessor.EntityTypes;
@@ -66,7 +66,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="404">The entity type doesn't exist.</response>
         [HttpGet]
         [Route("entityTypes/{entityType}")]
-        [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<String> ContainsEntityType([FromRoute] String entityType)
         {
@@ -88,7 +87,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>All entities of the specified type.</returns>
         [HttpGet]
         [Route("entityTypes/{entityType}/entities")]
-        [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<EntityTypeAndEntity> GetEntities([FromRoute] String entityType)
         {
             foreach (String currentEntity in entityQueryProcessor.GetEntities(Uri.UnescapeDataString(entityType)))
@@ -106,7 +104,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="404">The entity doesn't exist.</response>
         [HttpGet]
         [Route("entityTypes/{entityType}/entities/{entity}")]
-        [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<EntityTypeAndEntity> ContainsEntity([FromRoute] String entityType, [FromRoute] String entity)
         {

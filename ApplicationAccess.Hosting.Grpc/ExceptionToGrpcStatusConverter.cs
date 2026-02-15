@@ -134,10 +134,10 @@ namespace ApplicationAccess.Hosting.Grpc
         }
 
         /// <summary>
-        /// Converts the specified exception to a <see cref="Status">.
+        /// Converts the specified exception to a <see cref="Status"/>.
         /// </summary>
         /// <param name="exception">The exception to convert.</param>
-        /// <returns>The exception converted to a <see cref="Status">.</returns>
+        /// <returns>The exception converted to a <see cref="Status"/>.</returns>
         public Status Convert(Exception exception)
         {
             return ConvertExceptionRecurse(exception, 0);
@@ -306,7 +306,7 @@ namespace ApplicationAccess.Hosting.Grpc
         }
 
         /// <summary>
-        /// Converts the specified exception to a <see cref="Status">, recursively converting any inner exceptions.
+        /// Converts the specified exception to a <see cref="Status"/>, recursively converting any inner exceptions.
         /// </summary>
         /// <param name="exception">The exception to convert.</param>
         /// <param name="currentInnerExceptionDepth">The current depth of inner exceptions.</param>
@@ -345,7 +345,7 @@ namespace ApplicationAccess.Hosting.Grpc
         }
 
         /// <summary>
-        /// Converts an individual exception (i.e. not its inner exception hierarchy) to a <see cref="Status"> using a function from the type to conversion function map.
+        /// Converts an individual exception (i.e. not its inner exception hierarchy) to a <see cref="Status"/> using a function from the type to conversion function map.
         /// </summary>
         /// <param name="exception">The exception to convert.</param>
         /// <returns>The converted exception.</returns>
@@ -366,11 +366,15 @@ namespace ApplicationAccess.Hosting.Grpc
             throw new Exception($"No valid conversion function defined for exception type '{exception.GetType().FullName}'.");
         }
 
+        #pragma warning disable 1591
+
         protected void ThrowExceptionIfInnerExceptionDepthLimitParameterOutOfRange(String parameterName, Int32 parameterValue)
         {
             if (parameterValue < 0)
                 throw new ArgumentOutOfRangeException(parameterName, $"Parameter '{parameterName}' with value {parameterValue} cannot be less than 0.");
         }
+
+        #pragma warning restore 1591
 
         #endregion
     }
