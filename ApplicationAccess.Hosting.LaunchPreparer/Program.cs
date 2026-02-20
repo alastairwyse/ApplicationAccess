@@ -93,6 +93,16 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
                         Environment.Exit(0);
                     }
                 }
+                // If 'mode' is 'DecodeConfiguration'
+                else if (arguments[NameConstants.ModeArgumentName] == LaunchPreparerMode.DecodeConfiguration.ToString())
+                {
+                    var encoder = new Base64StringEncoder();
+                    // ArgumentValidatorConverter takes care of confirming the contents are JSON in the Validate() call
+                    String decodedConfiguration = encoder.Decode(arguments[NameConstants.EncodedJsonConfigurationArgumentName]);
+                    JObject jsonConfiguration = JObject.Parse(decodedConfiguration);
+                    Console.WriteLine(jsonConfiguration.ToString(Formatting.Indented));
+                    Environment.Exit(0);
+                }
                 else
                 {
                     throw new Exception($"Encountered unhandled {nameof(LaunchPreparerMode)} '{arguments[NameConstants.ModeArgumentName]}'.");

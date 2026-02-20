@@ -39,7 +39,7 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         public LogLevel? MinimumLogLevel;
 
         /// <summary>String containing the JSON comfiguration for the component to launch, encoded so it can be received as a command line parameter.</summary>
-        /// <remarks>Only applicable in <see cref="LaunchPreparerMode.Launch">Launch</see> mode.</remarks>
+        /// <remarks>Only applicable in <see cref="LaunchPreparerMode.Launch">Launch</see> and <see cref="LaunchPreparerMode.DecodeConfiguration">Launch</see> modes.</remarks>
         public String EncodedJsonConfiguration;
 
         /// <summary>The full path to the JSON file containing component configuration.</summary>

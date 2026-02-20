@@ -46,12 +46,17 @@
 #   For 'EncodeConfiguration' mode:
 #     MODE - e.g 'MODE=EncodeConfiguration'
 #     CONFIGURATION_FILE_PATH - e.g 'CONFIGURATION_FILE_PATH=appsettings.Production.json'
+#   For 'DecodeConfiguration' mode:
+#     MODE - e.g 'MODE=DecodeConfiguration'
+#     ENCODED_JSON_CONFIGURATION - e.g. 'ENCODED_JSON_CONFIGURATION=H4sIAAAAAAACCqpWUApLzClNVbJSUPIsVvAK9vdTUqgFAAAA//8='
 #
 # Example 'docker run' commands when configured as a docker container 'ENTRYPOINT'
 #   'Launch' mode:
 #     docker run -it --rm -p 5000:5000 -e MODE=Launch -e LISTEN_PORT=5000 -e MINIMUM_LOG_LEVEL=Warning -e ENCODED_JSON_CONFIGURATION=H4sIAAAAAAACCqpWUApLzClNVbJSUPIsVvAK9vdTUqgFAAAA//8= --name appaccess_readerwriter 792f8ef28edf
 #   'EncodeConfiguration' mode:
 #     docker run -it --rm -v /home/TestUser/AppAccessDocker/ReaderWriterSource:/ext -e MODE=EncodeConfiguration -e CONFIGURATION_FILE_PATH=/ext/appsettings.Production.json --name appaccess_readerwriter b306fbdce9e5
+#   'DecodeConfiguration' mode:
+#     docker run -it --rm -e MODE=DecodeConfiguration -e ENCODED_JSON_CONFIGURATION=H4sIAAAAAAACCqpWUApLzClNVbJSUPIsVvAK9vdTUqgFAAAA//8= --name appaccess_readerwriter b306fbdce9e5
 #
 # ------------------------------------------------------------------------------
 
@@ -65,7 +70,12 @@ if [ $MODE == EncodeConfiguration ]
 then
     # Run LaunchPreparer in 'EncodeConfiguration' mode (encoded config will be written to the console)
     dotnet ApplicationAccess.Hosting.LaunchPreparer.dll -mode $MODE -configurationFilePath $CONFIGURATION_FILE_PATH
-else
+elif [ $MODE == DecodeConfiguration ]
+then 
+    # Run LaunchPreparer in 'DecodeConfiguration' mode (decoded config will be written to the console)
+    dotnet ApplicationAccess.Hosting.LaunchPreparer.dll -mode $MODE -encodedJsonConfiguration $ENCODED_JSON_CONFIGURATION
+elif [ $MODE == Launch ]
+then
     # Validate inputs and prepare configuration
     launchPreparerOutput=` dotnet ApplicationAccess.Hosting.LaunchPreparer.dll -mode $MODE -component $1 -listenPort $LISTEN_PORT -minimumLogLevel $MINIMUM_LOG_LEVEL -encodedJsonConfiguration $ENCODED_JSON_CONFIGURATION `
 
@@ -78,4 +88,6 @@ else
         # execution of LaunchPreparer was not successful, so show its output (error message and usage info) on the console
         echo "$launchPreparerOutput"
     fi
+else
+    dotnet ApplicationAccess.Hosting.LaunchPreparer.dll -mode $MODE
 fi

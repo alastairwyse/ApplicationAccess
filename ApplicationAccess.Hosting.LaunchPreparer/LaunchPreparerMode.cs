@@ -24,6 +24,8 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         /// <summary>Mode which prepares for starting an access manager component.</summary>
         Launch,
         /// <summary>Mode which encodes an access manager component's JSON configuration to allow it to be passed as a command line parameter.</summary>
-        EncodeConfiguration
+        EncodeConfiguration,
+        /// <summary>Mode which decodes a previously encoded access manager component's JSON configuration.</summary>
+        DecodeConfiguration
     }
 }

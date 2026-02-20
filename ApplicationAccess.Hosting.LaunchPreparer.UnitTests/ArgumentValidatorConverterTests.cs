@@ -282,6 +282,20 @@ namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
 
             Assert.That(e.Message, Does.StartWith($"Missing required parameter for mode 'EncodeConfiguration' - 'configurationFilePath'"));
             Assert.AreEqual("configurationFilePath", e.ArgumentName);
+
+
+            testArguments = new Dictionary<String, String>()
+            {
+                { "mode", "DecodeConfiguration" }
+            };
+
+            e = Assert.Throws<CommandLineArgumentInvalidException>(delegate
+            {
+                testArgumentValidatorConverter.Validate(testArguments);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Missing required parameter for mode 'DecodeConfiguration' - 'encodedJsonConfiguration'"));
+            Assert.AreEqual("encodedJsonConfiguration", e.ArgumentName);
         }
 
         [Test]
@@ -293,6 +307,18 @@ namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
                 { "listenPort", "5001" },
                 { "component", "ReaderWriterNode" },
                 { "minimumLogLevel", "Critical" },
+                { "encodedJsonConfiguration", "H4sIAAAAAAACCqpWUApLzClNVbJSUPIsVvAK9vdTUqgFAAAA//8=" }
+            };
+
+            Assert.DoesNotThrow(delegate
+            {
+                testArgumentValidatorConverter.Validate(testArguments);
+            });
+
+
+            testArguments = new Dictionary<String, String>()
+            {
+                { "mode", "DecodeConfiguration" },
                 { "encodedJsonConfiguration", "H4sIAAAAAAACCqpWUApLzClNVbJSUPIsVvAK9vdTUqgFAAAA//8=" }
             };
 

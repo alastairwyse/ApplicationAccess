@@ -226,6 +226,11 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         [Order(0)]
         public void NotFoundExceptionMappedToGrpcError()
         {
+            // TODO: Explanation of why this fails (as I've already forgotten this once and had to re-investigate)
+            //   AccessManagerClientBase for both REST and gRPC maps notfound/404 status to NotFoundException or User/Group/*NotFoundException (depending on the type of the underlying exception received from server side)
+            //   However both REST and gRPC EventCacheClients override this and map notfound/404 status to EventNotCachedException
+            //   Once a generic gRPC client class is created, and these tests moved to the test project for that class, this should pass, but in the meaning it will fail due to aforementioned EventCacheClient overriding
+
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = "Test exception message.";
             var resourceId = "user1";

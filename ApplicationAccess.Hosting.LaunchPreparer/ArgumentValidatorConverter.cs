@@ -103,9 +103,29 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         public String StringifyEnumValues<TEnum>()
             where TEnum : struct, System.Enum
         {
+            return StringifyEnumValues(new HashSet<TEnum>());
+        }
+
+        /// <summary>
+        /// Returns all values of the specified enum in a comma-separated string.
+        /// </summary>
+        /// <typeparam name="TEnum">The type of enum to stringify the values of.</typeparam>
+        /// <param name="excludeEnumValues">A set of enum values to exclude from the string.</param>
+        /// <returns>All values of the specified enum values in a comma-separated string.</returns>
+        public String StringifyEnumValues<TEnum>(ISet<TEnum> excludeEnumValues)
+            where TEnum : struct, System.Enum
+        {
             TEnum[] allValues = Enum.GetValues<TEnum>();
+            List<TEnum> includedValues = new();
+            foreach (TEnum currentEnumValue in allValues)
+            {
+                if (excludeEnumValues.Contains(currentEnumValue) == false)
+                {
+                    includedValues.Add(currentEnumValue);
+                }
+            }
             var returnStringBuilder = new StringBuilder();
-            for (Int32 i = 0; i < allValues.Length; i++)
+            for (Int32 i = 0; i < includedValues.Count; i++)
             {
                 returnStringBuilder.Append($"'{allValues[i]}'");
                 if (i < (allValues.Length - 1))
@@ -162,7 +182,7 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
                     }
                     catch(Exception)
                     {
-                        String message = GenerateExceptionMessageForInvalidEnumArgument<LaunchPreparerMode>(NameConstants.ModeArgumentName, argumentValue);
+                        String message = GenerateExceptionMessageForInvalidEnumArgument<LaunchPreparerMode>(NameConstants.ModeArgumentName, argumentValue, new HashSet<LaunchPreparerMode>() { LaunchPreparerMode.DecodeConfiguration });
                         throw new CommandLineArgumentInvalidException(message, NameConstants.ModeArgumentName);
                     }
                 }
@@ -262,15 +282,26 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
             launchPreparerModeDependencyMap = new Dictionary<LaunchPreparerMode, List<String>>()
             {
                 { LaunchPreparerMode.Launch, new List<String>() { NameConstants.ComponentArgumentName, NameConstants.ListenPortArgumentName, NameConstants.MinimumLogLevelArgumentName, NameConstants.EncodedJsonConfigurationArgumentName } },
-                { LaunchPreparerMode.EncodeConfiguration, new List<String>() { NameConstants.ConfigurationFilePathArgumentName } }
+                { LaunchPreparerMode.EncodeConfiguration, new List<String>() { NameConstants.ConfigurationFilePathArgumentName } }, 
+                { LaunchPreparerMode.DecodeConfiguration, new List<String>() { NameConstants.EncodedJsonConfigurationArgumentName } }
             };
         }
+
+        #pragma warning disable 1591
 
         protected String GenerateExceptionMessageForInvalidEnumArgument<TEnum>(String argumentName, String argumentValue)
             where TEnum : struct, System.Enum
         {
-            return $"Value '{argumentValue}' is invalid for parameter '{argumentName}'.  Valid values are {StringifyEnumValues<TEnum>()}";
+            return GenerateExceptionMessageForInvalidEnumArgument(argumentName, argumentValue, new HashSet<TEnum>());
         }
+
+        protected String GenerateExceptionMessageForInvalidEnumArgument<TEnum>(String argumentName, String argumentValue, ISet<TEnum> excludeEnumValues)
+            where TEnum : struct, System.Enum
+        {
+            return $"Value '{argumentValue}' is invalid for parameter '{argumentName}'.  Valid values are {StringifyEnumValues<TEnum>(excludeEnumValues)}";
+        }
+
+        #pragma warning restore 1591
 
         #endregion
     }

@@ -121,14 +121,17 @@ namespace ApplicationAccess.Hosting.Rest
             String logFilePath = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFilePath)}");
             String logFileNamePrefix = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFileNamePrefix)}");
             String minimumLogLevelKey = $"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogLevel)}";
-            if (builder.Configuration.GetSection(minimumLogLevelKey).Value == null)
+            if (logFilePath != null && logFileNamePrefix != null)
             {
-                middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix, LogEventLevel.Warning);
-            }
-            else
-            {
-                LogEventLevel? minimumLogLevel = builder.Configuration.GetValue<LogEventLevel>(minimumLogLevelKey);
-                middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix, minimumLogLevel.Value);
+                if (builder.Configuration.GetSection(minimumLogLevelKey).Value == null)
+                {
+                    middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix, LogEventLevel.Warning);
+                }
+                else
+                {
+                    LogEventLevel? minimumLogLevel = builder.Configuration.GetValue<LogEventLevel>(minimumLogLevelKey);
+                    middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix, minimumLogLevel.Value);
+                }
             }
         }
 
