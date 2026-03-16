@@ -23,8 +23,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
     /// </summary>
     public record ReaderNodeConfiguration : NodeConfigurationBase
     {
-        /// <summary>The number of replicas of the pod.</summary>
-        public required UInt16 ReplicaCount { get; init; }
+        /// <summary>The number of replicas of pods used to manage users.</summary>
+        public required UInt16 UserReplicaCount { get; init; }
+
+        /// <summary>The number of replicas of pods used to manage group to group mappings.</summary>
+        public required UInt16 GroupToGroupMappingReplicaCount { get; init; }
+
+        /// <summary>The number of replicas of pods used to manage groups.</summary>
+        public required UInt16 GroupReplicaCount { get; init; }
 
         /// <summary>The time in seconds between liveness probes.</summary>
         public required UInt16 LivenessProbePeriod { get; init; }

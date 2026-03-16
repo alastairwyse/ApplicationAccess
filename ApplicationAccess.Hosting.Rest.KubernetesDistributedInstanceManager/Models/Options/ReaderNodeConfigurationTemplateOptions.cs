@@ -57,9 +57,17 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(StartupProbeFailureThreshold)}' is required.")]
         public UInt16? StartupProbeFailureThreshold { get; set; }
 
-        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(ReplicaCount)}' is required.")]
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(UserReplicaCount)}' is required.")]
         [Range(1, 65535, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
-        public UInt16? ReplicaCount { get; set; }
+        public UInt16? UserReplicaCount { get; set; }
+
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(GroupToGroupMappingReplicaCount)}' is required.")]
+        [Range(1, 65535, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public UInt16? GroupToGroupMappingReplicaCount { get; set; }
+
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(GroupReplicaCount)}' is required.")]
+        [Range(1, 65535, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public UInt16? GroupReplicaCount { get; set; }
 
         [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(LivenessProbePeriod)}' is required.")]
         [Range(1, 65535, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]

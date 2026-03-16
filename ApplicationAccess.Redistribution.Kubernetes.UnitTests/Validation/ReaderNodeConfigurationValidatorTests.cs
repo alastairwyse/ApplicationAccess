@@ -43,24 +43,54 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 MemoryResourceRequest = "60Mi",
                 StartupProbeFailureThreshold = 5,
                 StartupProbePeriod = 10,
-                ReplicaCount = 3, 
+                UserReplicaCount = 1,
+                GroupToGroupMappingReplicaCount = 2,
+                GroupReplicaCount = 3,
                 LivenessProbePeriod = 5
             };
             testReaderNodeConfigurationValidator = new ReaderNodeConfigurationValidator();
         }
 
         [Test]
-        public void Validate_ReplicaCountProperty0()
+        public void Validate_UserReplicaCountProperty0()
         {
-            testNodeConfiguration = testNodeConfiguration with { ReplicaCount = 0 };
+            testNodeConfiguration = testNodeConfiguration with { UserReplicaCount = 0 };
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
                 testReaderNodeConfigurationValidator.Validate(testNodeConfiguration);
             });
 
-            Assert.That(e.Message, Does.StartWith($"ReaderNodeConfiguration property 'ReplicaCount' with value 0 must be greater than 0."));
-            Assert.AreEqual("ReplicaCount", e.ParamName);
+            Assert.That(e.Message, Does.StartWith($"ReaderNodeConfiguration property 'UserReplicaCount' with value 0 must be greater than 0."));
+            Assert.AreEqual("UserReplicaCount", e.ParamName);
+        }
+
+        [Test]
+        public void Validate_GroupToGroupMappingReplicaCountProperty0()
+        {
+            testNodeConfiguration = testNodeConfiguration with { GroupToGroupMappingReplicaCount = 0 };
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testReaderNodeConfigurationValidator.Validate(testNodeConfiguration);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"ReaderNodeConfiguration property 'GroupToGroupMappingReplicaCount' with value 0 must be greater than 0."));
+            Assert.AreEqual("GroupToGroupMappingReplicaCount", e.ParamName);
+        }
+
+        [Test]
+        public void Validate_GroupReplicaCountProperty0()
+        {
+            testNodeConfiguration = testNodeConfiguration with { GroupReplicaCount = 0 };
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testReaderNodeConfigurationValidator.Validate(testNodeConfiguration);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"ReaderNodeConfiguration property 'GroupReplicaCount' with value 0 must be greater than 0."));
+            Assert.AreEqual("GroupReplicaCount", e.ParamName);
         }
 
         [Test]

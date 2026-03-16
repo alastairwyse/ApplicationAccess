@@ -53,7 +53,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 SetReaderWriterNodePersistentStorageCredentials = true, 
                 ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
                 {
-                    ReplicaCount = 1,
+                    UserReplicaCount = 2,
+                    GroupToGroupMappingReplicaCount = 3,
+                    GroupReplicaCount = 4,
                     TerminationGracePeriod = 3600,
                     ContainerImage = "applicationaccess/distributedreader:20250203-0900",
                     MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning,

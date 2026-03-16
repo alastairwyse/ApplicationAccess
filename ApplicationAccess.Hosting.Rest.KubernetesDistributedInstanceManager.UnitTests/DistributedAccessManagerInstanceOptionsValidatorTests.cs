@@ -60,7 +60,9 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.DeploymentWaitPollingInterval = null; }, "StaticConfiguration", "DeploymentWaitPollingInterval");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.ServiceAvailabilityWaitAbortTimeout = null; }, "StaticConfiguration", "ServiceAvailabilityWaitAbortTimeout");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer = null; }, "StaticConfiguration", "DistributedOperationCoordinatorRefreshIntervalWaitBuffer");
-            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.ReplicaCount = null; }, "ReaderNodeConfigurationTemplate", "ReplicaCount");
+            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.UserReplicaCount = null; }, "ReaderNodeConfigurationTemplate", "UserReplicaCount");
+            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.GroupToGroupMappingReplicaCount = null; }, "ReaderNodeConfigurationTemplate", "GroupToGroupMappingReplicaCount");
+            Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.GroupReplicaCount = null; }, "ReaderNodeConfigurationTemplate", "GroupReplicaCount");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.TerminationGracePeriod = null; }, "ReaderNodeConfigurationTemplate", "TerminationGracePeriod");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.ContainerImage = null; }, "ReaderNodeConfigurationTemplate", "ContainerImage");
             Validate_ChildRequiredConfigurationMissing((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.MinimumLogLevel = null; }, "ReaderNodeConfigurationTemplate", "MinimumLogLevel");
@@ -124,7 +126,9 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.DeploymentWaitPollingInterval = 0; }, "StaticConfiguration", "DeploymentWaitPollingInterval", 1, Int32.MaxValue);
             Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.ServiceAvailabilityWaitAbortTimeout = 0; }, "StaticConfiguration", "ServiceAvailabilityWaitAbortTimeout", 1, Int32.MaxValue);
             Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 0; }, "StaticConfiguration", "DistributedOperationCoordinatorRefreshIntervalWaitBuffer", 1, Int32.MaxValue);
-            Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.ReplicaCount = 0; }, "ReaderNodeConfigurationTemplate", "ReplicaCount", 1, UInt16.MaxValue);
+            Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.UserReplicaCount = 0; }, "ReaderNodeConfigurationTemplate", "UserReplicaCount", 1, UInt16.MaxValue);
+            Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.GroupToGroupMappingReplicaCount = 0; }, "ReaderNodeConfigurationTemplate", "GroupToGroupMappingReplicaCount", 1, UInt16.MaxValue);
+            Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.GroupReplicaCount = 0; }, "ReaderNodeConfigurationTemplate", "GroupReplicaCount", 1, UInt16.MaxValue);
             Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.LivenessProbePeriod = 0; }, "ReaderNodeConfigurationTemplate", "LivenessProbePeriod", 1, UInt16.MaxValue);
             Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.ReaderNodeConfigurationTemplate.StartupProbePeriod = 0; }, "ReaderNodeConfigurationTemplate", "StartupProbePeriod", 1, UInt16.MaxValue);
             Validate_ChildNumericConfigurationValueOutOfRange((instOpts) => { instOpts.StaticConfiguration.EventCacheNodeConfigurationTemplate.StartupProbePeriod = 0; }, "EventCacheNodeConfigurationTemplate", "StartupProbePeriod", 1, UInt16.MaxValue);
@@ -285,7 +289,9 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
                     DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 1000,
                     ReaderNodeConfigurationTemplate = new ReaderNodeConfigurationTemplateOptions
                     {
-                        ReplicaCount = 2,
+                        UserReplicaCount = 2,
+                        GroupToGroupMappingReplicaCount = 3,
+                        GroupReplicaCount = 4,
                         TerminationGracePeriod = 3600,
                         ContainerImage = "applicationaccess/distributedreader:20250203-0900",
                         MinimumLogLevel = LogLevel.Warning,

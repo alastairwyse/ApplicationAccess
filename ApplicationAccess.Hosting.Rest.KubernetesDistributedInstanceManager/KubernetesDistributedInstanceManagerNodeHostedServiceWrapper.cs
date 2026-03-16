@@ -233,7 +233,9 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 SetReaderWriterNodePersistentStorageCredentials = staticConfigurationOptions.SetReaderWriterNodePersistentStorageCredentials,
                 ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
                 {
-                    ReplicaCount = staticConfigurationOptions.ReaderNodeConfigurationTemplate.ReplicaCount.Value,
+                    UserReplicaCount = staticConfigurationOptions.ReaderNodeConfigurationTemplate.UserReplicaCount.Value,
+                    GroupToGroupMappingReplicaCount = staticConfigurationOptions.ReaderNodeConfigurationTemplate.GroupToGroupMappingReplicaCount.Value,
+                    GroupReplicaCount = staticConfigurationOptions.ReaderNodeConfigurationTemplate.GroupReplicaCount.Value,
                     TerminationGracePeriod = staticConfigurationOptions.ReaderNodeConfigurationTemplate.TerminationGracePeriod.Value,
                     ContainerImage = staticConfigurationOptions.ReaderNodeConfigurationTemplate.ContainerImage,
                     MinimumLogLevel = staticConfigurationOptions.ReaderNodeConfigurationTemplate.MinimumLogLevel.Value,

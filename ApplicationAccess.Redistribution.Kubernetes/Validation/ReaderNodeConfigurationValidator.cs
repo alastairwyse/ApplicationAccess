@@ -40,10 +40,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Validation
         public override void Validate(ReaderNodeConfiguration nodeConfiguration)
         {
             base.Validate(nodeConfiguration);
-            if (nodeConfiguration.ReplicaCount == 0)
+            void ValidateReplicaCounts(String parameterName, UInt16 parameterValue)
             {
-                throw new ArgumentOutOfRangeException(nameof(nodeConfiguration.ReplicaCount), $"{nodeConfigurationClassName} property '{nameof(nodeConfiguration.ReplicaCount)}' with value {nodeConfiguration.ReplicaCount} must be greater than 0.");
+                if (parameterValue == 0)
+                {
+                    throw new ArgumentOutOfRangeException(parameterName, $"{nodeConfigurationClassName} property '{parameterName}' with value {parameterValue} must be greater than 0.");
+                }
             }
+            ValidateReplicaCounts(nameof(nodeConfiguration.UserReplicaCount), nodeConfiguration.UserReplicaCount);
+            ValidateReplicaCounts(nameof(nodeConfiguration.GroupToGroupMappingReplicaCount), nodeConfiguration.GroupToGroupMappingReplicaCount);
+            ValidateReplicaCounts(nameof(nodeConfiguration.GroupReplicaCount), nodeConfiguration.GroupReplicaCount);
         }
     }
 }

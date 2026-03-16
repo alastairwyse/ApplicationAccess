@@ -2185,6 +2185,27 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
         }
 
+        /// <summary>
+        /// Gets the number of reader node pod replicas from configuration for the specified <see cref="DataElement"/>.
+        /// </summary>
+        /// <param name="readerNodeConfiguration">The reader node configuration.</param>
+        /// <param name="dataElement">The <see cref="DataElement"/> to retrieve the replica count for.</param>
+        /// <returns>The replica count.</returns>
+        protected UInt16 GetReaderNodeReplicaCount(ReaderNodeConfiguration readerNodeConfiguration, DataElement dataElement)
+        {
+            switch (dataElement)
+            {
+                case DataElement.User:
+                    return readerNodeConfiguration.UserReplicaCount;
+                case DataElement.GroupToGroupMapping:
+                    return readerNodeConfiguration.GroupToGroupMappingReplicaCount;
+                case DataElement.Group:
+                    return readerNodeConfiguration.GroupReplicaCount;
+                default:
+                    throw new Exception($"Encountered unhandled {nameof(DataElement)} '{dataElement}' while attempting to retrieve reader node replica count from configuration.");
+            }
+        }
+
         #pragma warning disable 1591
 
         protected void ThrowExceptionIfIntegerParameterLessThan1(String parameterName, Int32 parameterValue)
@@ -2390,7 +2411,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             String writerNodeDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
             Int32 readerNodeAvailabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.ReaderNodeConfigurationTemplate);
             Int32 writerNodeAvailabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.WriterNodeConfigurationTemplate);
-            Task scaleUpReaderNodeTask = Task.Run(async () => await ScaleDeploymentAsync(readerNodeDeploymentName, staticConfiguration.ReaderNodeConfigurationTemplate.ReplicaCount));
+            UInt16 readerNodeReplicaCount = GetReaderNodeReplicaCount(staticConfiguration.ReaderNodeConfigurationTemplate, dataElement);
+            Task scaleUpReaderNodeTask = Task.Run(async () => await ScaleDeploymentAsync(readerNodeDeploymentName, readerNodeReplicaCount));
             Task scaleUpWriterNodeTask = Task.Run(async () => await ScaleDeploymentAsync(writerNodeDeploymentName, 1));
             Task waitForScaleUpReaderNodeTask = Task.Run(async () =>
             {
@@ -2487,7 +2509,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             String nameSpace = staticConfiguration.NameSpace;
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
             String persistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, hashRangeStart);
-            Func<Task> createDeploymentFunction = () => CreateReaderNodeDeploymentAsync(deploymentName, persistentStorageInstanceName, persistentStorageCredentials, eventCacheServiceUrl);
+            UInt16 replicaCount = GetReaderNodeReplicaCount(staticConfiguration.ReaderNodeConfigurationTemplate, dataElement);
+            Func<Task> createDeploymentFunction = () => CreateReaderNodeDeploymentAsync(deploymentName, replicaCount, persistentStorageInstanceName, persistentStorageCredentials, eventCacheServiceUrl);
             Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.ReaderNodeConfigurationTemplate);
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating reader node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new ReaderNodeCreateTime());
@@ -2977,10 +3000,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Creates a Kubernetes deployment for a reader node.
         /// </summary>
         /// <param name="name">The name of the deployment.</param>
+        /// <param name="replicaCount">The number of pod replicas in the deployment.</param>
         /// <param name="persistentStorageInstanceName">The name of the persistent storage instance for the reader node.</param>
         /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the reader node.</param>
         /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the reader node should consume events from.</param>
-        protected async Task CreateReaderNodeDeploymentAsync(String name, String persistentStorageInstanceName, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
+        protected async Task CreateReaderNodeDeploymentAsync(String name, UInt16 replicaCount, String persistentStorageInstanceName, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
         {
             // Prepare and encode the 'appsettings.json' file contents
             JObject appsettingsContents = staticConfiguration.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
@@ -3005,6 +3029,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             V1Deployment deploymentDefinition = ReaderNodeDeploymentTemplate;
             deploymentDefinition.Metadata.Name = name;
+            deploymentDefinition.Spec.Replicas = replicaCount;
             deploymentDefinition.Spec.Selector.MatchLabels.Add(appLabel, name);
             deploymentDefinition.Spec.Template.Metadata.Labels.Add(appLabel, name);
             deploymentDefinition.Spec.Template.Spec.Containers[0].Name = name;
@@ -3539,7 +3564,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 Metadata = new V1ObjectMeta(),
                 Spec = new V1DeploymentSpec
                 {
-                    Replicas = staticConfiguration.ReaderNodeConfigurationTemplate.ReplicaCount,
                     Selector = new V1LabelSelector()
                     {
                         MatchLabels = new Dictionary<string, string>()

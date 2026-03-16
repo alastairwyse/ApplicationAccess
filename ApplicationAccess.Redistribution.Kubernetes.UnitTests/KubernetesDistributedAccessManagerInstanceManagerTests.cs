@@ -7863,7 +7863,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             await mockKubernetesClientShim.Received().ListNamespacedDeploymentAsync(null, testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupScaleUpTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ShardGroupScaleUpTime>());
-            Assert.That(e.Message, Does.StartWith($"Failed to scale Kubernetes deployment 'user-reader-n3000000' to 1 replica(s)."));
+            Assert.That(e.Message, Does.StartWith($"Failed to scale Kubernetes deployment 'user-reader-n3000000' to 2 replica(s)."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -9120,7 +9120,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, 2, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'EventCacheConnection' was not found in JSON document containing appsettings configuration for reader nodes."));
@@ -9133,7 +9133,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, 2, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for reader nodes."));
@@ -9151,7 +9151,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, 2, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
@@ -9177,14 +9177,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             ));
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, 2, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
 
             mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
             Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
             Assert.AreEqual(name, capturedDeploymentDefinition.Metadata.Name);
-            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Replicas);
+            Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Replicas);
             Assert.IsTrue(capturedDeploymentDefinition.Spec.Selector.MatchLabels.ContainsKey("app"));
             Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Selector.MatchLabels["app"]);
             Assert.IsTrue(capturedDeploymentDefinition.Spec.Template.Metadata.Labels.ContainsKey("app"));
@@ -9228,14 +9228,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), testNameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, 2, persistentStorageInstanceName, storageCredentials, eventCacheServiceUrl);
 
             mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageInstanceName(persistentStorageInstanceName, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
             Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
             Assert.AreEqual(name, capturedDeploymentDefinition.Metadata.Name);
-            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Replicas);
+            Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Replicas);
             Assert.IsTrue(capturedDeploymentDefinition.Spec.Selector.MatchLabels.ContainsKey("app"));
             Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Selector.MatchLabels["app"]);
             Assert.IsTrue(capturedDeploymentDefinition.Spec.Template.Metadata.Labels.ContainsKey("app"));
@@ -10400,7 +10400,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 SetReaderWriterNodePersistentStorageCredentials = true,
                 ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
                 {
-                    ReplicaCount = 1,
+                    UserReplicaCount = 2,
+                    GroupToGroupMappingReplicaCount = 3,
+                    GroupReplicaCount = 4,
                     TerminationGracePeriod = 3600,
                     ContainerImage = "applicationaccess/distributedreader:20250203-0900",
                     MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning,
@@ -11133,9 +11135,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 return await base.GetLoadBalancerServiceIpAddressAsync(serviceName);
             }
 
-            public new async Task CreateReaderNodeDeploymentAsync(String name, String persistentStorageInstanceName, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
+            public new async Task CreateReaderNodeDeploymentAsync(String name, UInt16 replicaCount, String persistentStorageInstanceName, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
             {
-                await base.CreateReaderNodeDeploymentAsync(name, persistentStorageInstanceName, persistentStorageCredentials, eventCacheServiceUrl);
+                await base.CreateReaderNodeDeploymentAsync(name, replicaCount, persistentStorageInstanceName, persistentStorageCredentials, eventCacheServiceUrl);
             }
 
             public new async Task CreateEventCacheNodeDeploymentAsync(String name)
