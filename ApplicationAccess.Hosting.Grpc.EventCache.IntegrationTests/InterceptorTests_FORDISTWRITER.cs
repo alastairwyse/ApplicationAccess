@@ -59,8 +59,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = "Test exception message.";
             var mockException = new Exception(exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
@@ -78,8 +78,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var exceptionMessage = "Test exception message.";
             var parameterName = "testParamName";
             var mockException = new ArgumentException(exceptionMessage, parameterName);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
@@ -109,8 +109,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var exceptionMessage = "Test exception message.";
             var parameterName = "testParamName";
             var mockException = new ArgumentOutOfRangeException(parameterName, exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -139,8 +139,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var exceptionMessage = "Test exception message.";
             var parameterName = "testParamName";
             var mockException = new ArgumentNullException(parameterName, exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<ArgumentNullException>(delegate
             {
@@ -168,8 +168,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = "Test exception message.";
             var mockException = new IndexOutOfRangeException(exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<IndexOutOfRangeException>(delegate
             {
@@ -188,8 +188,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var innerException2 = new Exception("Plain inner exception");
             var exceptionMessage = "Test exception message.";
             var mockException = new AggregateException(exceptionMessage, innerException1, innerException2);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<AggregateException>(delegate
             {
@@ -210,8 +210,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = "Test exception message.";
             var mockException = new AggregateException(exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<AggregateException>(delegate
             {
@@ -235,8 +235,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var exceptionMessage = "Test exception message.";
             var resourceId = "user1";
             var mockException = new NotFoundException(exceptionMessage, resourceId);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<NotFoundException>(delegate
             {
@@ -255,8 +255,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var exceptionMessage = "Test user not found exception message.";
             var user = "user1";
             var mockException = new UserNotFoundException<String>(exceptionMessage, nameof(user), user);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
@@ -276,8 +276,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var exceptionMessage = "Test group not found exception message.";
             var group = "group1";
             var mockException = new GroupNotFoundException<String>(exceptionMessage, nameof(group), group);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
@@ -297,8 +297,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var exceptionMessage = "Test group not found exception message.";
             var entityType = "Clients";
             var mockException = new EntityTypeNotFoundException(exceptionMessage, nameof(entityType), entityType);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
@@ -319,8 +319,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var entityType = "Clients";
             var entity = "CompanyA";
             var mockException = new EntityNotFoundException(exceptionMessage, nameof(entity), entityType, entity);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<EntityNotFoundException>(delegate
             {

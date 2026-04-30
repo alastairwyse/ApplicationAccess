@@ -29,7 +29,7 @@ namespace ApplicationAccess.Hosting
     /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class TemporalEventBulkCachingNode<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public class TemporalEventBulkCachingNode<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventCache<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
         /// <summary>The underlying object which performs caching.</summary>
         protected AccessManagerTemporalEventBulkCache<TUser, TGroup, TComponent, TAccess> eventCache;

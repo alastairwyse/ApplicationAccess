@@ -33,8 +33,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
     /// </summary>
     public class EventCacheService : EventCacheRpc.EventCacheRpcBase
     {
-        protected IAccessManagerTemporalEventBulkPersister<String, String, String, String> eventPersister;
-        protected IAccessManagerTemporalEventQueryProcessor<String, String, String, String> eventQueryProcessor;
+        protected IAccessManagerEventCache<String, String, String, String> eventCache;
         protected ILogger<EventCacheService> logger;
 
         /// <summary>Used to convert <see cref="TemporalEventBufferItemBase"/> instances to and from their gRPC message equivalent.</summary>
@@ -43,10 +42,9 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.EventCache.Controllers.EventCacheController class.
         /// </summary>
-        public EventCacheService(TemporalEventBulkPersisterHolder temporalEventBulkPersisterHolder, TemporalEventQueryProcessorHolder temporalEventQueryProcessorHolder, ILogger<EventCacheService> logger)
+        public EventCacheService(EventCacheHolder eventCacheHolder, ILogger<EventCacheService> logger)
         {
-            eventPersister = temporalEventBulkPersisterHolder.TemporalEventBulkPersister;
-            eventQueryProcessor = temporalEventQueryProcessorHolder.TemporalEventQueryProcessor;
+            eventCache = eventCacheHolder.EventCache;
             this.logger = logger;
             eventConverter = new EventBufferItemToGrpcMessageConverter<String, String, String, String>
             (
@@ -63,7 +61,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
         public override Task<Empty> CacheEvents(CacheEventsRequest request, ServerCallContext context)
         {
             List<TemporalEventBufferItemBase> eventsList = new(eventConverter.Convert(request.Events.Events));
-            eventPersister.PersistEvents(eventsList);
+            eventCache.PersistEvents(eventsList);
 
             return Task.FromResult<Empty>(new Empty());
         }
@@ -77,7 +75,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
             IList<TemporalEventBufferItemBase> results;
             try
             {
-                results = eventQueryProcessor.GetAllEventsSince(priorEventdId);
+                results = eventCache.GetAllEventsSince(priorEventdId);
             }
             catch (EventNotCachedException eventNotCachedException)
             {

@@ -60,8 +60,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
                 },
                 ProcessorHolderTypes = new List<Type>()
                 {
-                    typeof(TemporalEventBulkPersisterHolder),
-                    typeof(TemporalEventQueryProcessorHolder)
+                    typeof(EventCacheHolder)
                 },
                 ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
                 {

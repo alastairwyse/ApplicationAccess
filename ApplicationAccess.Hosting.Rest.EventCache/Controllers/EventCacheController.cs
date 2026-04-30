@@ -36,17 +36,15 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
     [ApiExplorerSettings(GroupName = "EventBufferItems")]
     public class EventCacheController : ControllerBase
     {
-        protected IAccessManagerTemporalEventBulkPersister<String, String, String, String> eventPersister;
-        protected IAccessManagerTemporalEventQueryProcessor<String, String, String, String> eventQueryProcessor;
+        protected IAccessManagerEventCache<String, String, String, String> eventCache;
         protected ILogger<EventCacheController> logger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.EventCache.Controllers.EventCacheController class.
         /// </summary>
-        public EventCacheController(TemporalEventBulkPersisterHolder temporalEventBulkPersisterHolder, TemporalEventQueryProcessorHolder temporalEventQueryProcessorHolder, ILogger<EventCacheController> logger)
+        public EventCacheController(EventCacheHolder eventCacheHolder, ILogger<EventCacheController> logger)
         {
-            eventPersister = temporalEventBulkPersisterHolder.TemporalEventBulkPersister;
-            eventQueryProcessor = temporalEventQueryProcessorHolder.TemporalEventQueryProcessor;
+            eventCache = eventCacheHolder.EventCache;
             this.logger = logger;
         }
 
@@ -61,7 +59,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult CacheEvents([FromBody] List<TemporalEventBufferItemBase> events)
         {
-            eventPersister.PersistEvents(events);
+            eventCache.PersistEvents(events);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -80,7 +78,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
         {
             try
             {
-                return eventQueryProcessor.GetAllEventsSince(priorEventdId);
+                return eventCache.GetAllEventsSince(priorEventdId);
             }
             catch (EventNotCachedException eventNotCachedException)
             {

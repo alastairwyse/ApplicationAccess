@@ -40,8 +40,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         {
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             List<TemporalEventBufferItemBase> returnEvents = CreateTestEvents();
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.GetAllEventsSince(priorEventdId).Returns(returnEvents);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.GetAllEventsSince(priorEventdId).Returns(returnEvents);
 
             IList<TemporalEventBufferItemBase> results = grpcClient.GetAllEventsSince(priorEventdId);
 
@@ -152,8 +152,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = $"No event with eventId '{priorEventdId}' was found in the cache.";
             var mockException = new EventNotCachedException(exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<EventNotCachedException>(delegate
             {
@@ -169,8 +169,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = "The event cache is empty.";
             var mockException = new EventCacheEmptyException(exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<EventCacheEmptyException>(delegate
             {
@@ -187,8 +187,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = "The service is unavailable due to an internal error.";
             var mockException = new ServiceUnavailableException(exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<ServiceUnavailableException>(delegate
             {
@@ -203,8 +203,8 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         {
             List<TemporalEventBufferItemBase> testEvents = CreateTestEvents();
             List<TemporalEventBufferItemBase> capturedEvents = null;
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventBulkPersister.PersistEvents(Arg.Do<List<TemporalEventBufferItemBase>>(argumentValue => capturedEvents = argumentValue));
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.PersistEvents(Arg.Do<List<TemporalEventBufferItemBase>>(argumentValue => capturedEvents = argumentValue));
 
             grpcClient.PersistEvents(testEvents);
 

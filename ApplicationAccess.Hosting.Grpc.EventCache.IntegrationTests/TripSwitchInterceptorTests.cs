@@ -40,7 +40,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
     /// </summary>
     public class TripSwitchInterceptorTests
     {
-        private IAccessManagerTemporalEventQueryProcessor<String, String, String, String> mockTemporalEventQueryProcessor;
+        private IAccessManagerEventCache<String, String, String, String> mockEventCache;
         private IHostApplicationLifetime mockApplicationLifetime;
         private TripSwitchActuator testActuator;
         private Int32 tripActionCallCount;
@@ -53,7 +53,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         [SetUp]
         protected void SetUp()
         {
-            mockTemporalEventQueryProcessor = Substitute.For<IAccessManagerTemporalEventQueryProcessor<String, String, String, String>>();
+            mockEventCache = Substitute.For<IAccessManagerEventCache<String, String, String, String>>();
             testActuator = new TripSwitchActuator();
             mockApplicationLifetime = Substitute.For<IHostApplicationLifetime>();
             tripActionCallCount = 0;
@@ -68,7 +68,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             {
                 new UserEventBufferItem<String>(Guid.Parse("fb378bca-10c0-4833-8b8a-464a571ef249"), EventAction.Add, "user1", DateTime.UtcNow, -1),
             };
-            mockTemporalEventQueryProcessor.GetAllEventsSince(Arg.Any<Guid>()).Returns(returnEvents);
+            mockEventCache.GetAllEventsSince(Arg.Any<Guid>()).Returns(returnEvents);
         }
 
         [TearDown]
@@ -83,7 +83,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             String whenTrippedExceptionMessage = "The trip switch has been tripped.";
             var whenTrippedException = new Exception(whenTrippedExceptionMessage);
             var testWebApp = new TripSwitchInterceptorTestWebApp(testActuator, whenTrippedException, tripAction);
-            testWebApp.Services.GetService<TemporalEventQueryProcessorHolder>().TemporalEventQueryProcessor = mockTemporalEventQueryProcessor;
+            testWebApp.Services.GetService<EventCacheHolder>().EventCache = mockEventCache;
             HttpClient httpClient = testWebApp.CreateClient();
             HttpMessageHandler httpHandler = testWebApp.Server.CreateHandler();
             GrpcChannelOptions channelOptions = new GrpcChannelOptions()
@@ -129,7 +129,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             String whenTrippedExceptionMessage = "The trip switch has been tripped.";
             var whenTrippedException = new Exception(whenTrippedExceptionMessage);
             var testWebApp = new TripSwitchInterceptorTestWebApp(testActuator, mockApplicationLifetime, 2, tripAction);
-            testWebApp.Services.GetService<TemporalEventQueryProcessorHolder>().TemporalEventQueryProcessor = mockTemporalEventQueryProcessor;
+            testWebApp.Services.GetService<EventCacheHolder>().EventCache = mockEventCache;
             HttpClient httpClient = testWebApp.CreateClient();
             HttpMessageHandler httpHandler = testWebApp.Server.CreateHandler();
             GrpcChannelOptions channelOptions = new GrpcChannelOptions()
@@ -169,7 +169,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             var tripException = new TripSwitchException("Trip switch exception");
             var whenTrippedException = new Exception(whenTrippedExceptionMessage);
             var testWebApp = new TripSwitchInterceptorTestWebApp<TripSwitchException>(testActuator, whenTrippedException, tripAction, exceptionTripAction);
-            testWebApp.Services.GetService<TemporalEventQueryProcessorHolder>().TemporalEventQueryProcessor = mockTemporalEventQueryProcessor;
+            testWebApp.Services.GetService<EventCacheHolder>().EventCache = mockEventCache;
             HttpClient httpClient = testWebApp.CreateClient();
             HttpMessageHandler httpHandler = testWebApp.Server.CreateHandler();
             GrpcChannelOptions channelOptions = new GrpcChannelOptions()
@@ -187,7 +187,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             );
             IList<TemporalEventBufferItemBase> result = grpcClient.GetAllEventsSince(Guid.NewGuid());
             Assert.AreEqual(returnEvents[0].EventId, result[0].EventId);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(Arg.Any<Guid>())).Do((callInfo) => throw tripException);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(Arg.Any<Guid>())).Do((callInfo) => throw tripException);
 
             var e = Assert.Throws<Exception>(delegate
             {
@@ -223,7 +223,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         {
             var tripException = new TripSwitchException("Trip switch exception");
             var testWebApp = new TripSwitchInterceptorTestWebApp<TripSwitchException>(testActuator, mockApplicationLifetime, 2, tripAction, exceptionTripAction);
-            testWebApp.Services.GetService<TemporalEventQueryProcessorHolder>().TemporalEventQueryProcessor = mockTemporalEventQueryProcessor;
+            testWebApp.Services.GetService<EventCacheHolder>().EventCache = mockEventCache;
             HttpClient httpClient = testWebApp.CreateClient();
             HttpMessageHandler httpHandler = testWebApp.Server.CreateHandler();
             GrpcChannelOptions channelOptions = new GrpcChannelOptions()
@@ -241,7 +241,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             );
             IList<TemporalEventBufferItemBase> result = grpcClient.GetAllEventsSince(Guid.NewGuid());
             Assert.AreEqual(returnEvents[0].EventId, result[0].EventId);
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(Arg.Any<Guid>())).Do((callInfo) => throw tripException);
+            mockEventCache.When((processor) => processor.GetAllEventsSince(Arg.Any<Guid>())).Do((callInfo) => throw tripException);
 
             var e = Assert.Throws<Exception>(delegate
             {
@@ -271,7 +271,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
             String whenTrippedExceptionMessage = "The trip switch has been tripped.";
             var whenTrippedException = new Exception(whenTrippedExceptionMessage);
             var testWebApp = new TripSwitchInterceptorTestWebApp<TripSwitchException>(testActuator, whenTrippedException, tripAction, exceptionTripAction);
-            testWebApp.Services.GetService<TemporalEventQueryProcessorHolder>().TemporalEventQueryProcessor = mockTemporalEventQueryProcessor;
+            testWebApp.Services.GetService<EventCacheHolder>().EventCache = mockEventCache;
             HttpClient httpClient = testWebApp.CreateClient();
             HttpMessageHandler httpHandler = testWebApp.Server.CreateHandler();
             GrpcChannelOptions channelOptions = new GrpcChannelOptions()
@@ -348,8 +348,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
                 builder.ConfigureServices((IServiceCollection serviceCollection) =>
                 {
                     // Register 'holder' classes
-                    serviceCollection.AddSingleton(typeof(TemporalEventBulkPersisterHolder));
-                    serviceCollection.AddSingleton(typeof(TemporalEventQueryProcessorHolder));
+                    serviceCollection.AddSingleton(typeof(EventCacheHolder));
 
                     // Register ExceptionHandlingInterceptor
                     ErrorHandlingOptions errorHandlingOptions = new()
@@ -421,8 +420,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
                 builder.ConfigureServices((IServiceCollection serviceCollection) =>
                 {
                     // Register 'holder' classes
-                    serviceCollection.AddSingleton(typeof(TemporalEventBulkPersisterHolder));
-                    serviceCollection.AddSingleton(typeof(TemporalEventQueryProcessorHolder));
+                    serviceCollection.AddSingleton(typeof(EventCacheHolder));
 
                     // Register ExceptionHandlingInterceptor
                     ErrorHandlingOptions errorHandlingOptions = new()

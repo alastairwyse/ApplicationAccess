@@ -45,8 +45,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         // Members passed in via dependency injection
         protected MetricLoggingOptions metricLoggingOptions;
         protected EventCachingOptions eventCachingOptions;
-        protected TemporalEventQueryProcessorHolder temporalEventQueryProcessorHolder;
-        protected TemporalEventBulkPersisterHolder temporalEventBulkPersisterHolder;
+        protected EventCacheHolder eventCacheHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
 
@@ -62,8 +61,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         (
             IOptions<MetricLoggingOptions> metricLoggingOptions,
             IOptions<EventCachingOptions> eventCachingOptions,
-            TemporalEventQueryProcessorHolder temporalEventQueryProcessorHolder,
-            TemporalEventBulkPersisterHolder temporalEventBulkPersisterHolder,
+            EventCacheHolder eventCacheHolder,
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<TemporalEventBulkCachingNodeHostedServiceWrapper> logger
@@ -71,8 +69,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         {
             this.metricLoggingOptions = metricLoggingOptions.Value;
             this.eventCachingOptions = eventCachingOptions.Value;
-            this.temporalEventQueryProcessorHolder = temporalEventQueryProcessorHolder;
-            this.temporalEventBulkPersisterHolder = temporalEventBulkPersisterHolder;
+            this.eventCacheHolder = eventCacheHolder;
             this.tripSwitchActuator = tripSwitchActuator;
             this.loggerFactory = loggerFactory;
             this.logger = logger;
@@ -99,8 +96,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             }
 
             // Set the TemporalEventBulkCachingNode on the 'holder' classes
-            temporalEventQueryProcessorHolder.TemporalEventQueryProcessor = cachingNode;
-            temporalEventBulkPersisterHolder.TemporalEventBulkPersister = cachingNode;
+            eventCacheHolder.EventCache = cachingNode;
 
             logger.LogInformation($"Completed constructing TemporalEventBulkCachingNode instance.");
 

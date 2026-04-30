@@ -68,8 +68,8 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                 }
             };
             List<TemporalEventBufferItemBase> capturedEvents = null;
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventBulkPersister.PersistEvents(Arg.Do<List<TemporalEventBufferItemBase>>(argumentValue => capturedEvents = argumentValue));
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.PersistEvents(Arg.Do<List<TemporalEventBufferItemBase>>(argumentValue => capturedEvents = argumentValue));
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUrl))
             {
                 requestMessage.Content = JsonContent.Create(testEvents, testEvents.GetType(), null, serialIzerOptions);
@@ -197,15 +197,15 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
             const String ToGroupPropertyName = "toGroup";
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             List<TemporalEventBufferItemBase> returnEvents = CreateTestEvents();
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.GetAllEventsSince(priorEventdId).Returns(returnEvents);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.GetAllEventsSince(priorEventdId).Returns(returnEvents);
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{requestUrl}?priorEventdId={priorEventdId}"))
             {
 
                 using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
                 {
 
-                    mockTemporalEventQueryProcessor.Received(1).GetAllEventsSince(priorEventdId);
+                    mockEventCache.Received(1).GetAllEventsSince(priorEventdId);
                     Assert.AreEqual(response.StatusCode, HttpStatusCode.OK);
                     String responseAsString = response.Content.ReadAsStringAsync().Result;
                     JArray responseJson = JArray.Parse(responseAsString);
@@ -291,8 +291,8 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = $"No event with eventId '{priorEventdId}' was found in the cache.";
             var mockException = new EventNotCachedException(exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
 
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{requestUrl}?priorEventdId={priorEventdId}"))
             {
@@ -312,8 +312,8 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = "The event cache is empty.";
             var mockException = new EventCacheEmptyException(exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{requestUrl}?priorEventdId={priorEventdId}"))
             {
 
@@ -333,8 +333,8 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             var exceptionMessage = "The service is unavailable due to an internal error.";
             var mockException = new ServiceUnavailableException(exceptionMessage);
-            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
-            mockTemporalEventQueryProcessor.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            mockEventCache.ClearSubstitute(ClearOptions.All);
+            mockEventCache.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{requestUrl}?priorEventdId={priorEventdId}"))
             {
 

@@ -80,8 +80,8 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
                 mockLogger,
                 mockMetricLogger
             );
-            mockTemporalEventBulkPersister.ClearReceivedCalls();
-            mockTemporalEventQueryProcessor.ClearReceivedCalls();
+            mockEventCache.ClearReceivedCalls();
+            mockEventCache.ClearReceivedCalls();
         }
 
         [TearDown]
@@ -95,11 +95,11 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         {
             var testEventId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             List<TemporalEventBufferItemBase> returnEvents = CreateTestEvents();
-            mockTemporalEventQueryProcessor.GetAllEventsSince(testEventId).Returns(returnEvents);
+            mockEventCache.GetAllEventsSince(testEventId).Returns(returnEvents);
 
             IList<TemporalEventBufferItemBase> result = testEventCacheClient.GetAllEventsSince(testEventId);
 
-            mockTemporalEventQueryProcessor.Received(1).GetAllEventsSince(testEventId);
+            mockEventCache.Received(1).GetAllEventsSince(testEventId);
             Assert.AreEqual(10, result.Count);
             AssertEntityTypeEventBufferItemEqual
             (
@@ -156,34 +156,34 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         [Test]
         public void GetAllEventsSince_SpecifiedEventNotCached()
         {
-            mockTemporalEventBulkPersister.ClearReceivedCalls();
+            mockEventCache.ClearReceivedCalls();
             var testEventId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             String exceptionMessage = $"No event with eventId '{testEventId}' was found in the cache.";
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(testEventId)).Do((callInfo) => throw new EventNotCachedException(exceptionMessage));
+            mockEventCache.When((processor) => processor.GetAllEventsSince(testEventId)).Do((callInfo) => throw new EventNotCachedException(exceptionMessage));
 
             var e = Assert.Throws<EventNotCachedException>(delegate
             {
                 testEventCacheClient.GetAllEventsSince(testEventId);
             });
 
-            mockTemporalEventQueryProcessor.Received(1).GetAllEventsSince(testEventId);
+            mockEventCache.Received(1).GetAllEventsSince(testEventId);
             Assert.That(e.Message, Does.StartWith(exceptionMessage));
         }
 
         [Test]
         public void GetAllEventsSince_CacheIsEmpty()
         {
-            mockTemporalEventBulkPersister.ClearReceivedCalls();
+            mockEventCache.ClearReceivedCalls();
             var testEventId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d46");
             String exceptionMessage = $"The event cache is empty.";
-            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(testEventId)).Do((callInfo) => throw new EventCacheEmptyException(exceptionMessage));
+            mockEventCache.When((processor) => processor.GetAllEventsSince(testEventId)).Do((callInfo) => throw new EventCacheEmptyException(exceptionMessage));
 
             var e = Assert.Throws<EventCacheEmptyException>(delegate
             {
                 testEventCacheClient.GetAllEventsSince(testEventId);
             });
 
-            mockTemporalEventQueryProcessor.Received(1).GetAllEventsSince(testEventId);
+            mockEventCache.Received(1).GetAllEventsSince(testEventId);
             Assert.That(e.Message, Does.StartWith(exceptionMessage));
         }
 
@@ -192,7 +192,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         {
             List<TemporalEventBufferItemBase> testEvents = CreateTestEvents();
             List<TemporalEventBufferItemBase> capturedEvents = null;
-            mockTemporalEventBulkPersister.PersistEvents(Arg.Do<List<TemporalEventBufferItemBase>>(argumentValue => capturedEvents = argumentValue));
+            mockEventCache.PersistEvents(Arg.Do<List<TemporalEventBufferItemBase>>(argumentValue => capturedEvents = argumentValue));
 
             testEventCacheClient.PersistEvents(testEvents);
 

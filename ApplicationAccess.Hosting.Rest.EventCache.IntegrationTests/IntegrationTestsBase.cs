@@ -31,19 +31,16 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
     /// </summary>
     public abstract class IntegrationTestsBase
     {
-        protected IAccessManagerTemporalEventBulkPersister<String, String, String, String> mockTemporalEventBulkPersister;
-        protected IAccessManagerTemporalEventQueryProcessor<String, String, String, String> mockTemporalEventQueryProcessor;
+        protected IAccessManagerEventCache<String, String, String, String> mockEventCache;
         protected TestEventCache testEventCache;
         protected HttpClient client;
 
         [OneTimeSetUp]
         protected virtual void OneTimeSetUp()
         {
-            mockTemporalEventBulkPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, String, String>>();
-            mockTemporalEventQueryProcessor = Substitute.For<IAccessManagerTemporalEventQueryProcessor<String, String, String, String>>();
+            mockEventCache = Substitute.For<IAccessManagerEventCache<String, String, String, String>>();
             testEventCache = new TestEventCache();
-            testEventCache.Services.GetService<TemporalEventBulkPersisterHolder>().TemporalEventBulkPersister = mockTemporalEventBulkPersister;
-            testEventCache.Services.GetService<TemporalEventQueryProcessorHolder>().TemporalEventQueryProcessor = mockTemporalEventQueryProcessor;
+            testEventCache.Services.GetService<EventCacheHolder>().EventCache = mockEventCache;
             client = testEventCache.CreateClient();
         }
 

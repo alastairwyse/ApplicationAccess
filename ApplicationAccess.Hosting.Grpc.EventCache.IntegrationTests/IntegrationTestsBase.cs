@@ -36,8 +36,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
     /// </summary>
     public class IntegrationTestsBase
     {
-        protected IAccessManagerTemporalEventBulkPersister<String, String, String, String> mockTemporalEventBulkPersister;
-        protected IAccessManagerTemporalEventQueryProcessor<String, String, String, String> mockTemporalEventQueryProcessor;
+        protected IAccessManagerEventCache<String, String, String, String> mockEventCache;
         protected MethodCallCountingStringUniqueStringifier userStringifier;
         protected MethodCallCountingStringUniqueStringifier groupStringifier;
         protected MethodCallCountingStringUniqueStringifier applicationComponentStringifier;
@@ -53,15 +52,13 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         [OneTimeSetUp]
         protected virtual void OneTimeSetUp()
         {
-            mockTemporalEventBulkPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, String, String>>();
-            mockTemporalEventQueryProcessor = Substitute.For<IAccessManagerTemporalEventQueryProcessor<String, String, String, String>>(); 
+            mockEventCache = Substitute.For<IAccessManagerEventCache<String, String, String, String>>();
             userStringifier = new MethodCallCountingStringUniqueStringifier();
             groupStringifier = new MethodCallCountingStringUniqueStringifier();
             applicationComponentStringifier = new MethodCallCountingStringUniqueStringifier();
             accessLevelStringifier = new MethodCallCountingStringUniqueStringifier();
             testEventCache = new TestEventCache();
-            testEventCache.Services.GetService<TemporalEventBulkPersisterHolder>().TemporalEventBulkPersister = mockTemporalEventBulkPersister;
-            testEventCache.Services.GetService<TemporalEventQueryProcessorHolder>().TemporalEventQueryProcessor = mockTemporalEventQueryProcessor;
+            testEventCache.Services.GetService<EventCacheHolder>().EventCache = mockEventCache;
             tripSwitchActuator = testEventCache.Services.GetService<TripSwitchActuator>();
             httpClient = testEventCache.CreateClient();
             httpHandler = testEventCache.Server.CreateHandler();

@@ -43,8 +43,7 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
                 },
                 ProcessorHolderTypes = new List<Type>()
                 {
-                    typeof(TemporalEventBulkPersisterHolder),
-                    typeof(TemporalEventQueryProcessorHolder)
+                    typeof(EventCacheHolder)
                 },
                 ExceptionToGrpcStatusCodeMappings = new List<Tuple<Type, Code>>()
                 {
