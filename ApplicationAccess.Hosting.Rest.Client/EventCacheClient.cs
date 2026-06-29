@@ -16,18 +16,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Polly;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Rest.AsyncClient;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
-using Polly;
 
 namespace ApplicationAccess.Hosting.Rest.Client
 {
@@ -257,6 +257,29 @@ namespace ApplicationAccess.Hosting.Rest.Client
                     using (var response = SendRequestMessage(request))
                     {
                         if (response.StatusCode != HttpStatusCode.Created)
+                        {
+                            HandleNonSuccessResponseStatus(httpMethod, requestUrl, response.StatusCode, response.Content.ReadAsStream());
+                        }
+                    }
+                }
+            };
+
+            exceptionHandingPolicy.Execute(httpClientAction);
+        }
+
+        /// <inheritdoc/>
+        public void Clear()
+        {
+            var httpMethod = HttpMethod.Post;
+            var requestUrl = new Uri(baseUrl, $"eventBufferItems%3Aclear");
+
+            Action httpClientAction = () =>
+            {
+                using (var request = new HttpRequestMessage(httpMethod, requestUrl))
+                {
+                    using (var response = SendRequestMessage(request))
+                    {
+                        if (response.StatusCode != HttpStatusCode.OK)
                         {
                             HandleNonSuccessResponseStatus(httpMethod, requestUrl, response.StatusCode, response.Content.ReadAsStream());
                         }

@@ -1541,6 +1541,9 @@
         <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.GetAllEventsSince(System.Guid)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.Clear">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.Dispose">
             <summary>
             Releases the unmanaged resources used by the ReaderNode.

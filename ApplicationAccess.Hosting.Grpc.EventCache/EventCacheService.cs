@@ -87,5 +87,15 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache
 
             return Task.FromResult<GetAllEventsSinceReply>(reply);
         }
+
+        /// <summary>
+        /// Removes all events from the cache.
+        /// </summary>
+        public override Task<Empty> Clear(Empty request, ServerCallContext context)
+        {
+            eventCache.Clear();
+
+            return Task.FromResult<Empty>(new Empty());
+        }
     }
 }

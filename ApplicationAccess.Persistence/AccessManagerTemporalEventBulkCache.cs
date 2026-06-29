@@ -29,7 +29,7 @@ namespace ApplicationAccess.Persistence
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class AccessManagerTemporalEventBulkCache<TUser, TGroup, TComponent, TAccess> : AccessManagerTemporalEventCacheBase<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>
+    public class AccessManagerTemporalEventBulkCache<TUser, TGroup, TComponent, TAccess> : AccessManagerTemporalEventCacheBase<TUser, TGroup, TComponent, TAccess>, IAccessManagerEventCache<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache class.
@@ -88,6 +88,26 @@ namespace ApplicationAccess.Persistence
 
             metricLogger.End(beginId, new EventsCachingTime());
             metricLogger.Add(new EventsCached(), events.Count);
+        }
+
+        /// <inheritdoc/>
+        public void Clear()
+        {
+            Guid beginId = metricLogger.Begin(new EventCacheClearTime());
+
+            cachedEventsLock.EnterWriteLock();
+            try
+            {
+                cachedEvents.Clear();
+                cachedEventsGuidIndex.Clear();
+            }
+            finally
+            {
+                cachedEventsLock.ExitWriteLock();
+            }
+
+            metricLogger.Increment(new EventCacheCleared());
+            metricLogger.End(beginId, new EventCacheClearTime());
         }
     }
 }

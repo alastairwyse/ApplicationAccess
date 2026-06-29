@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Google.Rpc;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -185,6 +186,13 @@ namespace ApplicationAccess.Hosting.Grpc.Client
             }
             CacheEventsRequest request = new() { Events = convertedEventList };
             client.CacheEvents(request);
+        }
+
+        /// <inheritdoc/>
+        public void Clear()
+        {
+            var client = new EventCacheRpc.EventCacheRpcClient(channel);
+            client.Clear(new Empty());
         }
 
         #pragma warning restore 0436

@@ -32,5 +32,9 @@ namespace ApplicationAccess.Persistence
         IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>, 
         IDisposable
     {
+        /// <summary>
+        /// Removes all events from the cache.
+        /// </summary>
+        void Clear();
     }
 }

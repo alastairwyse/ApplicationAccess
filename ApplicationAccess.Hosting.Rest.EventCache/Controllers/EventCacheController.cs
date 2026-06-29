@@ -22,8 +22,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.Rest.Utilities;
-using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
 {
@@ -84,6 +84,18 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
             {
                 throw new NotFoundException(eventNotCachedException.Message, priorEventdId.ToString());
             }
+        }
+
+        /// <summary>
+        /// Removes all events from the cache.
+        /// </summary>
+        [HttpPost]
+        [Route("eventBufferItems:clear")]
+        [ApiExplorerSettings(GroupName = "Administration")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public void Clear()
+        {
+            eventCache.Clear();
         }
     }
 }

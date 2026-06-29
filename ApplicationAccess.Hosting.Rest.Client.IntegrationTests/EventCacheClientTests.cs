@@ -250,6 +250,14 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void Clear()
+        {
+            testEventCacheClient.Clear();
+
+            mockEventCache.Received(1).Clear();
+        }
+
+        [Test]
         public void RetryOnHttpRequestException()
         {
             using (var testClient = new HttpClient())

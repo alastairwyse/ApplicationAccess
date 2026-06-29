@@ -61,6 +61,12 @@ namespace ApplicationAccess.Hosting
             return eventCache.GetAllEventsSince(eventId);
         }
 
+        /// <inheritdoc/>
+        public void Clear()
+        {
+            eventCache.Clear();
+        }
+
         #region Finalize / Dispose Methods
 
         /// <summary>

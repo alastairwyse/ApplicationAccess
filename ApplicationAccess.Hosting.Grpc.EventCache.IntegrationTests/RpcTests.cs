@@ -310,6 +310,14 @@ namespace ApplicationAccess.Hosting.Grpc.EventCache.IntegrationTests
         }
 
         [Test]
+        public void Clear()
+        {
+            grpcClient.Clear();
+
+            mockEventCache.Received(1).Clear();
+        }
+
+        [Test]
         public async Task HealthCheck()
         {
             HealthCheckResponse result = await healthCheckClient.CheckAsync(new HealthCheckRequest());

@@ -624,12 +624,12 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records an event cached.
+    /// Count metric which records that an event was cached.
     /// </summary>
     public class EventCached : CountMetric
     {
         protected static String staticName = "EventCached";
-        protected static String staticDescription = "An event cached";
+        protected static String staticDescription = "An event was cached";
 
         public EventCached()
         {
@@ -692,6 +692,36 @@ namespace ApplicationAccess.Persistence
         protected static String staticDescription = "The time taken to read events from the cache (i.e. to execute the GetAllEventsSince() method)";
 
         public CachedEventsReadTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records the event cache being cleared.
+    /// </summary>
+    public class EventCacheCleared : CountMetric
+    {
+        protected static String staticName = "EventCacheCleared";
+        protected static String staticDescription = "The event cache was cleared";
+
+        public EventCacheCleared()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to clear all events from the event cache.
+    /// </summary>
+    public class EventCacheClearTime : IntervalMetric
+    {
+        protected static String staticName = "EventCacheClearTime";
+        protected static String staticDescription = "The time taken to clear all events from the event cache";
+
+        public EventCacheClearTime()
         {
             base.name = staticName;
             base.description = staticDescription;

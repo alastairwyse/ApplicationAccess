@@ -37,7 +37,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient
     {
         // TODO: Although this is an 'Async' client by definition, the methods defined are seldom called over the client's lifetime (i.e. likely once each per lifetime).
         //   Hence more useful to make the methods adhere to IDistributedAccessManagerOperationRouter, rather than have to define a whole new async version of the interface.
-        //   With only downside that we have to vall Wait() on the underlying async methods called.
+        //   With only downside that we have to call Wait() on the underlying async methods called.
 
         /// <inheritdoc/>
         public Boolean RoutingOn

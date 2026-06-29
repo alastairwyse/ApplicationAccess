@@ -40,4 +40,6 @@ service EventCacheRpc {
 	rpc GetAllEventsSince (GetAllEventsSinceRequest) returns (GetAllEventsSinceReply);
 
 	rpc CacheEvents (CacheEventsRequest) returns (google.protobuf.Empty);
+
+	rpc Clear (google.protobuf.Empty) returns (google.protobuf.Empty);
 }

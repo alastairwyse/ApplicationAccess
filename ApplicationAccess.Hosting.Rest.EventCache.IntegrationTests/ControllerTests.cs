@@ -15,21 +15,20 @@
  */
 
 using System;
-using System.Text.Json;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Newtonsoft.Json.Linq;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Serialization;
 using ApplicationAccess.UnitTests;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NSubstitute;
-using Microsoft.Extensions.Logging;
 using NSubstitute.ClearExtensions;
 
 namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
@@ -343,6 +342,21 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     JObject jsonResponse = ConvertHttpContentToJson(response.Content);
                     AssertJsonIsHttpErrorResponse(jsonResponse, typeof(ServiceUnavailableException).Name, exceptionMessage);
                     Assert.AreEqual(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+                }
+            }
+        }
+
+        [Test]
+        public void Clear()
+        {
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUrl + ":clear"))
+            {
+
+                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
+                {
+
+                    Assert.AreEqual(response.StatusCode, HttpStatusCode.OK);
+                    mockEventCache.Received(1).Clear();
                 }
             }
         }

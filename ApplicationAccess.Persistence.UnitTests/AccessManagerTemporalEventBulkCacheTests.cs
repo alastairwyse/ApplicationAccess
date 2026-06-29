@@ -16,13 +16,13 @@
 
 using System;
 using System.Collections.Generic;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
-using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence.UnitTests
 {
@@ -85,6 +85,31 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(2, result.Count);
             Assert.AreSame(testEvent2, result[0]);
             Assert.AreSame(testEvent3, result[1]);
+        }
+
+        [Test]
+        public void Clear()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid eventId1 = Guid.Parse("00000000-0000-0000-0000-000000000029");
+            Guid eventId2 = Guid.Parse("00000000-0000-0000-0000-00000000002A");
+            var testEvent1 = new UserEventBufferItem<String>(eventId1, EventAction.Add, "user1", DateTime.UtcNow, 1);
+            var testEvent2 = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>(eventId2, EventAction.Remove, "user1", ApplicationScreen.ManageProducts, AccessLevel.Modify, DateTime.UtcNow, 1);
+            var testEvent3 = new GroupToEntityMappingEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "group1", "Clients", "CompanyA", DateTime.UtcNow, 11);
+            var testEvents = new List<TemporalEventBufferItemBase>() { testEvent1, testEvent2, testEvent3 };
+            testAccessManagerTemporalEventBulkCache.PersistEvents(testEvents);
+            mockMetricLogger.ClearReceivedCalls();
+            mockMetricLogger.Begin(Arg.Any<EventCacheClearTime>()).Returns(testBeginId);
+
+            testAccessManagerTemporalEventBulkCache.Clear();
+
+            mockMetricLogger.Received(1).Increment(Arg.Any<EventCacheCleared>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<EventCacheClearTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EventCacheClearTime>());
+            var e = Assert.Throws<EventCacheEmptyException>(delegate
+            {
+                testAccessManagerTemporalEventBulkCache.GetAllEventsSince(eventId1);
+            });
         }
     }
 }

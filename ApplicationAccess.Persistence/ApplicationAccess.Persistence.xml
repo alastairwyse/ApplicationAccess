@@ -151,6 +151,9 @@
             </summary>
             <param name="events">The events to cache.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache`4.Clear">
+            <inheritdoc/>
+        </member>
         <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkPersisterBuffer`4">
             <summary>
             Buffers events which change the structure of an <see cref="T:ApplicationAccess.AccessManager`4"/> class in memory before writing them to an instance of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/>.  
@@ -1235,6 +1238,11 @@
             <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
+        <member name="M:ApplicationAccess.Persistence.IAccessManagerEventCache`4.Clear">
+            <summary>
+            Removes all events from the cache.
+            </summary>
+        </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerIdempotentTemporalEventBulkPersister`4">
             <summary>
             Specialization of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> which includes an overload of the <see cref="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase})">PersistEvents()</see> method which allows specifying whether events which have already been persisted should be ignored.
@@ -1863,7 +1871,7 @@
         </member>
         <member name="T:ApplicationAccess.Persistence.EventCached">
             <summary>
-            Count metric which records an event cached.
+            Count metric which records that an event was cached.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.EventsCached">
@@ -1884,6 +1892,16 @@
         <member name="T:ApplicationAccess.Persistence.CachedEventsReadTime">
             <summary>
             Interval metric which records the time taken to read events from the cache (i.e. to execute the GetAllEventsSince() method).
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventCacheCleared">
+            <summary>
+            Count metric which records the event cache being cleared.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventCacheClearTime">
+            <summary>
+            Interval metric which records the time taken to clear all events from the event cache.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.EventWriteToPrimaryPersisterFailed">
