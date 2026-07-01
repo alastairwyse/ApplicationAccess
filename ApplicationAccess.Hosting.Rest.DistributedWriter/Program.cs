@@ -75,7 +75,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
                     typeof(GroupEventProcessorHolder),
                     typeof(GroupToGroupEventProcessorHolder),
                     typeof(UserEventProcessorHolder),
-                    typeof(ManuallyFlushableBufferFlushStrategyHolder)
+                    typeof(ManuallyFlushableBufferFlushStrategyHolder),
+                    typeof(ManuallyLoadableComponentHolder)
                 },
                 // Register the request counter in DI
                 ConfigureServicesAction = (IServiceCollection serviceCollection) =>

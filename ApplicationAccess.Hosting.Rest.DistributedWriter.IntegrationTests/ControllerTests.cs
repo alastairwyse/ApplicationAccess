@@ -15,10 +15,9 @@
  */
 
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using NSubstitute;
-using Microsoft.Extensions.DependencyInjection;
-
 
 namespace ApplicationAccess.Hosting.Rest.DistributedWriter.IntegrationTests
 {
@@ -46,6 +45,14 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter.IntegrationTests
             Int32 result = administratorClient.GetEventProcessingCount();
 
             Assert.AreEqual(2, result);
+        }
+
+        [Test]
+        public void Load()
+        {
+            administratorClient.Load();
+
+            mockManuallyLoadableComponent.Received(1).Load(false);
         }
 
         #endregion

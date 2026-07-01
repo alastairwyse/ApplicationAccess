@@ -90,5 +90,19 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient
 
             return result.Result;
         }
+
+        /// <inheritdoc/>
+        public void Load()
+        {
+            var requestUrl = new Uri(baseUrl, Uri.EscapeDataString("dataElements:load"));
+            Func<HttpMethod, Uri, HttpStatusCode, Stream, Task> responseAction = async (HttpMethod requestMethod, Uri url, HttpStatusCode responseStatusCode, Stream responseBody) =>
+            {
+                if (responseStatusCode != HttpStatusCode.OK)
+                {
+                    await HandleNonSuccessResponseStatusAsync(requestMethod, url, responseStatusCode, responseBody);
+                }
+            };
+            SendRequestAsync(HttpMethod.Post, requestUrl, responseAction).Wait();
+        }
     }
 }

@@ -35,6 +35,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter.Controllers
         #pragma warning disable 1591
 
         protected IManuallyFlushableBufferFlushStrategy manuallyFlushableBufferFlushStrategy;
+        protected IManuallyLoadableComponent manuallyLoadableComponent;
         protected RequestCounter requestCounter;
 
         #pragma warning restore 1591
@@ -42,9 +43,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter.Controllers
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedWriter.Controllers.DistributedWriterController class.
         /// </summary>
-        public DistributedWriterController(ManuallyFlushableBufferFlushStrategyHolder manuallyFlushableBufferFlushStrategyHolder, RequestCounter requestCounter)
+        public DistributedWriterController(ManuallyFlushableBufferFlushStrategyHolder manuallyFlushableBufferFlushStrategyHolder, ManuallyLoadableComponentHolder manuallyLoadableComponentHolder, RequestCounter requestCounter)
         {
             this.manuallyFlushableBufferFlushStrategy = manuallyFlushableBufferFlushStrategyHolder.ManuallyFlushableBufferFlushStrategy;
+            this.manuallyLoadableComponent = manuallyLoadableComponentHolder.ManuallyLoadableComponent;
             this.requestCounter = requestCounter;
         }
 
@@ -72,6 +74,20 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter.Controllers
         {
             // The value from the request counter will include this request, so need to decrement before returning
             return requestCounter.CounterValue - 1;
+        }
+
+        // TODO: Below method is copied verbatim in ApplicationAccess.Hosting.Rest.DistributedReader.Controllers.DistributedReaderController.  Find a way to put in a common base.
+
+        /// <summary>
+        /// Loads the latest state of the DistributedWriter node from persistent storage.
+        /// </summary>
+        [HttpPost]
+        [Route("dataElements:load")]
+        [ApiExplorerSettings(GroupName = "Administration")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public void Load()
+        {
+            manuallyLoadableComponent.Load(false);
         }
     }
 }

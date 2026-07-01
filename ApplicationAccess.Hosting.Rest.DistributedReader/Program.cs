@@ -68,7 +68,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
                     typeof(UserQueryProcessorHolder),
                     typeof(DistributedUserQueryProcessorHolder),
                     typeof(DistributedGroupQueryProcessorHolder),
-                    typeof(DistributedGroupToGroupQueryProcessorHolder)
+                    typeof(DistributedGroupToGroupQueryProcessorHolder), 
+                    typeof(ManuallyLoadableComponentHolder)
                 }, 
                 // Add a mapping from ServiceUnavailableException to HTTP 503 error status
                 ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()

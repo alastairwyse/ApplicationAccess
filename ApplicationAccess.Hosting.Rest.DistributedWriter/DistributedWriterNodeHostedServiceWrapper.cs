@@ -43,6 +43,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         #pragma warning disable 1591
 
         protected ManuallyFlushableBufferFlushStrategyHolder manuallyFlushableBufferFlushStrategyHolder;
+        protected ManuallyLoadableComponentHolder manuallyLoadableComponentHolder;
 
         #pragma warning restore 1591
 
@@ -66,7 +67,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
             GroupEventProcessorHolder groupEventProcessorHolder,
             GroupToGroupEventProcessorHolder groupToGroupEventProcessorHolder,
             UserEventProcessorHolder userEventProcessorHolder,
-            ManuallyFlushableBufferFlushStrategyHolder manuallyFlushableBufferFlushStrategyHolder, 
+            ManuallyFlushableBufferFlushStrategyHolder manuallyFlushableBufferFlushStrategyHolder,
+            ManuallyLoadableComponentHolder manuallyLoadableComponentHolder,
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<DistributedWriterNodeHostedServiceWrapper> logger
@@ -88,6 +90,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         )
         {
             this.manuallyFlushableBufferFlushStrategyHolder = manuallyFlushableBufferFlushStrategyHolder;
+            this.manuallyLoadableComponentHolder = manuallyLoadableComponentHolder;
         }
 
         #region Private/Protected Methods
@@ -140,6 +143,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         {
             base.SetupHolderClasses();
             manuallyFlushableBufferFlushStrategyHolder.ManuallyFlushableBufferFlushStrategy = eventBufferFlushStrategy;
+            manuallyLoadableComponentHolder.ManuallyLoadableComponent = writerNode;
         }
 
         #endregion

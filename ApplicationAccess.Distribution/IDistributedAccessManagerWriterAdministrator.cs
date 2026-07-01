@@ -21,7 +21,7 @@ namespace ApplicationAccess.Distribution
     /// <summary>
     /// Defines methods to perform administrative functions on a writer component in an AccessManager implementation where responsibility for subsets of AccessManager elements is distributed across multiple computers.
     /// </summary>
-    public interface IDistributedAccessManagerWriterAdministrator
+    public interface IDistributedAccessManagerWriterAdministrator : IDistributedAccessManagerAdministrator
     {
         /// <summary>
         /// Flushes the event buffer(s) managed by the writer.

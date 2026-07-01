@@ -36,6 +36,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter.IntegrationTests
     {
         protected TestUtilities testUtilities;
         protected IManuallyFlushableBufferFlushStrategy mockManuallyFlushableBufferFlushStrategy;
+        protected IManuallyLoadableComponent mockManuallyLoadableComponent;
         protected TripSwitchActuator tripSwitchActuator;
         protected TestDistributedWriter testDistributedWriter;
         protected HttpClient httpClient;
@@ -47,9 +48,11 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter.IntegrationTests
         {
             testUtilities = new TestUtilities();
             mockManuallyFlushableBufferFlushStrategy = Substitute.For<IManuallyFlushableBufferFlushStrategy>();
+            mockManuallyLoadableComponent = Substitute.For<IManuallyLoadableComponent>();
             testDistributedWriter = new TestDistributedWriter();
             // TODO: Could mock/override other holder class contents here if required (event processor holders)
             testDistributedWriter.Services.GetService<ManuallyFlushableBufferFlushStrategyHolder>().ManuallyFlushableBufferFlushStrategy = mockManuallyFlushableBufferFlushStrategy;
+            testDistributedWriter.Services.GetService<ManuallyLoadableComponentHolder>().ManuallyLoadableComponent = mockManuallyLoadableComponent;
             tripSwitchActuator = testDistributedWriter.Services.GetService<TripSwitchActuator>();
             httpClient = testDistributedWriter.CreateClient();
             administratorClient = new DistributedAccessManagerWriterAdministratorClient

@@ -36,6 +36,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
         protected DistributedUserQueryProcessorHolder distributedUserQueryProcessorHolder;
         protected DistributedGroupQueryProcessorHolder distributedGroupQueryProcessorHolder;
         protected DistributedGroupToGroupQueryProcessorHolder distributedGroupToGroupQueryProcessorHolder;
+        protected ManuallyLoadableComponentHolder manuallyLoadableComponentHolder;
 
         /// <inheritdoc/>
         protected override String MetricLoggerCategoryName
@@ -59,6 +60,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
             DistributedGroupQueryProcessorHolder distributedGroupQueryProcessorHolder,
             DistributedGroupToGroupQueryProcessorHolder distributedGroupToGroupQueryProcessorHolder,
             DistributedUserQueryProcessorHolder distributedUserQueryProcessorHolder,
+            ManuallyLoadableComponentHolder manuallyLoadableComponentHolder, 
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<DistributedReaderNodeHostedServiceWrapper> logger
@@ -81,6 +83,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
             this.distributedUserQueryProcessorHolder = distributedUserQueryProcessorHolder;
             this.distributedGroupQueryProcessorHolder = distributedGroupQueryProcessorHolder;
             this.distributedGroupToGroupQueryProcessorHolder = distributedGroupToGroupQueryProcessorHolder;
+            this.manuallyLoadableComponentHolder = manuallyLoadableComponentHolder;
         }
 
         #region Private/Protected Methods
@@ -104,6 +107,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
             distributedUserQueryProcessorHolder.DistributedUserQueryProcessor = readerNode;
             distributedGroupQueryProcessorHolder.DistributedGroupQueryProcessor = readerNode;
             distributedGroupToGroupQueryProcessorHolder.DistributedGroupToGroupQueryProcessor = readerNode;
+            manuallyLoadableComponentHolder.ManuallyLoadableComponent = readerNode;
         }
 
         #endregion

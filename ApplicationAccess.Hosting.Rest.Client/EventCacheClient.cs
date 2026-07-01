@@ -271,7 +271,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         public void Clear()
         {
             var httpMethod = HttpMethod.Post;
-            var requestUrl = new Uri(baseUrl, $"eventBufferItems%3Aclear");
+            var requestUrl = new Uri(baseUrl, Uri.EscapeDataString("eventBufferItems:clear"));
 
             Action httpClientAction = () =>
             {
