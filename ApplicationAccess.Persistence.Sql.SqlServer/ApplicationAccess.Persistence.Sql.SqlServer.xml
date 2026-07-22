@@ -437,7 +437,7 @@
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.columnSizeLimit">
             <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.transactionSql126DateStyle">
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.transactSql126DateStyle">
             <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.queryGenerator">
@@ -764,7 +764,7 @@
             Generates queries used to read the current state of an AccessManager class from a SQL Server database.
             </summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.transactionSql126DateStyle">
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.transactSql126DateStyle">
             <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
         </member>
         <member name="P:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.ReservedKeywordStartDelimiter">

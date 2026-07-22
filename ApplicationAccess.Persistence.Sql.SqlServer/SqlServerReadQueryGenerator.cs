@@ -25,7 +25,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
     public class SqlServerReadQueryGenerator : ReadQueryGeneratorBase
     {
         /// <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
-        protected const String transactionSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
+        protected const String transactSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
 
         /// <inheritdoc/>
         protected override String ReservedKeywordStartDelimiter
@@ -77,7 +77,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
                     CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime', 
                     CONVERT(nvarchar(30), TransactionSequence) AS 'TransactionSequence' 
             FROM    EventIdToTransactionTimeMap
-            WHERE   TransactionTime <= CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126)
+            WHERE   TransactionTime <= CONVERT(datetime2, '{stateTime.ToString(transactSql126DateStyle)}', 126)
             ORDER   BY TransactionTime DESC, 
                        TransactionSequence DESC;";
 
@@ -89,7 +89,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <inheritdoc/>
         protected override String ConvertDateTimeToString(DateTime inputDateTime)
         {
-            return $"CONVERT(datetime2, '{inputDateTime.ToString(transactionSql126DateStyle)}', 126)";
+            return $"CONVERT(datetime2, '{inputDateTime.ToString(transactSql126DateStyle)}', 126)";
         }
 
         #endregion

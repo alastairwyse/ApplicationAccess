@@ -550,8 +550,8 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                                     ON ege.ActionId = a.Id
                         WHERE   ege.HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd} 
                     ) AS AllEvents
-            WHERE   TransactionTime >= CONVERT(datetime2, '{transactionTime.ToString(transactionSql126DateStyle)}', 126) 
-              AND   NOT (TransactionTime = CONVERT(datetime2, '{transactionTime.ToString(transactionSql126DateStyle)}', 126) AND TransactionSequence < {transactionSequence}) 
+            WHERE   TransactionTime >= CONVERT(datetime2, '{transactionTime.ToString(transactSql126DateStyle)}', 126) 
+              AND   NOT (TransactionTime = CONVERT(datetime2, '{transactionTime.ToString(transactSql126DateStyle)}', 126) AND TransactionSequence < {transactionSequence}) 
             ORDER   BY TransactionTime, 
                        TransactionSequence
             ";
@@ -795,7 +795,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
             {
                 throw new Exception($"Column '{eventActionColumnName}' in event query results contained unhandled event action '{eventActionAsString}'.");
             }
-            DateTime occurredTime = DateTime.ParseExact(occurredTimeAsString, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
+            DateTime occurredTime = DateTime.ParseExact(occurredTimeAsString, transactSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
             occurredTime = DateTime.SpecifyKind(occurredTime, DateTimeKind.Utc);
             Int32 hashCode = Int32.Parse(hashCodeAsString);
 

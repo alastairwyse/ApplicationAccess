@@ -89,6 +89,16 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 {
                     distributedOperationRouterUrl = ValidateAndConvertInstanceOptionsUrl(instanceConfigurationOptions.DistributedOperationRouterUrl, nameof(instanceConfigurationOptions.DistributedOperationRouterUrl));
                 }
+                Uri readerUrl = null;
+                if (instanceConfigurationOptions.ReaderUrl != null)
+                {
+                    readerUrl = ValidateAndConvertInstanceOptionsUrl(instanceConfigurationOptions.ReaderUrl, nameof(instanceConfigurationOptions.ReaderUrl));
+                }
+                Uri eventCacheUrl = null;
+                if (instanceConfigurationOptions.EventCacheUrl != null)
+                {
+                    eventCacheUrl = ValidateAndConvertInstanceOptionsUrl(instanceConfigurationOptions.EventCacheUrl, nameof(instanceConfigurationOptions.EventCacheUrl));
+                }
                 Uri writer1Url = null;
                 if (instanceConfigurationOptions.Writer1Url != null)
                 {
@@ -116,6 +126,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 returnInstanceConfiguration = new()
                 {
                     DistributedOperationRouterUrl = distributedOperationRouterUrl,
+                    ReaderUrl = readerUrl,
+                    EventCacheUrl = eventCacheUrl,
                     Writer1Url = writer1Url,
                     Writer2Url = writer2Url,
                     ShardConfigurationPersistentStorageCredentials = shardConfigurationPersistentStorageCredentials,

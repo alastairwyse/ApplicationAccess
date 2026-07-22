@@ -92,6 +92,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             }
 
             AssertExceptionThrownWhenUrlInvalid((instOps) => { instOps.DistributedOperationRouterUrl = "invalid1"; }, "DistributedOperationRouterUrl", "invalid1");
+            AssertExceptionThrownWhenUrlInvalid((instOps) => { instOps.ReaderUrl = "invalid1"; }, "ReaderUrl", "invalid1");
+            AssertExceptionThrownWhenUrlInvalid((instOps) => { instOps.EventCacheUrl = "invalid1"; }, "EventCacheUrl", "invalid1");
             AssertExceptionThrownWhenUrlInvalid((instOps) => { instOps.Writer1Url = "invalid1"; }, "Writer1Url", "invalid1");
             AssertExceptionThrownWhenUrlInvalid((instOps) => { instOps.Writer2Url = "invalid1"; }, "Writer2Url", "invalid1");
             AssertExceptionThrownWhenUrlInvalid((instOps) => { instOps.DistributedOperationCoordinatorUrl = "invalid1"; }, "DistributedOperationCoordinatorUrl", "invalid1");
@@ -117,6 +119,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<SqlServerLoginCredentials> result = testInstanceConfigurationOptionsParser.Parse(instanceConfigurationOptions);
 
             Assert.AreEqual(instanceConfigurationOptions.DistributedOperationRouterUrl, result.DistributedOperationRouterUrl.ToString());
+            Assert.AreEqual(instanceConfigurationOptions.ReaderUrl, result.ReaderUrl.ToString());
+            Assert.AreEqual(instanceConfigurationOptions.EventCacheUrl, result.EventCacheUrl.ToString());
             Assert.AreEqual(instanceConfigurationOptions.Writer1Url, result.Writer1Url.ToString());
             Assert.AreEqual(instanceConfigurationOptions.Writer2Url, result.Writer2Url.ToString());
             Assert.IsNull(result.ShardConfigurationPersistentStorageCredentials);
@@ -132,6 +136,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<SqlServerLoginCredentials> result = testInstanceConfigurationOptionsParser.Parse(instanceConfigurationOptions);
 
             Assert.AreEqual(instanceConfigurationOptions.DistributedOperationRouterUrl, result.DistributedOperationRouterUrl.ToString());
+            Assert.AreEqual(instanceConfigurationOptions.ReaderUrl, result.ReaderUrl.ToString());
+            Assert.AreEqual(instanceConfigurationOptions.EventCacheUrl, result.EventCacheUrl.ToString());
             Assert.AreEqual(instanceConfigurationOptions.Writer1Url, result.Writer1Url.ToString());
             Assert.AreEqual(instanceConfigurationOptions.Writer2Url, result.Writer2Url.ToString());
             Assert.AreEqual(instanceConfigurationOptions.ShardConfigurationSqlServerConnectionString, result.ShardConfigurationPersistentStorageCredentials.ConnectionString);
@@ -162,8 +168,10 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
             return new InstanceConfigurationOptions
             {
                 DistributedOperationRouterUrl = "http://192.168.0.200:7001/",
-                Writer1Url = "http://192.168.0.200:7002/",
-                Writer2Url = "http://192.168.0.200:7003/",
+                ReaderUrl = "http://192.168.0.200:7002/",
+                EventCacheUrl = "http://192.168.0.200:7003/",
+                Writer1Url = "http://192.168.0.200:7004/",
+                Writer2Url = "http://192.168.0.200:7005/",
                 ShardConfigurationSqlServerConnectionString = "Server=127.0.0.1;User Id=sa;Password=pwd;Initial Catalog=aatest_shard_configuration;Encrypt=false;Authentication=SqlPassword",
                 UserShardGroupConfiguration = new List<ShardGroupConfigurationOptions>
                 {

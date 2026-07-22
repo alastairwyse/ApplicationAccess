@@ -36,6 +36,16 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         Uri DistributedOperationRouterUrl { set; }
 
         /// <summary>
+        /// URL for a reader component which is part of a shard group undergoing a split or merge operation.
+        /// </summary>
+        Uri ReaderUrl { set; }
+
+        /// <summary>
+        /// URL for an event cache component which is part of a shard group undergoing a split or merge operation.
+        /// </summary>
+        Uri EventCacheUrl { set; }
+
+        /// <summary>
         /// URL for a first writer component which is part of a shard group undergoing a split or merge operation.
         /// </summary>
         Uri Writer1Url { set; }
@@ -61,6 +71,20 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         /// <param name="port">The external port to expose the load balancer service on.</param>
         /// <returns>The IP address of the load balancer service.</returns>
         Task<IPAddress> CreateDistributedOperationRouterLoadBalancerServiceAsync(UInt16 port);
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a reader component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <param name="port">The external port to expose the reader service on.</param>
+        /// <returns>The IP address of the load balancer service.</returns>
+        Task<IPAddress> CreateReaderLoadBalancerServiceAsync(UInt16 port);
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access an event cache component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <param name="port">The external port to expose the event cache service on.</param>
+        /// <returns>The IP address of the load balancer service.</returns>
+        Task<IPAddress> CreateEventCacheLoadBalancerServiceAsync(UInt16 port);
 
         /// <summary>
         /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a first writer component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.

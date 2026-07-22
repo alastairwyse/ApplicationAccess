@@ -38,7 +38,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
         protected const Int32 columnSizeLimit = 450;
         /// <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
-        protected const String transactionSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
+        protected const String transactSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
 
         /// <summary>Used to generate queries to read data in the Load() method.</summary>
         protected SqlServerReadQueryGenerator queryGenerator;
@@ -141,7 +141,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <inheritdoc/>
         public AccessManagerState Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            return persisterUtilities.Load(stateTime, accessManagerToLoadTo, new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(transactionSql126DateStyle)}'.", nameof(stateTime)));
+            return persisterUtilities.Load(stateTime, accessManagerToLoadTo, new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(transactSql126DateStyle)}'.", nameof(stateTime)));
         }
     }
 }

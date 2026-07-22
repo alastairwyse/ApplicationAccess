@@ -112,6 +112,24 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         }
 
         /// <inheritdoc/>
+        public Uri ReaderUrl
+        {
+            set
+            {
+                kubernetesDistributedInstanceManager.ReaderUrl = value;
+            }
+        }
+
+        /// <inheritdoc/>
+        public Uri EventCacheUrl
+        {
+            set
+            {
+                kubernetesDistributedInstanceManager.EventCacheUrl = value;
+            }
+        }
+
+        /// <inheritdoc/>
         public Uri Writer1Url
         {
             set
@@ -151,6 +169,18 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         public async Task<IPAddress> CreateDistributedOperationRouterLoadBalancerServiceAsync(UInt16 port)
         {
             return await kubernetesDistributedInstanceManager.CreateDistributedOperationRouterLoadBalancerServiceAsync(port);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IPAddress> CreateReaderLoadBalancerServiceAsync(UInt16 port)
+        {
+            return await kubernetesDistributedInstanceManager.CreateReaderLoadBalancerServiceAsync(port);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IPAddress> CreateEventCacheLoadBalancerServiceAsync(UInt16 port)
+        {
+            return await kubernetesDistributedInstanceManager.CreateEventCacheLoadBalancerServiceAsync(port);
         }
 
         /// <inheritdoc/>

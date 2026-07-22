@@ -70,6 +70,40 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         }
 
         /// <summary>
+        /// Sets the URL for a reader component which is part of a shard group undergoing a split or merge operation.
+        /// </summary>
+        /// <param name="url">The url.</param>
+        /// <response code="201">The url was set.</response>
+        [HttpPut]
+        [Route("readerService/url/{url}")]
+        [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public StatusCodeResult SetReaderUrl(String url)
+        {
+            String decodedUrl = Uri.UnescapeDataString(url);
+            kubernetesDistributedInstanceManager.ReaderUrl = ParseUriFromString(decodedUrl, nameof(url));
+
+            return new StatusCodeResult(StatusCodes.Status201Created);
+        }
+
+        /// <summary>
+        /// Sets the URL for an event cache component which is part of a shard group undergoing a split or merge operation.
+        /// </summary>
+        /// <param name="url">The url.</param>
+        /// <response code="201">The url was set.</response>
+        [HttpPut]
+        [Route("eventCacheService/url/{url}")]
+        [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public StatusCodeResult SetEventCacheUrl(String url)
+        {
+            String decodedUrl = Uri.UnescapeDataString(url);
+            kubernetesDistributedInstanceManager.EventCacheUrl = ParseUriFromString(decodedUrl, nameof(url));
+
+            return new StatusCodeResult(StatusCodes.Status201Created);
+        }
+
+        /// <summary>
         /// Sets the URL for a first writer component which is part of a shard group undergoing a split or merge operation.
         /// </summary>
         /// <param name="url">The url.</param>
@@ -145,6 +179,40 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         public async Task<String> CreateDistributedOperationRouterLoadBalancerServiceAsync(CreateLoadBalancerServiceParameters parameters)
         {
             IPAddress ipAddress = await kubernetesDistributedInstanceManager.CreateDistributedOperationRouterLoadBalancerServiceAsync(parameters.Port);
+
+            return ipAddress.ToString();
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a reader component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <returns>The IP address of the load balancer service.</returns>
+        [HttpPost]
+        [Route("readerService")]
+        [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<String> CreateReaderLoadBalancerServiceAsync(CreateLoadBalancerServiceParameters parameters)
+        {
+            IPAddress ipAddress = await kubernetesDistributedInstanceManager.CreateReaderLoadBalancerServiceAsync(parameters.Port);
+
+            return ipAddress.ToString();
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access an event cache component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <returns>The IP address of the load balancer service.</returns>
+        [HttpPost]
+        [Route("eventCacheService")]
+        [ApiExplorerSettings(GroupName = "KubernetesDistributedInstanceManager")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<String> CreateEventCacheLoadBalancerServiceAsync(CreateLoadBalancerServiceParameters parameters)
+        {
+            IPAddress ipAddress = await kubernetesDistributedInstanceManager.CreateEventCacheLoadBalancerServiceAsync(parameters.Port);
 
             return ipAddress.ToString();
         }
@@ -281,6 +349,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
         protected InstanceConfiguration ConvertInstanceConfigurationToDto(ApplicationAccess.Redistribution.Kubernetes.Models.KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<SqlServerLoginCredentials> instanceConfiguration)
         {
             String distributedOperationRouterUrl;
+            String readerUrl;
+            String eventCacheUrl;
             String writer1Url;
             String writer2Url;
             String shardConfigurationSqlServerConnectionString;
@@ -294,6 +364,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
                 }
             }
             SetStringVariableIfSourceNotNull(instanceConfiguration.DistributedOperationRouterUrl, out distributedOperationRouterUrl);
+            SetStringVariableIfSourceNotNull(instanceConfiguration.ReaderUrl, out readerUrl);
+            SetStringVariableIfSourceNotNull(instanceConfiguration.EventCacheUrl, out eventCacheUrl);
             SetStringVariableIfSourceNotNull(instanceConfiguration.Writer1Url, out writer1Url);
             SetStringVariableIfSourceNotNull(instanceConfiguration.Writer2Url, out writer2Url);
             SetStringVariableIfSourceNotNull(instanceConfiguration.ShardConfigurationPersistentStorageCredentials?.ConnectionString, out shardConfigurationSqlServerConnectionString);
@@ -325,6 +397,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Co
             return new InstanceConfiguration
             {
                 DistributedOperationRouterUrl = distributedOperationRouterUrl, 
+                ReaderUrl = readerUrl,
+                EventCacheUrl = eventCacheUrl,
                 Writer1Url = writer1Url,
                 Writer2Url = writer2Url,
                 ShardConfigurationSqlServerConnectionString = shardConfigurationSqlServerConnectionString, 

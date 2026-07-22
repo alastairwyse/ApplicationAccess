@@ -27,6 +27,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         #pragma warning disable 1591
 
         public String DistributedOperationRouterUrl { get; set; }
+        public String ReaderUrl { get; set; }
+        public String EventCacheUrl { get; set; }
         public String Writer1Url { get; set; }
         public String Writer2Url { get; set; }
         public String ShardConfigurationSqlServerConnectionString { get; set; }

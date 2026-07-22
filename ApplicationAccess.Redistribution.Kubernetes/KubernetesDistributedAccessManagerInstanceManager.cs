@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Distribution.Models;
@@ -162,6 +163,36 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw new InvalidOperationException($"Property '{nameof(DistributedOperationRouterUrl)}' cannot be set if it was not previously created by calling method {nameof(CreateDistributedOperationRouterLoadBalancerServiceAsync)}().");
 
                 instanceConfiguration.DistributedOperationRouterUrl = value;
+            }
+        }
+
+        /// <summary>
+        /// URL for a reader component which is part of a shard group undergoing a split or merge operation.
+        /// </summary>
+        /// <remarks>This property is included in classes' instance configuration, and is set when the <see cref="KubernetesDistributedAccessManagerInstanceManager{TPersistentStorageCredentials}.CreateReaderLoadBalancerServiceAsync(ushort)">CreateReaderLoadBalancerServiceAsync()</see> method is called.  However it may be initially set to a URL which is internal to the Kubernetes cluster host (e.g. when running in Minikube) and require a proxy or similar to expose it publically.  This setter allows the value to be overridden with the publically accessible URL.</remarks>
+        public Uri ReaderUrl
+        {
+            set
+            {
+                if (instanceConfiguration.ReaderUrl == null)
+                    throw new InvalidOperationException($"Property '{nameof(ReaderUrl)}' cannot be set if it was not previously created by calling method {nameof(CreateReaderLoadBalancerServiceAsync)}().");
+
+                instanceConfiguration.ReaderUrl = value;
+            }
+        }
+
+        /// <summary>
+        /// URL for an event cache component which is part of a shard group undergoing a split or merge operation.
+        /// </summary>
+        /// <remarks>This property is included in classes' instance configuration, and is set when the <see cref="KubernetesDistributedAccessManagerInstanceManager{TPersistentStorageCredentials}.CreateEventCacheLoadBalancerServiceAsync(ushort)">CreateEventCacheLoadBalancerServiceAsync()</see> method is called.  However it may be initially set to a URL which is internal to the Kubernetes cluster host (e.g. when running in Minikube) and require a proxy or similar to expose it publically.  This setter allows the value to be overridden with the publically accessible URL.</remarks>
+        public Uri EventCacheUrl
+        {
+            set
+            {
+                if (instanceConfiguration.EventCacheUrl == null)
+                    throw new InvalidOperationException($"Property '{nameof(EventCacheUrl)}' cannot be set if it was not previously created by calling method {nameof(CreateEventCacheLoadBalancerServiceAsync)}().");
+
+                instanceConfiguration.EventCacheUrl = value;
             }
         }
 
@@ -365,46 +396,45 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             if (instanceConfiguration.DistributedOperationRouterUrl != null)
                 throw new InvalidOperationException("A load balancer service for the distributed operation router has already been created.");
 
-            String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service for distributed operation router on port {port} in namespace '{nameSpace}'...");
-            Guid beginId = metricLogger.Begin(new LoadBalancerServiceCreateTime());
-
-            try
-            {
-                await CreateLoadBalancerServiceAsync(distributedOperationRouterObjectNamePrefix, externalServiceNamePostfix, port, staticConfiguration.PodPort);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Error creating distributed router load balancer service '{distributedOperationRouterObjectNamePrefix}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
-            }
-            try
-            {
-                await WaitForLoadBalancerServiceAsync($"{distributedOperationRouterObjectNamePrefix}{externalServiceNamePostfix}", staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Failed to wait for distributed router load balancer service '{distributedOperationRouterObjectNamePrefix}{externalServiceNamePostfix}' in namespace '{nameSpace}' to become available.", e);
-            }
-            IPAddress returnIpAddress = null;
-            try
-            {
-                returnIpAddress = await GetLoadBalancerServiceIpAddressAsync($"{distributedOperationRouterObjectNamePrefix}{externalServiceNamePostfix}");
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Error retrieving IP address for distributed router load balancer service '{distributedOperationRouterObjectNamePrefix}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
-            }
+            IPAddress returnIpAddress = await CreateLoadBalancerServiceAsync(NodeType.DistributedOperationRouter, distributedOperationRouterObjectNamePrefix, port);
             Uri distributedOperationRouterUrl = new($"{GetLoadBalancerServiceScheme()}://{returnIpAddress.ToString()}:{port}");
             instanceConfiguration.DistributedOperationRouterUrl = distributedOperationRouterUrl;
 
-            metricLogger.End(beginId, new LoadBalancerServiceCreateTime());
-            metricLogger.Increment(new LoadBalancerServiceCreated());
-            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
-
             return returnIpAddress;
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a reader component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <param name="port">The external port to expose the reader service on.</param>
+        /// <returns>The IP address of the load balancer service.</returns>
+        /// <remarks>This method should be called before creating a distributed AccessManager instance.  Some Kubernetes hosting platforms (e.g. Minikube) require additional actions outside of the cluster to allow Kubernetes services to be accessed from outside of the host machine (e.g. in the case if Minikube the IP address and port of the load balancer service must exposed outside the machine using 'simpleproxy' or a similar tool).  Hence this method can be called, and then any required additional actions be performed.</remarks>
+        public async Task<IPAddress> CreateReaderLoadBalancerServiceAsync(UInt16 port)
+        {
+            if (instanceConfiguration.ReaderUrl != null)
+                throw new InvalidOperationException("A load balancer service for the reader component has already been created.");
+
+            IPAddress readerIpAddress = await CreateLoadBalancerServiceAsync(NodeType.Reader, NodeType.Reader.ToString().ToLower(), port);
+            instanceConfiguration.ReaderUrl = new($"{GetLoadBalancerServiceScheme()}://{readerIpAddress.ToString()}:{port}");
+
+            return readerIpAddress;
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access an event cache component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <param name="port">The external port to expose the event cache service on.</param>
+        /// <returns>The IP address of the load balancer service.</returns>
+        /// <remarks>This method should be called before creating a distributed AccessManager instance.  Some Kubernetes hosting platforms (e.g. Minikube) require additional actions outside of the cluster to allow Kubernetes services to be accessed from outside of the host machine (e.g. in the case if Minikube the IP address and port of the load balancer service must exposed outside the machine using 'simpleproxy' or a similar tool).  Hence this method can be called, and then any required additional actions be performed.</remarks>
+        public async Task<IPAddress> CreateEventCacheLoadBalancerServiceAsync(UInt16 port)
+        {
+            if (instanceConfiguration.EventCacheUrl != null)
+                throw new InvalidOperationException("A load balancer service for the event cache component has already been created.");
+
+            IPAddress eventCacheIpAddress = await CreateLoadBalancerServiceAsync(NodeType.EventCache, NodeType.EventCache.ToString().ToLower(), port);
+            instanceConfiguration.EventCacheUrl = new($"{GetLoadBalancerServiceScheme()}://{eventCacheIpAddress.ToString()}:{port}");
+
+            return eventCacheIpAddress;
         }
 
         /// <summary>
@@ -418,7 +448,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             if (instanceConfiguration.Writer1Url != null)
                 throw new InvalidOperationException("A load balancer service for the first writer component has already been created.");
 
-            IPAddress writer1IpAddress = await CreateWriterLoadBalancerServiceAsync(GenerateWriter1LoadBalancerServiceName(), port);
+            IPAddress writer1IpAddress = await CreateLoadBalancerServiceAsync(NodeType.Writer, GenerateWriter1LoadBalancerServiceName(), port);
             instanceConfiguration.Writer1Url = new($"{GetLoadBalancerServiceScheme()}://{writer1IpAddress.ToString()}:{port}");
 
             return writer1IpAddress;
@@ -435,7 +465,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             if (instanceConfiguration.Writer2Url != null)
                 throw new InvalidOperationException("A load balancer service for the second writer component has already been created.");
 
-            IPAddress writer2IpAddress = await CreateWriterLoadBalancerServiceAsync(GenerateWriter2LoadBalancerServiceName(), port);
+            IPAddress writer2IpAddress = await CreateLoadBalancerServiceAsync(NodeType.Writer, GenerateWriter2LoadBalancerServiceName(), port);
             instanceConfiguration.Writer2Url = new($"{GetLoadBalancerServiceScheme()}://{writer2IpAddress.ToString()}:{port}");
 
             return writer2IpAddress;
@@ -829,15 +859,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
-        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a writer component which is part of a shard group undergoing a split operation, from outside the Kubernetes cluster.
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a component which is part of a shard group undergoing a split operation, from outside the Kubernetes cluster.
         /// </summary>
+        /// <param name="nodeType">The type of component the service should connect to.</param>
         /// <param name="appLabelValue">The name of the pod/deployment targetted by the service.</param>
-        /// <param name="port">The external port to expose the writer service on.</param>
+        /// <param name="port">The external port to expose the service on.</param>
         /// <returns>The IP address of the load balancer service.</returns>
-        protected async Task<IPAddress> CreateWriterLoadBalancerServiceAsync(String appLabelValue, UInt16 port)
+        protected async Task<IPAddress> CreateLoadBalancerServiceAsync(NodeType nodeType, String appLabelValue, UInt16 port)
         {
             String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service '{appLabelValue}{externalServiceNamePostfix}' for writer on port {port} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service '{appLabelValue}{externalServiceNamePostfix}' for {StringifyNodeTypeToSpacedLowerCase(nodeType)} on port {port} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new LoadBalancerServiceCreateTime());
 
             try
@@ -847,7 +878,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             catch (Exception e)
             {
                 metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Error creating writer load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
+                throw new Exception($"Error creating {StringifyNodeTypeToSpacedLowerCase(nodeType)} load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
             }
             try
             {
@@ -856,7 +887,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             catch (Exception e)
             {
                 metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Failed to wait for writer load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}' to become available.", e);
+                throw new Exception($"Failed to wait for {StringifyNodeTypeToSpacedLowerCase(nodeType)} load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}' to become available.", e);
             }
             IPAddress returnIpAddress = null;
             try
@@ -866,9 +897,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             catch (Exception e)
             {
                 metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Error retrieving IP address for writer load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
+                throw new Exception($"Error retrieving IP address for {StringifyNodeTypeToSpacedLowerCase(nodeType)} load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
             }
-            Uri writerUrl = new($"{GetLoadBalancerServiceScheme()}://{returnIpAddress.ToString()}:{port}");
 
             metricLogger.End(beginId, new LoadBalancerServiceCreateTime());
             metricLogger.Increment(new LoadBalancerServiceCreated());
@@ -2208,6 +2238,25 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
         #pragma warning disable 1591
 
+        protected String StringifyNodeTypeToSpacedLowerCase(NodeType inputNodeType)
+        {
+            StringBuilder stringBuilder = new();
+            String stringifiedNodeType = inputNodeType.ToString();
+            for (Int32 i = 0; i < stringifiedNodeType.Length; i++)
+            {
+                if (Char.IsUpper(stringifiedNodeType[i]) == true)
+                {
+                    if (i != 0)
+                    {
+                        stringBuilder.Append(' ');
+                    }
+                }
+                stringBuilder.Append(Char.ToLower(stringifiedNodeType[i]));
+            }
+
+            return stringBuilder.ToString();
+        }
+
         protected void ThrowExceptionIfIntegerParameterLessThan1(String parameterName, Int32 parameterValue)
         {
             if (parameterValue < 1)
@@ -2815,44 +2864,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <returns>The IP address of the load balancer service.</returns>
         protected async Task<IPAddress> CreateDistributedOperationCoordinatorLoadBalancerServiceAsync(UInt16 port)
         {
-            String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service for distributed operation coordinator on port {port} in namespace '{nameSpace}'...");
-            Guid beginId = metricLogger.Begin(new LoadBalancerServiceCreateTime());
-
-            try
-            {
-                await CreateLoadBalancerServiceAsync(distributedOperationCoordinatorObjectNamePrefix, externalServiceNamePostfix, port, staticConfiguration.PodPort);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Error creating distributed operation coordinator load balancer service '{distributedOperationCoordinatorObjectNamePrefix}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
-            }
-            try
-            {
-                await WaitForLoadBalancerServiceAsync($"{distributedOperationCoordinatorObjectNamePrefix}{externalServiceNamePostfix}", staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Failed to wait for distributed operation coordinator load balancer service '{distributedOperationCoordinatorObjectNamePrefix}{externalServiceNamePostfix}' in namespace '{nameSpace}' to become available.", e);
-            }
-            IPAddress returnIpAddress = null;
-            try
-            {
-                returnIpAddress = await GetLoadBalancerServiceIpAddressAsync($"{distributedOperationCoordinatorObjectNamePrefix}{externalServiceNamePostfix}");
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Error retrieving IP address for distributed operation coordinator load balancer service '{distributedOperationCoordinatorObjectNamePrefix}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
-            }
+            IPAddress returnIpAddress = await CreateLoadBalancerServiceAsync(NodeType.DistributedOperationCoordinator, distributedOperationCoordinatorObjectNamePrefix, port);
             Uri distributedOperationCoordinatorUrl = new($"{GetLoadBalancerServiceScheme()}://{returnIpAddress.ToString()}:{port}");
             instanceConfiguration.DistributedOperationCoordinatorUrl = distributedOperationCoordinatorUrl;
-
-            metricLogger.End(beginId, new LoadBalancerServiceCreateTime());
-            metricLogger.Increment(new LoadBalancerServiceCreated());
-            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
 
             return returnIpAddress;
         }
@@ -3427,6 +3441,46 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             if (foundPod == true)
             {
                 throw new Exception($"Timeout value of {abortTimeout} milliseconds expired while waiting for Kubernetes deployment '{name}' to scale down.");
+            }
+        }
+
+        /// <summary>
+        /// Waits for the pods of the specified deployment to scale to the specified replica count.
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        /// <param name="replicaCount"></param>
+        /// <param name="checkInterval">The interval in milliseconds between successive checks.</param>
+        /// <param name="abortTimeout">The number of milliseconds to wait before throwing an exception if the deployment hasn't scaled.</param>
+        /// <returns></returns>
+        protected async Task WaitForDeploymentScaleAsync(String name, Int32 replicaCount, Int32 checkInterval, Int32 abortTimeout)
+        {
+            if (replicaCount < 1)
+                throw new ArgumentOutOfRangeException(nameof(replicaCount), $"Parameter '{nameof(replicaCount)}' with value {replicaCount} must be greater than or equal to 1.");
+
+            Predicate<V1Deployment> waitForAvailabilityPredicate = (V1Deployment deployment) =>
+            {
+                if (deployment.Name() == name)
+                {
+                    if (deployment.Status.AvailableReplicas != null && deployment.Status.AvailableReplicas.Value == replicaCount)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            };
+
+            try
+            {
+                await WaitForDeploymentPredicateAsync(waitForAvailabilityPredicate, checkInterval, abortTimeout);
+            }
+            catch (DeploymentPredicateWaitTimeoutExpiredException timeoutException)
+            {
+                throw new Exception($"Timeout value of {abortTimeout} milliseconds expired while waiting for Kubernetes deployment '{name}' to scale to {replicaCount} replica(s).", timeoutException);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to wait for Kubernetes deployment '{name}' to scale to {replicaCount} replica(s).", e);
             }
         }
 

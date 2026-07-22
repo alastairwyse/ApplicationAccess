@@ -38,7 +38,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         where TJsonSerializer : IDistributedAccessManagerAsyncClientConfigurationJsonSerializer<TClientConfiguration>
     {
         /// <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
-        protected const String transactionSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
+        protected const String transactSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
 
         #pragma warning disable 1591
 
@@ -171,7 +171,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                     {hashRangeStartColumnName}, 
                     {clientConfigurationColumnName} 
             FROM    ShardConfiguration 
-            WHERE   CONVERT(datetime2, '{currentDateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN TransactionFrom AND TransactionTo;";
+            WHERE   CONVERT(datetime2, '{currentDateTime.ToString(transactSql126DateStyle)}', 126) BETWEEN TransactionFrom AND TransactionTo;";
 
             using (var connection = new SqlConnection(connectionString))
             using (var command = new SqlCommand(query))

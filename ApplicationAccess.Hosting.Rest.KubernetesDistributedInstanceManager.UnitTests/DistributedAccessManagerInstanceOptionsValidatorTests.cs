@@ -347,8 +347,10 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Un
                 InstanceConfiguration = new InstanceConfigurationOptions
                 {
                     DistributedOperationRouterUrl = "http://192.168.0.200:7001/",
-                    Writer1Url = "http://192.168.0.200:7002/",
-                    Writer2Url = "http://192.168.0.200:7003",
+                    ReaderUrl = "http://192.168.0.200:7002/",
+                    EventCacheUrl = "http://192.168.0.200:7003/",
+                    Writer1Url = "http://192.168.0.200:7004/",
+                    Writer2Url = "http://192.168.0.200:7005",
                     ShardConfigurationSqlServerConnectionString = "Server=127.0.0.1;User Id=sa;Password=pwd;Initial Catalog=aatest_shard_configuration;Encrypt=false;Authentication=SqlPassword",
                     UserShardGroupConfiguration = new List<ShardGroupConfigurationOptions>
                     {

@@ -30,6 +30,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
         /// <summary>URL for the distributed router component used for shard group splitting or merging.</summary>
         public Uri DistributedOperationRouterUrl;
 
+        /// <summary>URL for a reader component which is part of a shard group undergoing a split or merge operation.</summary>
+        public Uri ReaderUrl;
+
+        /// <summary>URL for an event cache component which is part of a shard group undergoing a split or merge operation.</summary>
+        public Uri EventCacheUrl;
+
         /// <summary>URL for a writer component which is part of a shard group undergoing a split or merge operation (the first of two).</summary>
         public Uri Writer1Url;
 

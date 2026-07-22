@@ -36,6 +36,10 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
 
         public String DistributedOperationRouterUrl { get; set; }
 
+        public String ReaderUrl { get; set; }
+
+        public String EventCacheUrl { get; set; }
+
         public String Writer1Url { get; set; }
 
         public String Writer2Url { get; set; }
@@ -53,6 +57,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager.Mo
         public InstanceConfigurationOptions()
         {
             DistributedOperationRouterUrl = null;
+            ReaderUrl = null;
+            EventCacheUrl = null;
             Writer1Url = null;
             Writer2Url = null;
             ShardConfigurationSqlServerConnectionString = null;
