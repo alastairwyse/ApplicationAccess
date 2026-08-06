@@ -704,7 +704,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventDeleter> sourceShardGroupEventDeleterCreationFunction,
             Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
-            Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+            Func<Uri, IDistributedAccessManagerReaderAdministrator> shardGroupReaderAdministratorCreationFunction,
+            Func<Uri, IAccessManagerEventCache<String, String, String, String>> shardGroupEventCacheAdministratorCreationFunction,
+            Func<Uri, IDistributedAccessManagerWriterAdministrator> shardGroupWriterAdministratorCreationFunction,
             Int32 eventBatchSize,
             Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
             Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
@@ -720,7 +722,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 targetShardGroupEventPersisterCreationFunction,
                 sourceShardGroupEventDeleterCreationFunction,
                 operationRouterCreationFunction,
-                sourceShardGroupWriterAdministratorCreationFunction,
+                shardGroupReaderAdministratorCreationFunction, 
+                shardGroupEventCacheAdministratorCreationFunction, 
+                shardGroupWriterAdministratorCreationFunction,
                 eventBatchSize,
                 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
                 sourceWriterNodeOperationsCompleteCheckRetryInterval,
@@ -918,7 +922,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="targetShardGroupEventPersisterCreationFunction">A function used to create a persister used to write events to the target shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerIdempotentTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
         /// <param name="sourceShardGroupEventDeleterCreationFunction">A function used to create a deleter used to delete events from the source shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventDeleter"/> instance.</param>
         /// <param name="operationRouterCreationFunction">A function used to create a client used control the router which directs operations between the source and target shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerOperationRouter"/> instance.</param>
-        /// <param name="sourceShardGroupWriterAdministratorCreationFunction">A function used to create a client used control the writer node in the source shard group.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
+        /// <param name="shardGroupReaderAdministratorCreationFunction">A function used to create a client used control the reader nodes in the split shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerReaderAdministrator"/> instance.</param>
+        /// <param name="shardGroupEventCacheAdministratorCreationFunction">A function used to create a client used control the event cache nodes in the split shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IAccessManagerEventCache{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
+        /// <param name="shardGroupWriterAdministratorCreationFunction">A function used to create a client used control the writer nodes in the split shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
         /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard group in each batch.</param>
         /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking that there are no active operations in the source shard group, before copying of the final batch of events (event copy will fail if all retries are exhausted before the number of active operations becomes 0).</param>
         /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
@@ -933,7 +939,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventDeleter> sourceShardGroupEventDeleterCreationFunction,
             Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
-            Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+            Func<Uri, IDistributedAccessManagerReaderAdministrator> shardGroupReaderAdministratorCreationFunction,
+            Func<Uri, IAccessManagerEventCache<String, String, String, String>> shardGroupEventCacheAdministratorCreationFunction,
+            Func<Uri, IDistributedAccessManagerWriterAdministrator> shardGroupWriterAdministratorCreationFunction,
             Int32 eventBatchSize,
             Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
             Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval, 
@@ -996,7 +1004,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             IAccessManagerTemporalEventBulkPersister<String, String, String, String> targetShardGroupEventPersister = null;
             IAccessManagerTemporalEventDeleter sourceShardGroupEventDeleter = null;
             IDistributedAccessManagerOperationRouter operationRouter = null;
-            IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator = null;
+            IDistributedAccessManagerReaderAdministrator shardGroupReaderAdministrator = null;
+            IAccessManagerEventCache<String, String, String, String> shardGroupEventCacheAdministrator = null;
+            IDistributedAccessManagerWriterAdministrator shardGroupWriterAdministrator = null;
             try
             {
                 ConstructInstance
@@ -1021,8 +1031,18 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 );
                 ConstructInstance
                 (
-                    () => { sourceShardGroupWriterAdministrator = sourceShardGroupWriterAdministratorCreationFunction(instanceConfiguration.Writer1Url); },
-                    nameof(sourceShardGroupWriterAdministrator)
+                    () => { shardGroupReaderAdministrator = shardGroupReaderAdministratorCreationFunction(instanceConfiguration.ReaderUrl); },
+                    nameof(shardGroupReaderAdministrator)
+                );
+                ConstructInstance
+                (
+                    () => { shardGroupEventCacheAdministrator = shardGroupEventCacheAdministratorCreationFunction(instanceConfiguration.EventCacheUrl); },
+                    nameof(shardGroupEventCacheAdministrator)
+                );
+                ConstructInstance
+                (
+                    () => { shardGroupWriterAdministrator = shardGroupWriterAdministratorCreationFunction(instanceConfiguration.Writer1Url); },
+                    nameof(shardGroupWriterAdministrator)
                 );
             }
             catch
@@ -1127,7 +1147,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                         sourceShardGroupEventReader,
                         targetShardGroupEventPersister,
                         operationRouter,
-                        sourceShardGroupWriterAdministrator,
+                        shardGroupWriterAdministrator,
                         splitHashRangeStart,
                         splitHashRangeEnd,
                         filterGroupEventsByHashRange,
@@ -1332,7 +1352,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             finally
             {
                 // Dispose persisters and clients
-                DisposeObject(sourceShardGroupWriterAdministrator);
+                DisposeObject(shardGroupWriterAdministrator);
+                DisposeObject(shardGroupEventCacheAdministrator);
+                DisposeObject(shardGroupReaderAdministrator);
                 DisposeObject(operationRouter);
                 DisposeObject(sourceShardGroupEventDeleter);
                 DisposeObject(targetShardGroupEventPersister);
@@ -3448,10 +3470,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Waits for the pods of the specified deployment to scale to the specified replica count.
         /// </summary>
         /// <param name="name">The name of the deployment.</param>
-        /// <param name="replicaCount"></param>
+        /// <param name="replicaCount">The replica count to wait for.</param>
         /// <param name="checkInterval">The interval in milliseconds between successive checks.</param>
         /// <param name="abortTimeout">The number of milliseconds to wait before throwing an exception if the deployment hasn't scaled.</param>
-        /// <returns></returns>
         protected async Task WaitForDeploymentScaleAsync(String name, Int32 replicaCount, Int32 checkInterval, Int32 abortTimeout)
         {
             if (replicaCount < 1)

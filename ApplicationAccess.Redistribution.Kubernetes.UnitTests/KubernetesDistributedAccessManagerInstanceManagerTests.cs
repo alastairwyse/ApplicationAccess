@@ -57,6 +57,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         protected IAccessManagerTemporalEventBulkPersister<String, String, String, String> mockTargetShardGroupEventPersister;
         protected IAccessManagerTemporalEventDeleter mocksourceShardGroupEventDeleter;
         protected IDistributedAccessManagerOperationRouter mockOperationRouter;
+        protected IDistributedAccessManagerReaderAdministrator mockSourceShardGroupReaderAdministrator;
+        protected IAccessManagerEventCache<String, String, String, String> mockSourceShardGroupEventCacheAdministrator;
         protected IDistributedAccessManagerWriterAdministrator mockSourceShardGroup1WriterAdministrator;
         protected IDistributedAccessManagerWriterAdministrator mockSourceShardGroup2WriterAdministrator;
         protected IDistributedAccessManagerShardGroupSplitter mockShardGroupSplitter;
@@ -69,7 +71,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         protected Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> testTargetShardGroupEventPersisterCreationFunction;
         protected Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventDeleter> testSourceShardGroupEventDeleterCreationFunction;
         protected Func<Uri, IDistributedAccessManagerOperationRouter> testOperationRouterCreationFunction;
-        protected Func<Uri, IDistributedAccessManagerWriterAdministrator> testSourceShardGroupWriterAdministratorCreationFunction;
+        protected Func<Uri, IDistributedAccessManagerReaderAdministrator> testShardGroupReaderAdministratorCreationFunction;
+        protected Func<Uri, IAccessManagerEventCache<String, String, String, String>> testShardGroupEventCacheAdministratorCreationFunction;
+        protected Func<Uri, IDistributedAccessManagerWriterAdministrator> testShardGroupWriterAdministratorCreationFunction;
         protected KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers testKubernetesDistributedAccessManagerInstanceManager;
 
         [SetUp]
@@ -86,6 +90,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockTargetShardGroupEventPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, String, String>>();
             mocksourceShardGroupEventDeleter = Substitute.For<IAccessManagerTemporalEventDeleter>();
             mockOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter>();
+            mockSourceShardGroupReaderAdministrator = Substitute.For<IDistributedAccessManagerReaderAdministrator>();
+            mockSourceShardGroupEventCacheAdministrator = Substitute.For<IAccessManagerEventCache<String, String, String, String>>();
             mockSourceShardGroup1WriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
             mockSourceShardGroup2WriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
             mockShardGroupSplitter = Substitute.For<IDistributedAccessManagerShardGroupSplitter>();
@@ -111,7 +117,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testSourceShardGroupEventDeleterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mocksourceShardGroupEventDeleter; };
             testOperationRouterCreationFunction = (Uri baseUrl) => { return mockOperationRouter; };
             Boolean writerAdministratorCreationFunctionCalled = false;
-            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => 
+            testShardGroupReaderAdministratorCreationFunction = (Uri baseUrl) => { return mockSourceShardGroupReaderAdministrator; };
+            testShardGroupEventCacheAdministratorCreationFunction = (Uri baseUrl) => { return mockSourceShardGroupEventCacheAdministrator; };
+            testShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => 
             {
                 if (writerAdministratorCreationFunctionCalled == false)
                 {
@@ -2338,7 +2346,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction, 
+                    testShardGroupReaderAdministratorCreationFunction, 
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction, 
                     1000, 
                     5, 
                     2000,
@@ -2377,7 +2387,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2417,7 +2429,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2457,7 +2471,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2498,7 +2514,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2552,7 +2570,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2593,7 +2613,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2647,7 +2669,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2693,7 +2717,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2742,7 +2768,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2788,7 +2816,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2834,7 +2864,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2880,7 +2912,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2895,11 +2929,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public void SplitShardGroupAsync_ExceptionCreatingSourceShardGroupWriterAdministrator()
+        public void SplitShardGroupAsync_ExceptionCreatingShardGroupReaderAdministrator()
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { throw mockException; };
+            testShardGroupReaderAdministratorCreationFunction = (Uri baseUrl) => { throw mockException; };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
@@ -2926,7 +2960,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -2936,7 +2972,103 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupSplitTime>());
-            Assert.That(e.Message, Does.StartWith($"Failed to construct sourceShardGroupWriterAdministrator."));
+            Assert.That(e.Message, Does.StartWith($"Failed to construct shardGroupReaderAdministrator."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void SplitShardGroupAsync_ExceptionCreatingShardGroupEventCacheAdministrator()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testShardGroupEventCacheAdministratorCreationFunction = (Uri baseUrl) => { throw mockException; };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                CreateInstanceConfiguration(""),
+                mockPersistentStorageManager,
+                mockPersistentStorageInstanceRandomNameGenerator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(testBeginId1);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.SplitShardGroupAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testSourceShardGroupEventDeleterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupSplitter
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupSplitTime>());
+            Assert.That(e.Message, Does.StartWith($"Failed to construct shardGroupEventCacheAdministrator."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void SplitShardGroupAsync_ExceptionCreatingShardGroupWriterAdministrator()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { throw mockException; };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                CreateInstanceConfiguration(""),
+                mockPersistentStorageManager,
+                mockPersistentStorageInstanceRandomNameGenerator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(testBeginId1);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.SplitShardGroupAsync
+                (
+                    DataElement.User,
+                    Int32.MinValue,
+                    0,
+                    Int32.MaxValue,
+                    testSourceShardGroupEventReaderCreationFunction,
+                    testTargetShardGroupEventPersisterCreationFunction,
+                    testSourceShardGroupEventDeleterCreationFunction,
+                    testOperationRouterCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
+                    1000,
+                    5,
+                    2000,
+                    mockShardGroupSplitter
+                );
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupSplitTime>());
+            Assert.That(e.Message, Does.StartWith($"Failed to construct shardGroupWriterAdministrator."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -2988,7 +3120,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3049,7 +3183,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3107,7 +3243,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3181,7 +3319,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3262,7 +3402,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3326,7 +3468,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3390,7 +3534,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3468,7 +3614,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3537,7 +3685,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3601,7 +3751,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3668,7 +3820,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3753,7 +3907,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3837,7 +3993,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3913,7 +4071,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -3985,7 +4145,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4057,7 +4219,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testTargetShardGroupEventPersisterCreationFunction,
                     testSourceShardGroupEventDeleterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4153,7 +4317,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 testTargetShardGroupEventPersisterCreationFunction,
                 testSourceShardGroupEventDeleterCreationFunction,
                 testOperationRouterCreationFunction,
-                testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupReaderAdministratorCreationFunction,
+                    testShardGroupEventCacheAdministratorCreationFunction,
+                testShardGroupWriterAdministratorCreationFunction,
                 1000,
                 5,
                 2000,
@@ -4414,7 +4580,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 testTargetShardGroupEventPersisterCreationFunction,
                 testSourceShardGroupEventDeleterCreationFunction,
                 testOperationRouterCreationFunction,
-                testSourceShardGroupWriterAdministratorCreationFunction,
+                testShardGroupReaderAdministratorCreationFunction,
+                testShardGroupEventCacheAdministratorCreationFunction,
+                testShardGroupWriterAdministratorCreationFunction,
                 1000,
                 5,
                 2000,
@@ -4614,7 +4782,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4652,7 +4820,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4691,7 +4859,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4730,7 +4898,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4770,7 +4938,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4810,7 +4978,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4874,7 +5042,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4938,7 +5106,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -4961,7 +5129,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5008,7 +5176,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5057,7 +5225,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5115,7 +5283,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5161,7 +5329,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5207,7 +5375,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5226,7 +5394,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { throw mockException; };
+            testShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => { throw mockException; };
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateTwoUserShardGroupInstanceConfiguration("");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -5253,7 +5421,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5273,7 +5441,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             var mockException = new Exception("Mock exception");
             Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Boolean creationFunctionCalled = false;
-            testSourceShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => 
+            testShardGroupWriterAdministratorCreationFunction = (Uri baseUrl) => 
             {
                 if (creationFunctionCalled == false)
                 {
@@ -5311,7 +5479,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5372,7 +5540,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5434,7 +5602,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5493,7 +5661,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5552,7 +5720,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5626,7 +5794,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5690,7 +5858,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5759,7 +5927,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5831,7 +5999,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5903,7 +6071,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -5976,7 +6144,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -6049,7 +6217,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -6133,7 +6301,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -6211,7 +6379,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -6284,7 +6452,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -6357,7 +6525,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -6434,7 +6602,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -6507,7 +6675,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -6580,7 +6748,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     testSourceShardGroupEventReaderCreationFunction,
                     testTargetShardGroupEventPersisterCreationFunction,
                     testOperationRouterCreationFunction,
-                    testSourceShardGroupWriterAdministratorCreationFunction,
+                    testShardGroupWriterAdministratorCreationFunction,
                     1000,
                     5,
                     2000,
@@ -6664,7 +6832,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 testSourceShardGroupEventReaderCreationFunction,
                 testTargetShardGroupEventPersisterCreationFunction,
                 testOperationRouterCreationFunction,
-                testSourceShardGroupWriterAdministratorCreationFunction,
+                testShardGroupWriterAdministratorCreationFunction,
                 1000,
                 5,
                 2000,
@@ -6881,7 +7049,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 testSourceShardGroupEventReaderCreationFunction,
                 testTargetShardGroupEventPersisterCreationFunction,
                 testOperationRouterCreationFunction,
-                testSourceShardGroupWriterAdministratorCreationFunction,
+                testShardGroupWriterAdministratorCreationFunction,
                 1000,
                 5,
                 2000,
@@ -11072,7 +11240,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
                 Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventDeleter> sourceShardGroupEventDeleterCreationFunction,
                 Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
-                Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+                Func<Uri, IDistributedAccessManagerReaderAdministrator> shardGroupReaderAdministratorCreationFunction,
+                Func<Uri, IAccessManagerEventCache<String, String, String, String>> shardGroupEventCacheAdministratorCreationFunction,
+                Func<Uri, IDistributedAccessManagerWriterAdministrator> shardGroupWriterAdministratorCreationFunction,
                 Int32 eventBatchSize,
                 Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
                 Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval,
@@ -11089,7 +11259,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     targetShardGroupEventPersisterCreationFunction,
                     sourceShardGroupEventDeleterCreationFunction,
                     operationRouterCreationFunction,
-                    sourceShardGroupWriterAdministratorCreationFunction,
+                    shardGroupReaderAdministratorCreationFunction, 
+                    shardGroupEventCacheAdministratorCreationFunction, 
+                    shardGroupWriterAdministratorCreationFunction,
                     eventBatchSize,
                     sourceWriterNodeOperationsCompleteCheckRetryAttempts,
                     sourceWriterNodeOperationsCompleteCheckRetryInterval,

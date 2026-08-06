@@ -360,6 +360,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 distributedAccessManagerInstanceOptions.ShardConnection.RetryCount.Value,
                 distributedAccessManagerInstanceOptions.ShardConnection.RetryInterval.Value,
                 distributedAccessManagerInstanceOptions.ShardConnection.ConnectionTimeout.Value,
+                distributedAccessManagerInstanceOptions.StaticConfiguration.NodeInterconnectionProtocol.Value,
                 kubernetesDistributedInstanceManagerNodeLogger,
                 metricLogger
             );

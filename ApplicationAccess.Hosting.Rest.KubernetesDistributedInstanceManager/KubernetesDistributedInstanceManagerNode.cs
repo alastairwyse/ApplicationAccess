@@ -16,20 +16,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Distribution.Persistence.SqlServer;
+using ApplicationAccess.Hosting.Factories;
+using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient;
+using ApplicationAccess.Hosting.Rest.DistributedReaderAdministratorClient;
 using ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Sql.SqlServer;
-using ApplicationAccess.Redistribution.Models;
 using ApplicationAccess.Redistribution.Kubernetes;
 using ApplicationAccess.Redistribution.Kubernetes.Models;
+using ApplicationAccess.Redistribution.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
 
@@ -56,6 +59,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         protected Int32 restClientRetryInterval;
         /// <summary>The time in milliseconds wait for REST client requests before timing out.</summary>
         protected Int32 restClientTimeout;
+        /// <summary>The protocol to use to connect between nodes.</summary>
+        protected Protocol nodeInterconnectionProtocol;
         /// <summary>The logger for general logging.</summary>
         protected IApplicationLogger logger;
         /// <summary>The logger for metrics.</summary>
@@ -73,6 +78,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         /// <param name="restClientRetryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error) when connecting to the writer or distributed operation router nodes via their respective REST clients.</param>
         /// <param name="restClientRetryInterval">The time in seconds between REST client retries.</param>
         /// <param name="restClientTimeout">The time in milliseconds wait for REST client requests before timing out.</param>
+        /// <param name="nodeInterconnectionProtocol">The protocol to use to connect between nodes.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public KubernetesDistributedInstanceManagerNode
@@ -83,7 +89,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
             Int32 sqlServerOperationTimeout,
             Int32 restClientRetryCount,
             Int32 restClientRetryInterval,
-            Int32 restClientTimeout, 
+            Int32 restClientTimeout,
+            Protocol nodeInterconnectionProtocol,
             IApplicationLogger logger, 
             IMetricLogger metricLogger
         )
@@ -95,6 +102,7 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
             this.restClientRetryCount = restClientRetryCount;
             this.restClientRetryInterval = restClientRetryInterval;
             this.restClientTimeout = restClientTimeout;
+            this.nodeInterconnectionProtocol = nodeInterconnectionProtocol;
             this.logger = logger;
             this.metricLogger = metricLogger;
             httpClient = new HttpClient();
@@ -239,6 +247,8 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                 SqlServerTemporalEventBatchReaderCreationFunction,
                 SqlServerTemporalEventBatchReaderCreationFunction,
                 DistributedOperationRouterClientCreationFunction,
+                DistributedReaderAdministratorClientCreationFunction,
+                EventCacheAdministratorClientCreationFunction,
                 DistributedWriterAdministratorClientCreationFunction,
                 eventBatchSize,
                 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
@@ -325,7 +335,54 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
         }
 
         /// <summary>
-        /// Returns a function which creates a <see cref="DistributedAccessManagerWriterAdministratorClient"/> to use in calls to <see cref="KubernetesDistributedInstanceManagerNode.SplitShardGroupAsync(DataElement, Int32, Int32, Int32, Int32, Int32, Int32)">SplitShardGroupAsync()</see> and <see cref="KubernetesDistributedInstanceManagerNode.MergeShardGroupsAsync(DataElement, Int32, Int32, Int32, Int32, Int32, Int32)">MergeShardGroupsAsync()</see>.
+        /// Returns a function which creates a <see cref="DistributedAccessManagerReaderAdministratorClient"/> to use in calls to <see cref="KubernetesDistributedInstanceManagerNode.SplitShardGroupAsync(DataElement, Int32, Int32, Int32, Int32, Int32, Int32)">SplitShardGroupAsync()</see> and <see cref="KubernetesDistributedInstanceManagerNode.MergeShardGroupsAsync(DataElement, Int32, Int32, Int32, Int32, Int32, Int32)">MergeShardGroupsAsync()</see>.
+        /// </summary>
+        protected Func<Uri, IDistributedAccessManagerReaderAdministrator> DistributedReaderAdministratorClientCreationFunction
+        {
+            get
+            {
+                return (Uri url) =>
+                {
+                    return new DistributedAccessManagerReaderAdministratorClient
+                    (
+                        url,
+                        httpClient,
+                        restClientRetryCount,
+                        restClientRetryInterval
+                    );
+                };
+            }
+        }
+
+        /// <summary>
+        /// Returns a function which creates a <see cref="IAccessManagerEventCache{TUser, TGroup, TComponent, TAccess}"/> to use in calls to <see cref="KubernetesDistributedInstanceManagerNode.SplitShardGroupAsync(DataElement, Int32, Int32, Int32, Int32, Int32, Int32)">SplitShardGroupAsync()</see> and <see cref="KubernetesDistributedInstanceManagerNode.MergeShardGroupsAsync(DataElement, Int32, Int32, Int32, Int32, Int32, Int32)">MergeShardGroupsAsync()</see>.
+        /// </summary>
+        protected Func<Uri, IAccessManagerEventCache<String, String, String, String>> EventCacheAdministratorClientCreationFunction
+        {
+            get
+            {
+                return (Uri url) =>
+                {
+                    EventCacheConnectionOptions eventCacheConnectionOptions = new();
+                    eventCacheConnectionOptions.Host = url.ToString();
+                    eventCacheConnectionOptions.Protocol = ConvertKubernetesProtocolToHostingProtocol(nodeInterconnectionProtocol);
+                    eventCacheConnectionOptions.RetryCount = restClientRetryCount;
+                    eventCacheConnectionOptions.RetryInterval = restClientRetryInterval;
+                    AccessManagerEventCacheClientFactory<String, String, String, String> factory = new
+                    (
+                        new StringUniqueStringifier(),
+                        new StringUniqueStringifier(),
+                        new StringUniqueStringifier(),
+                        new StringUniqueStringifier(),
+                        logger
+                    );
+                    return factory.GetClient(eventCacheConnectionOptions);
+                };
+            }
+        }
+
+        /// <summary>
+        /// Returns a function which creates an <see cref="DistributedAccessManagerWriterAdministratorClient"/> to use in calls to <see cref="KubernetesDistributedInstanceManagerNode.SplitShardGroupAsync(DataElement, Int32, Int32, Int32, Int32, Int32, Int32)">SplitShardGroupAsync()</see> and <see cref="KubernetesDistributedInstanceManagerNode.MergeShardGroupsAsync(DataElement, Int32, Int32, Int32, Int32, Int32, Int32)">MergeShardGroupsAsync()</see>.
         /// </summary>
         protected Func<Uri, IDistributedAccessManagerWriterAdministrator> DistributedWriterAdministratorClientCreationFunction
         {
@@ -341,6 +398,28 @@ namespace ApplicationAccess.Hosting.Rest.KubernetesDistributedInstanceManager
                         restClientRetryInterval
                     );
                 };
+            }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Redistribution.Kubernetes.Models.Protocol"/> to an equivalent <see cref="Hosting.Models.Protocol"/>.
+        /// </summary>
+        /// <param name="inputProtocol">The <see cref="Redistribution.Kubernetes.Models.Protocol"/> to convert.</param>
+        /// <returns>The converted <see cref="Hosting.Models.Protocol"/>.</returns>
+        /// <remarks>These two enums both represent the same thing, but are used in different namespaces.</remarks>
+        protected Hosting.Models.Protocol ConvertKubernetesProtocolToHostingProtocol(Redistribution.Kubernetes.Models.Protocol inputProtocol)
+        {
+            if (inputProtocol == Protocol.Rest)
+            {
+                return Hosting.Models.Protocol.Rest;
+            }
+            else if (inputProtocol == Protocol.Grpc)
+            {
+                return Hosting.Models.Protocol.Grpc;
+            }
+            else
+            {
+                throw new Exception($"Encountered unhandled {nameof(Protocol)} value '{inputProtocol}'.");
             }
         }
 

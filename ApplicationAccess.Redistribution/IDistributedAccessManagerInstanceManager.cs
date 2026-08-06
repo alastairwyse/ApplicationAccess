@@ -65,7 +65,9 @@ namespace ApplicationAccess.Redistribution
         /// <param name="targetShardGroupEventPersisterCreationFunction">A function used to create a persister used to write events to the target shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerIdempotentTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
         /// <param name="sourceShardGroupEventDeleterCreationFunction">A function used to create a deleter used to delete events from the source shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventDeleter"/> instance.</param>
         /// <param name="operationRouterCreationFunction">A function used to create a client used control the router which directs operations between the source and target shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerOperationRouter"/> instance.</param>
-        /// <param name="sourceShardGroupWriterAdministratorCreationFunction">A function used to create a client used control the writer node in the source shard group.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
+        /// <param name="shardGroupReaderAdministratorCreationFunction">A function used to create a client used control the reader nodes in the split shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerReaderAdministrator"/> instance.</param>
+        /// <param name="shardGroupEventCacheAdministratorCreationFunction">A function used to create a client used control the event cache nodes in the split shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IAccessManagerEventCache{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
+        /// <param name="shardGroupWriterAdministratorCreationFunction">A function used to create a client used control the writer nodes in the split shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
         /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard group in each batch.</param>
         /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking that there are no active operations in the source shard group, before copying of the final batch of events (event copy will fail if all retries are exhausted before the number of active operations becomes 0).</param>
         /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
@@ -79,7 +81,9 @@ namespace ApplicationAccess.Redistribution
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventDeleter> sourceShardGroupEventDeleterCreationFunction,
             Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
-            Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+            Func<Uri, IDistributedAccessManagerReaderAdministrator> shardGroupReaderAdministratorCreationFunction,
+            Func<Uri, IAccessManagerEventCache<String, String, String, String>> shardGroupEventCacheAdministratorCreationFunction,
+            Func<Uri, IDistributedAccessManagerWriterAdministrator> shardGroupWriterAdministratorCreationFunction,
             Int32 eventBatchSize,
             Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
             Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
