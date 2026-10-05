@@ -21,7 +21,7 @@ using Microsoft.Extensions.Configuration;
 namespace ApplicationAccess.Hosting.Models.Options
 {
     /// <summary>
-    /// Container class storing generic options for connecting SQL Server databases, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
+    /// Container class storing generic options for connecting to SQL databases, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
     /// </summary>
     /// <remarks>Property <see cref="SqlDatabaseConnectionOptions.ConnectionParameters"/> is stored as type <see cref="IConfigurationSection"/> as the specific child parameters will vary depending on the database type.</remarks>
     public class SqlDatabaseConnectionOptions

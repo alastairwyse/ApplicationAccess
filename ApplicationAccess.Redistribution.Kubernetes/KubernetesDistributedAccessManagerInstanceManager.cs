@@ -2358,6 +2358,38 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
+        /// Reloads all data from persistent storage, for the shard group accessible by the specified administrator clients.
+        /// </summary>
+        /// <param name="readerAdministrator">The administrator client used control the reader node in the shard group.</param>
+        /// <param name="eventCacheAdministrator">The administrator client used control the event cache node in the shard group.</param>
+        /// <param name="writerAdministrator">The administrator client used control the writer node in the shard group.</param>
+        protected async Task ReloadShardGroupAsync
+        (
+            IDistributedAccessManagerReaderAdministrator readerAdministrator, 
+            IAccessManagerEventCache<String, String, String, String> eventCacheAdministrator, 
+            IDistributedAccessManagerWriterAdministrator writerAdministrator
+        )
+        {
+            // Load() methods could be made async to allow call in parallel
+            // What metrics are required?  Around each individual clear/load or one big 'reload' metric?
+            //   Below Restart() does just one metric
+            // Can't really put good logging here, as I don't know what the properties of the shard group are.  Should wrap the call to this method
+            // Use Task.Run (https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.run?view=net-10.0) to run Reader/Writer load in parallel
+            //   OR consider making the Load() method async -> what would be impact on admin interface having partial sync and partial async?
+            // TODO: Is this the correct position in the file for this method?
+            // Implement and add unit tests
+
+            try
+            {
+                eventCacheAdministrator.Clear();
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Error clearing event cache node while reloading shard group.", e);
+            }
+        }
+
+        /// <summary>
         /// Restarts all nodes of a shard group in a distributed AccessManager implementation.
         /// </summary>
         /// <param name="dataElement">The data element of the shard group.</param>
