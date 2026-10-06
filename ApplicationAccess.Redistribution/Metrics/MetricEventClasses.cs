@@ -309,6 +309,21 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Count metric which records that all nodes within a shard group were reloaded in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupReloaded : CountMetric
+    {
+        protected static String staticName = "ShardGroupReloaded";
+        protected static String staticDescription = "All nodes within a shard group were reloaded in a distributed AccessManager implementation";
+
+        public ShardGroupReloaded()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records that a shard group was restarted in a distributed AccessManager implementation.
     /// </summary>
     public class ShardGroupRestarted : CountMetric
@@ -557,6 +572,21 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "The time taken to create a shard group in a distributed AccessManager implementation";
 
         public ShardGroupCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to reload all nodes within a shard group in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupReloadTime : IntervalMetric
+    {
+        protected static String staticName = "ShardGroupReloadTime";
+        protected static String staticDescription = "The time taken to reload all nodes within a shard group in a distributed AccessManager implementation";
+
+        public ShardGroupReloadTime()
         {
             base.name = staticName;
             base.description = staticDescription;

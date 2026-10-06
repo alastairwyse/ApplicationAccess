@@ -2370,14 +2370,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             IDistributedAccessManagerWriterAdministrator writerAdministrator
         )
         {
-            // Load() methods could be made async to allow call in parallel
-            // What metrics are required?  Around each individual clear/load or one big 'reload' metric?
-            //   Below Restart() does just one metric
-            // Can't really put good logging here, as I don't know what the properties of the shard group are.  Should wrap the call to this method
-            // Use Task.Run (https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.run?view=net-10.0) to run Reader/Writer load in parallel
-            //   OR consider making the Load() method async -> what would be impact on admin interface having partial sync and partial async?
-            // TODO: Is this the correct position in the file for this method?
-            // Implement and add unit tests
+            Guid beginId = metricLogger.Begin(new ShardGroupReloadTime());
 
             try
             {
@@ -2385,8 +2378,45 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch (Exception e)
             {
+                metricLogger.CancelBegin(beginId, new ShardGroupReloadTime());
                 throw new Exception($"Error clearing event cache node while reloading shard group.", e);
             }
+            Action reloadReaderAction = () => 
+            {
+                try
+                {
+                    readerAdministrator.Load();
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error reloading reader node while reloading shard group.", e);
+                }
+            };
+            Action reloadWriterAction = () => 
+            { 
+                try
+                {
+                    writerAdministrator.Load();
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error reloading writer node while reloading shard group.", e);
+                }
+            };
+            Task reloadReaderTask = Task.Run(reloadReaderAction);
+            Task reloadWriterTask = Task.Run(reloadWriterAction);
+            try
+            {
+                await Task.WhenAll(reloadReaderTask, reloadWriterTask);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupReloadTime());
+                throw;
+            }
+
+            metricLogger.End(beginId, new ShardGroupReloadTime());
+            metricLogger.Increment(new ShardGroupReloaded());
         }
 
         /// <summary>

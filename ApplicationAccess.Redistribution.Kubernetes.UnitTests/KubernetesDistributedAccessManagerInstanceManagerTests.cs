@@ -7723,6 +7723,92 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public async Task ReloadShardGroupAsync_ExceptionClearingEventCacheNode()
+        {
+            IDistributedAccessManagerReaderAdministrator mockReaderAdministrator = Substitute.For<IDistributedAccessManagerReaderAdministrator>();
+            IAccessManagerEventCache<String, String, String, String> mockEventCacheAdministrator = Substitute.For<IAccessManagerEventCache<String, String, String, String>>();
+            IDistributedAccessManagerWriterAdministrator mockWriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
+            Guid testBeginId = Guid.Parse("572f8ce6-cc73-4e16-8dc0-b4dfc70a4900");
+            mockMetricLogger.Begin(Arg.Any<ShardGroupReloadTime>()).Returns(testBeginId);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.ReloadShardGroupAsync(mockReaderAdministrator, mockEventCacheAdministrator, mockWriterAdministrator);
+
+            mockEventCacheAdministrator.Received(1).Clear();
+            mockReaderAdministrator.Received(1).Load();
+            mockWriterAdministrator.Received(1).Load();
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupReloadTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ShardGroupReloadTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupReloaded>());
+        }
+        
+        [Test]
+        public void ReloadShardGroupAsync_ExceptionLoadingReaderNode()
+        {
+            IDistributedAccessManagerReaderAdministrator mockReaderAdministrator = Substitute.For<IDistributedAccessManagerReaderAdministrator>();
+            IAccessManagerEventCache<String, String, String, String> mockEventCacheAdministrator = Substitute.For<IAccessManagerEventCache<String, String, String, String>>();
+            IDistributedAccessManagerWriterAdministrator mockWriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("572f8ce6-cc73-4e16-8dc0-b4dfc70a4900");
+            mockMetricLogger.Begin(Arg.Any<ShardGroupReloadTime>()).Returns(testBeginId);
+            mockReaderAdministrator.When((readerAdministrator) => readerAdministrator.Load()).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.ReloadShardGroupAsync(mockReaderAdministrator, mockEventCacheAdministrator, mockWriterAdministrator);
+            });
+
+            mockEventCacheAdministrator.Received(1).Clear();
+            mockReaderAdministrator.Received(1).Load();
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupReloadTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ShardGroupReloadTime>());
+            Assert.That(e.Message, Does.StartWith($"Error reloading reader node while reloading shard group."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void ReloadShardGroupAsync_ExceptionLoadingWriterNode()
+        {
+            IDistributedAccessManagerReaderAdministrator mockReaderAdministrator = Substitute.For<IDistributedAccessManagerReaderAdministrator>();
+            IAccessManagerEventCache<String, String, String, String> mockEventCacheAdministrator = Substitute.For<IAccessManagerEventCache<String, String, String, String>>();
+            IDistributedAccessManagerWriterAdministrator mockWriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("572f8ce6-cc73-4e16-8dc0-b4dfc70a4900");
+            mockMetricLogger.Begin(Arg.Any<ShardGroupReloadTime>()).Returns(testBeginId);
+            mockWriterAdministrator.When((writerAdministrator) => writerAdministrator.Load()).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.ReloadShardGroupAsync(mockReaderAdministrator, mockEventCacheAdministrator, mockWriterAdministrator);
+            });
+
+            mockEventCacheAdministrator.Received(1).Clear();
+            mockWriterAdministrator.Received(1).Load();
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupReloadTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ShardGroupReloadTime>());
+            Assert.That(e.Message, Does.StartWith($"Error reloading writer node while reloading shard group."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task ReloadShardGroupAsync()
+        {
+            IDistributedAccessManagerReaderAdministrator mockReaderAdministrator = Substitute.For<IDistributedAccessManagerReaderAdministrator>();
+            IAccessManagerEventCache<String, String, String, String> mockEventCacheAdministrator = Substitute.For<IAccessManagerEventCache<String, String, String, String>>();
+            IDistributedAccessManagerWriterAdministrator mockWriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
+            Guid testBeginId = Guid.Parse("572f8ce6-cc73-4e16-8dc0-b4dfc70a4900");
+            mockMetricLogger.Begin(Arg.Any<ShardGroupReloadTime>()).Returns(testBeginId);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.ReloadShardGroupAsync(mockReaderAdministrator, mockEventCacheAdministrator, mockWriterAdministrator);
+
+            mockEventCacheAdministrator.Received(1).Clear();
+            mockReaderAdministrator.Received(1).Load();
+            mockWriterAdministrator.Received(1).Load();
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupReloadTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ShardGroupReloadTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupReloaded>());
+        }
+
+        [Test]
         public void RestartShardGroupAsync_ExceptionScalingDown()
         {
             var mockException = new Exception("Mock exception");
@@ -11341,6 +11427,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             public new async Task<TestPersistentStorageLoginCredentials> CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, TestPersistentStorageLoginCredentials persistentStorageCredentials = null)
             {
                 return await base.CreateShardGroupAsync(dataElement, hashRangeStart, persistentStorageCredentials);
+            }
+
+            public new async Task ReloadShardGroupAsync
+            (
+                IDistributedAccessManagerReaderAdministrator readerAdministrator,
+                IAccessManagerEventCache<String, String, String, String> eventCacheAdministrator,
+                IDistributedAccessManagerWriterAdministrator writerAdministrator
+            )
+            {
+                await base.ReloadShardGroupAsync(readerAdministrator, eventCacheAdministrator, writerAdministrator);
             }
 
             public new async Task RestartShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
