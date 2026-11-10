@@ -52,6 +52,21 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Metrics
     }
 
     /// <summary>
+    /// Count metric which records that a reader node within a shard group was scaled up in a distributed AccessManager implementation.
+    /// </summary>
+    public class ReaderNodeScaledUp : CountMetric
+    {
+        protected static String staticName = "ReaderNodeScaledUp";
+        protected static String staticDescription = "A reader node within a shard group was scaled up in a distributed AccessManager implementation";
+
+        public ReaderNodeScaledUp()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records that a load balancer service was created in a distributed AccessManager implementation.
     /// </summary>
     public class LoadBalancerServiceCreated : CountMetric
@@ -90,6 +105,21 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Metrics
         protected static String staticDescription = "The time taken to scale up a shard group in a distributed AccessManager implementation";
 
         public ShardGroupScaleUpTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to scale up a reader node within a shard group in a distributed AccessManager implementation.
+    /// </summary>
+    public class ReaderNodeScaleUpTime : IntervalMetric
+    {
+        protected static String staticName = "ReaderNodeScaleUpTime";
+        protected static String staticDescription = "The time taken to scale up a reader node within a shard group in a distributed AccessManager implementation";
+
+        public ReaderNodeScaleUpTime()
         {
             base.name = staticName;
             base.description = staticDescription;

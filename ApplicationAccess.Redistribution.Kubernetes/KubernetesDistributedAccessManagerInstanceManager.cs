@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +28,6 @@ using ApplicationAccess.Hosting.LaunchPreparer;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
-using ApplicationAccess.Redistribution;
 using ApplicationAccess.Redistribution.Kubernetes.Metrics;
 using ApplicationAccess.Redistribution.Kubernetes.Models;
 using ApplicationAccess.Redistribution.Kubernetes.Validation;
@@ -980,24 +978,17 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Splitting {dataElement} shard group with hash range start value {hashRangeStart} to new shard group at hash range start value {splitHashRangeStart}...");
             Guid beginId = metricLogger.Begin(new ShardGroupSplitTime());
 
-            // Create the target persistent storage instance
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating persistent storage instance for data element '{dataElement.ToString()}' and hash range start value {splitHashRangeStart}...");
-            String targetPersistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, splitHashRangeStart);
-            Guid storageBeginId = metricLogger.Begin(new PersistentStorageInstanceCreateTime());
+            // Create the new shard group
             TPersistentStorageCredentials targetPersistentStorageCredentials;
             try
             {
-                targetPersistentStorageCredentials = persistentStorageManager.CreateAccessManagerPersistentStorage(targetPersistentStorageInstanceName);
+                targetPersistentStorageCredentials = await CreateShardGroupAsync(dataElement, splitHashRangeStart, null, 1);
             }
-            catch (Exception e)
+            catch
             {
-                metricLogger.CancelBegin(storageBeginId, new PersistentStorageInstanceCreateTime());
                 metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw new Exception($"Error creating persistent storage instance for data element type '{dataElement}' and hash range start value {splitHashRangeStart}.", e);
+                throw new Exception($"Error ereating shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart}");
             }
-            metricLogger.End(storageBeginId, new PersistentStorageInstanceCreateTime());
-            metricLogger.Increment(new PersistentStorageInstanceCreated());
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed creating persistent storage instance.");
 
             // Create persisters and clients
             IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader = null;
@@ -1080,8 +1071,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw;
                 }
 
-                // Update writer load balancer service to target source shard group writer node
-                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to target source shard group writer node...");
+                // Update writer load balancer service to point to source shard group writer node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to point to source shard group writer node...");
                 String writerLoadBalancerServiceName = $"{GenerateWriter1LoadBalancerServiceName()}{externalServiceNamePostfix}";
                 String sourceWriterNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
                 try
@@ -1094,6 +1085,36 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw;
                 }
                 logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer load balancer service.");
+
+                // Update event cache load balancer service to point to target shard group event cache node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating event cache load balancer service to point to target shard group event cache node...");
+                String eventCacheLoadBalancerServiceName = $"{NodeType.EventCache.ToString().ToLower()}{externalServiceNamePostfix}";
+                String targetEventCacheNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.EventCache, splitHashRangeStart);
+                try
+                {
+                    await UpdateServiceAsync(eventCacheLoadBalancerServiceName, targetEventCacheNodeIdentifier);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating event cache load balancer service.");
+
+                // Update reader load balancer service to point to target shard group reader node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating reader load balancer service to point to target shard group reader node...");
+                String readerLoadBalancerServiceName = $"{NodeType.Reader.ToString().ToLower()}{externalServiceNamePostfix}";
+                String targetReaderNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Reader, splitHashRangeStart);
+                try
+                {
+                    await UpdateServiceAsync(readerLoadBalancerServiceName, targetReaderNodeIdentifier);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating reader load balancer service.");
 
                 // Update the shard group configuration to redirect to the router
                 logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to router...");
@@ -1164,16 +1185,32 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 }
                 metricLogger.End(copyBeginId, new EventCopyTime());
 
-                // Create the new shard group
+                // Update writer load balancer service to point to target shard group writer node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to point to target shard group writer node...");
+                String targetWriterNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, splitHashRangeStart);
                 try
                 {
-                    await CreateShardGroupAsync(dataElement, splitHashRangeStart, targetPersistentStorageCredentials);
+                    await UpdateServiceAsync(writerLoadBalancerServiceName, targetWriterNodeIdentifier);
                 }
                 catch
                 {
                     metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                     throw;
                 }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer load balancer service.");
+
+                // Reload data into the target shard group
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reloading data into target shard group...");
+                try
+                {
+                    await ReloadShardGroupAsync(shardGroupReaderAdministrator, shardGroupEventCacheAdministrator, shardGroupWriterAdministrator);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed reloading data into target shard group.");
 
                 // Turn on the router
                 try
@@ -1198,6 +1235,18 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw new Exception("Failed to resume incoming operations in the source and target shard groups.", e);
                 }
 
+                // Scale up target shard group reader node to configured replica count
+                UInt16 readerNodeReplicaCount = GetReaderNodeReplicaCount(staticConfiguration.ReaderNodeConfigurationTemplate, dataElement);
+                try
+                {
+                    await ScaleShardGroupReaderNodeAsync(dataElement, splitHashRangeStart, readerNodeReplicaCount);
+                }
+                catch 
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                
                 // Update the shard group configuration to redirect to target shard group
                 logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to target shard group...");
                 configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
@@ -1246,6 +1295,58 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw new Exception("Error deleting events from source shard group.", e);
                 }
 
+                // Update writer load balancer service to point to source shard group writer node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to point to source shard group writer node...");
+                try
+                {
+                    await UpdateServiceAsync(writerLoadBalancerServiceName, sourceWriterNodeIdentifier);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer load balancer service.");
+
+                // Update event cache load balancer service to point to source shard group event cache node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating event cache load balancer service to point to source shard group event cache node...");
+                String sourceEventCacheNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.EventCache, hashRangeStart);
+                try
+                {
+                    await UpdateServiceAsync(eventCacheLoadBalancerServiceName, sourceEventCacheNodeIdentifier);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating event cache load balancer service.");
+
+                // Update reader load balancer service to point to source shard group reader node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating reader load balancer service to point to source shard group reader node...");
+                String sourceReaderNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
+                try
+                {
+                    await UpdateServiceAsync(readerLoadBalancerServiceName, sourceReaderNodeIdentifier);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating reader load balancer service.");
+
+                // Scale down source shard group reader node to 1 replica
+                try
+                {
+                    await ScaleShardGroupReaderNodeAsync(dataElement, hashRangeStart, 1);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+               
                 // Pause/hold any incoming operation requests
                 logger.Log(this, ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
                 try
@@ -1258,16 +1359,18 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw new Exception("Failed to hold/pause incoming operations in the source shard group.", e);
                 }
 
-                // Restart the source shard group
+                // Reload data into the source shard group
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reloading data into source shard group...");
                 try
                 {
-                    await RestartShardGroupAsync(dataElement, hashRangeStart);
+                    await ReloadShardGroupAsync(shardGroupReaderAdministrator, shardGroupEventCacheAdministrator, shardGroupWriterAdministrator);
                 }
                 catch
                 {
                     metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                     throw;
                 }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed reloading data into source shard group.");
 
                 // Release all paused/held operation requests
                 logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
@@ -1279,6 +1382,17 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 {
                     metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                     throw new Exception("Failed to resume incoming operations in the source shard group.", e);
+                }
+
+                // Scale up source shard group reader node to configured replica count
+                try
+                {
+                    await ScaleShardGroupReaderNodeAsync(dataElement, hashRangeStart, readerNodeReplicaCount);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
                 }
 
                 // Update the shard group configuration to redirect to source shard group
@@ -1309,6 +1423,32 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
                 // Copy the contents of the *ShardGroupConfigurationSet fields to the instance configuration
                 CopyShardConfigurationSetsToInstanceConfiguration();
+
+                // Undo update to reader load balancer service 
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reversing update to reader load balancer service...");
+                try
+                {
+                    await UpdateServiceAsync(readerLoadBalancerServiceName, $"{NodeType.Reader.ToString().ToLower()}");
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed reversing update to reader load balancer service.");
+
+                // Undo update to event cache load balancer service 
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reversing update to event cache load balancer service...");
+                try
+                {
+                    await UpdateServiceAsync(eventCacheLoadBalancerServiceName, $"{NodeType.EventCache.ToString().ToLower()}");
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                    throw;
+                }
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed reversing update to event cache load balancer service.");
 
                 // Undo update to writer load balancer service 
                 logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reversing update to writer load balancer service...");
@@ -1528,8 +1668,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw;
                 }
 
-                // Update writer 1 load balancer service to target source shard group 1 writer node
-                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer 1 load balancer service to target first source shard group writer node...");
+                // Update writer 1 load balancer service to point to source shard group 1 writer node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer 1 load balancer service to point to first source shard group writer node...");
                 String writer1LoadBalancerServiceName = $"{GenerateWriter1LoadBalancerServiceName()}{externalServiceNamePostfix}";
                 String sourceWriter1NodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, sourceShardGroup1HashRangeStart);
                 try
@@ -1543,8 +1683,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 }
                 logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer 1 load balancer service.");
 
-                // Update writer 2 load balancer service to target source shard group 2 writer node
-                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer 2 load balancer service to target first source shard group writer node...");
+                // Update writer 2 load balancer service to point to source shard group 2 writer node
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer 2 load balancer service to point to first source shard group writer node...");
                 String writer2LoadBalancerServiceName = $"{GenerateWriter2LoadBalancerServiceName()}{externalServiceNamePostfix}";
                 String sourceWriter2NodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, sourceShardGroup2HashRangeStart);
                 try
@@ -2297,8 +2437,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="dataElement">The data element to create the shard group for.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group.</param>
         /// <param name="persistentStorageCredentials">Optional credentials for the persistent storage used by the reader and writer nodes.  If set to null, a new persistent storage instance will be created.</param>
+        /// <param name="readerNodeReplicaCount">The (optional) number of reader node pod replicas in the shard group.  Defaults to the value defined in static <see cref="ReaderNodeConfiguration"/> if omitted.</param>
         /// <returns>The persistent storage credentials passed in parameter <paramref name="persistentStorageCredentials"/> (in the case <paramref name="persistentStorageCredentials"/> was non-null), or the credentials for the persistent storage instance created for the shard group (in the case <paramref name="persistentStorageCredentials"/> was null).</returns>
-        protected async Task<TPersistentStorageCredentials> CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, TPersistentStorageCredentials persistentStorageCredentials=null)
+        protected async Task<TPersistentStorageCredentials> CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, TPersistentStorageCredentials persistentStorageCredentials=null, Nullable<UInt16> readerNodeReplicaCount = null)
         {
             String nameSpace = staticConfiguration.NameSpace;
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
@@ -2338,7 +2479,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Uri eventCacheServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.EventCache, hashRangeStart);
 
             // Create reader and writer nodes
-            Task createReaderNodeTask = Task.Run(async () => await CreateReaderNodeAsync(dataElement, hashRangeStart, persistentStorageCredentials, eventCacheServiceUrl));
+            Task createReaderNodeTask;
+            if (readerNodeReplicaCount.HasValue == false)
+            {
+                createReaderNodeTask = Task.Run(async () => await CreateReaderNodeAsync(dataElement, hashRangeStart, persistentStorageCredentials, eventCacheServiceUrl));
+            }
+            else
+            {
+                createReaderNodeTask = Task.Run(async () => await CreateReaderNodeAsync(dataElement, hashRangeStart, readerNodeReplicaCount.Value, persistentStorageCredentials, eventCacheServiceUrl));
+            }
             Task createWriterNodeTask = Task.Run(async () => await CreateWriterNodeAsync(dataElement, hashRangeStart, persistentStorageCredentials, eventCacheServiceUrl));
             try
             {
@@ -2571,6 +2720,37 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
+        /// Scales the reader node of a shard group in a distributed AccessManager implementation to the specified replica count, and waits for the scale to complete.
+        /// </summary>
+        /// <param name="dataElement">The data element of the shard group.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group.</param>
+        /// <param name="replicaCount">The number of pod replicas to scale to.</param>
+        protected async Task ScaleShardGroupReaderNodeAsync(DataElement dataElement, Int32 hashRangeStart, UInt16 replicaCount)
+        {
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Scaling shard group reader node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} to {replicaCount} replicas...");
+            Guid beginId = metricLogger.Begin(new ReaderNodeScaleUpTime());
+            String readerNodeDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
+            Int32 readerNodeAvailabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.ReaderNodeConfigurationTemplate);
+            Task scaleReaderNodeTask = Task.Run(async () => await ScaleDeploymentAsync(readerNodeDeploymentName, replicaCount));
+            Task waitForScaleUpReaderNodeTask = Task.Run(async () =>
+            {
+                await WaitForDeploymentScaleAsync(readerNodeDeploymentName, replicaCount, staticConfiguration.DeploymentWaitPollingInterval, readerNodeAvailabilityWaitAbortTimeout);
+            });
+            try
+            {
+                await Task.WhenAll(scaleReaderNodeTask, waitForScaleUpReaderNodeTask);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ReaderNodeScaleUpTime());
+                throw;
+            }
+            metricLogger.End(beginId, new ReaderNodeScaleUpTime());
+            metricLogger.Increment(new ReaderNodeScaledUp());
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed scaling shard group reader node.");
+        }
+
+        /// <summary>
         /// Deletes a shard group from the distributed AccessManager implementation.
         /// </summary>
         /// <param name="dataElement">The data element to delete the shard group for.</param>
@@ -2636,13 +2816,25 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group the reader node is a member of.</param>
         /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the reader node.</param>
         /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the reader node should consume events from.</param>
-        /// <returns></returns>
         protected async Task CreateReaderNodeAsync(DataElement dataElement, Int32 hashRangeStart, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
+        {
+            UInt16 replicaCount = GetReaderNodeReplicaCount(staticConfiguration.ReaderNodeConfigurationTemplate, dataElement);
+            await CreateReaderNodeAsync(dataElement, hashRangeStart, replicaCount, persistentStorageCredentials, eventCacheServiceUrl);
+        }
+
+        /// <summary>
+        /// Creates a reader node as part of a shard group in a distributed AccessManager implementation.
+        /// </summary>
+        /// <param name="dataElement">The data element to create the reader node for.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group the reader node is a member of.</param>
+        /// <param name="replicaCount">The number of pod replicas in the deployment.</param>
+        /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the reader node.</param>
+        /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the reader node should consume events from.</param>
+        protected async Task CreateReaderNodeAsync(DataElement dataElement, Int32 hashRangeStart, UInt16 replicaCount, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
         {
             String nameSpace = staticConfiguration.NameSpace;
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
             String persistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, hashRangeStart);
-            UInt16 replicaCount = GetReaderNodeReplicaCount(staticConfiguration.ReaderNodeConfigurationTemplate, dataElement);
             Func<Task> createDeploymentFunction = () => CreateReaderNodeDeploymentAsync(deploymentName, replicaCount, persistentStorageInstanceName, persistentStorageCredentials, eventCacheServiceUrl);
             Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.ReaderNodeConfigurationTemplate);
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating reader node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");

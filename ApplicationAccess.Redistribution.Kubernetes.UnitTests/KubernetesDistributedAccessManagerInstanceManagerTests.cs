@@ -19,7 +19,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using k8s.Models;
+using Newtonsoft.Json.Linq;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Distribution.Persistence;
@@ -33,11 +34,8 @@ using ApplicationAccess.Redistribution.Metrics;
 using ApplicationAccess.Redistribution.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
-using ApplicationMetrics.MetricLoggers;
-using k8s.Models;
-using Newtonsoft.Json.Linq;
-using NSubstitute;
 using NUnit.Framework;
+using NSubstitute;
 
 namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 {
@@ -4369,7 +4367,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating distributed operation router node.");
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating writer load balancer service to target source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating writer load balancer service to point to source shard group writer node...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed updating writer load balancer service.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
@@ -4632,7 +4630,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating distributed operation router node.");
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating writer load balancer service to target source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating writer load balancer service to point to source shard group writer node...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed updating writer load balancer service.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
@@ -6887,9 +6885,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Merging User shard group with hash range start value {Int32.MinValue} with shard group with hash range start value 0...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Creating temporary persistent storage instance...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating temporary persistent storage instance.");
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 1 load balancer service to target first source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 1 load balancer service to point to first source shard group writer node...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating writer 1 load balancer service.");
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 2 load balancer service to target first source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 2 load balancer service to point to first source shard group writer node...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating writer 2 load balancer service.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
             mockApplicationLogger.Received(2).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating shard group configuration.");
@@ -7104,9 +7102,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Merging Group shard group with hash range start value {Int32.MinValue} with shard group with hash range start value -100...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Creating temporary persistent storage instance...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating temporary persistent storage instance.");
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 1 load balancer service to target first source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 1 load balancer service to point to first source shard group writer node...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating writer 1 load balancer service.");
-            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 2 load balancer service to target first source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating writer 2 load balancer service to point to first source shard group writer node...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating writer 2 load balancer service.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
             mockApplicationLogger.Received(2).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed updating shard group configuration.");
@@ -7723,6 +7721,55 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public async Task CreateShardGroupAsync_PersistentStorageCredentialsAndReaderNodeReplicaCountParametersNotNull()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid testBeginId2 = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
+            Guid testBeginId3 = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
+            Guid testBeginId4 = Guid.Parse("738650cb-eec3-40b2-8ffb-476e85084be1");
+            Guid testBeginId5 = Guid.Parse("4fb4f095-2a6f-4f02-8cc6-e42700f69736");
+            DataElement dataElement = DataElement.User;
+            Int32 hashRangeStart = -400_000;
+            String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
+            TestPersistentStorageLoginCredentials storageCredentials = new($"Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog={persistentStorageInstanceName}");
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
+            (
+                new List<V1Deployment>
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupCreateTime>()).Returns(testBeginId1);
+            mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId4);
+            mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId5);
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            TestPersistentStorageLoginCredentials result = await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart, storageCredentials, 1);
+
+            Assert.AreEqual(storageCredentials, result);
+            mockPersistentStorageManager.DidNotReceive().CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-eventcache-n400000")), testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.DidNotReceive().Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.DidNotReceive().End(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId1, Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupCreated>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Creating shard group for data element 'User' and hash range start value -400000 in namespace 'default'...");
+            mockApplicationLogger.DidNotReceive().Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value -400000...");
+            mockApplicationLogger.DidNotReceive().Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
+        }
+
+        [Test]
         public async Task ReloadShardGroupAsync_ExceptionClearingEventCacheNode()
         {
             IDistributedAccessManagerReaderAdministrator mockReaderAdministrator = Substitute.For<IDistributedAccessManagerReaderAdministrator>();
@@ -8161,8 +8208,19 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 0 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 0 } }
+                }
+            );
             mockMetricLogger.Begin(Arg.Any<ShardGroupScaleUpTime>()).Returns(testBeginId);
             mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-eventcache-n3000000", testNameSpace).Returns(Task.FromException<V1Scale>(mockException));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -8229,6 +8287,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             });
 
             await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n3000000", testNameSpace);
+
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-eventcache-n3000000", testNameSpace);
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-writer-n3000000", testNameSpace);
+
+
             await mockKubernetesClientShim.Received().ListNamespacedDeploymentAsync(null, testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupScaleUpTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ShardGroupScaleUpTime>());
@@ -8322,8 +8385,18 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             DataElement dataElement = DataElement.User;
             Int32 hashRangeStart = -3_000_000;
-            V1DeploymentList returnDeployments = new();
-            returnDeployments.Items =
+            V1DeploymentList unscaledDeployments = new();
+            unscaledDeployments.Items =
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 0 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 0 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 0 } }
+                }
+            );
+            V1DeploymentList scaledDeployments = new();
+            scaledDeployments.Items =
             (
                 new List<V1Deployment>()
                 {
@@ -8336,19 +8409,129 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-eventcache-n3000000", testNameSpace).Returns(Task.FromResult<V1Scale>(new V1Scale()));
             mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n3000000", testNameSpace).Returns(Task.FromResult<V1Scale>(new V1Scale()));
             mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-writer-n3000000", testNameSpace).Returns(Task.FromResult<V1Scale>(new V1Scale()));
-            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns
+            (
+                Task.FromResult<V1DeploymentList>(unscaledDeployments),
+                Task.FromResult<V1DeploymentList>(unscaledDeployments),
+                Task.FromResult<V1DeploymentList>(scaledDeployments)
+            );
 
             await testKubernetesDistributedAccessManagerInstanceManager.ScaleUpShardGroupAsync(dataElement, hashRangeStart);
 
             await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-eventcache-n3000000", testNameSpace);
             await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n3000000", testNameSpace);
             await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-writer-n3000000", testNameSpace);
-            await mockKubernetesClientShim.Received(3).ListNamespacedDeploymentAsync(null, testNameSpace);
+            await mockKubernetesClientShim.Received(5).ListNamespacedDeploymentAsync(null, testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupScaleUpTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ShardGroupScaleUpTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupScaledUp>());
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Scaling up shard group for data element 'User' and hash range start value -3000000 in namespace 'default'...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed scaling up shard group.");
+        }
+
+        [Test]
+        public async Task ScaleShardGroupReaderNodeAsync_ExceptionScalingReaderNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("47204df3-8bd0-434d-8c33-6934a1931f71");
+            DataElement dataElement = DataElement.User;
+            Int32 hashRangeStart = -2_000_000;
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n2000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeScaleUpTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n2000000", testNameSpace).Returns(Task.FromException<V1Scale>(mockException));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.ScaleShardGroupReaderNodeAsync(dataElement, hashRangeStart, 1);
+            });
+
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n2000000", testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeScaleUpTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ReaderNodeScaleUpTime>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Scaling shard group reader node for data element 'User' and hash range start value -2000000 to 1 replicas...");
+            Assert.That(e.Message, Does.StartWith($"Failed to scale Kubernetes deployment 'user-reader-n2000000' to 1 replica(s)."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task ScaleShardGroupReaderNodeAsync_ExceptionWaitingForReaderNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("47204df3-8bd0-434d-8c33-6934a1931f71");
+            DataElement dataElement = DataElement.User;
+            Int32 hashRangeStart = -2_000_000;
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeScaleUpTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n2000000", testNameSpace).Returns(Task.FromResult<V1Scale>(new V1Scale()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromException<V1DeploymentList>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.ScaleShardGroupReaderNodeAsync(dataElement, hashRangeStart, 1);
+            });
+
+            await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeScaleUpTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ReaderNodeScaleUpTime>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Scaling shard group reader node for data element 'User' and hash range start value -2000000 to 1 replicas...");
+            Assert.That(e.Message, Does.StartWith($"Failed to wait for Kubernetes deployment 'user-reader-n2000000' to scale to 1 replica(s)."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task ScaleShardGroupReaderNodeAsync()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("47204df3-8bd0-434d-8c33-6934a1931f71");
+            DataElement dataElement = DataElement.User;
+            Int32 hashRangeStart = -2_000_000;
+            V1DeploymentList unscaledDeployments = new();
+            unscaledDeployments.Items =
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n2000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 3 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            V1DeploymentList scaledDeployments = new();
+            scaledDeployments.Items =
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n2000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n3000000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeScaleUpTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n2000000", testNameSpace).Returns(Task.FromResult<V1Scale>(new V1Scale()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns
+            (
+                Task.FromResult<V1DeploymentList>(unscaledDeployments),
+                Task.FromResult<V1DeploymentList>(unscaledDeployments),
+                Task.FromResult<V1DeploymentList>(scaledDeployments)
+            );
+
+            await testKubernetesDistributedAccessManagerInstanceManager.ScaleShardGroupReaderNodeAsync(dataElement, hashRangeStart, 1);
+
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "user-reader-n2000000", testNameSpace);
+            await mockKubernetesClientShim.Received(3).ListNamespacedDeploymentAsync(null, testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeScaleUpTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ReaderNodeScaleUpTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ReaderNodeScaledUp>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Scaling shard group reader node for data element 'User' and hash range start value -2000000 to 1 replicas...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed scaling shard group reader node.");
         }
 
         [Test]
@@ -8500,6 +8683,37 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId);
 
             await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeAsync(DataElement.GroupToGroupMapping, -2_147_483_648, storageCredentials, eventCacheServiceUrl);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
+            await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ReaderNodeCreateTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ReaderNodeCreated>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Creating reader node for data element 'GroupToGroupMapping' and hash range start value -2147483648 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, "Completed creating reader node.");
+        }
+
+        [Test]
+        public async Task CreateReaderNodeAsync_ReplicaCountOverload()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            TestPersistentStorageLoginCredentials storageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=grouptogroupmapping_n2147483648");
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            V1DeploymentList returnDeployments = new();
+            returnDeployments.Items =
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace).Returns(Task.FromResult(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeAsync(DataElement.GroupToGroupMapping, -2_147_483_648, 1, storageCredentials, eventCacheServiceUrl);
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), testNameSpace);
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
@@ -11424,9 +11638,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 return base.StringifyNodeTypeToSpacedLowerCase(inputNodeType);
             }
 
-            public new async Task<TestPersistentStorageLoginCredentials> CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, TestPersistentStorageLoginCredentials persistentStorageCredentials = null)
+            public new async Task<TestPersistentStorageLoginCredentials> CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, TestPersistentStorageLoginCredentials persistentStorageCredentials = null, Nullable<UInt16> readerNodeReplicaCount = null)
             {
-                return await base.CreateShardGroupAsync(dataElement, hashRangeStart, persistentStorageCredentials);
+                return await base.CreateShardGroupAsync(dataElement, hashRangeStart, persistentStorageCredentials, readerNodeReplicaCount);
             }
 
             public new async Task ReloadShardGroupAsync
@@ -11454,6 +11668,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await base.ScaleUpShardGroupAsync(dataElement, hashRangeStart);
             }
 
+            public new async Task ScaleShardGroupReaderNodeAsync(DataElement dataElement, Int32 hashRangeStart, UInt16 replicaCount)
+            {
+                await base.ScaleShardGroupReaderNodeAsync(dataElement, hashRangeStart, replicaCount);
+            }
+
             public new async Task DeleteShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, Boolean deletePersistentStorageInstance)
             {
                 await base.DeleteShardGroupAsync(dataElement, hashRangeStart, deletePersistentStorageInstance);
@@ -11462,6 +11681,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             public new async Task CreateReaderNodeAsync(DataElement dataElement, Int32 hashRangeStart, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
             {
                 await base.CreateReaderNodeAsync(dataElement, hashRangeStart, persistentStorageCredentials, eventCacheServiceUrl);
+            }
+
+            public new async Task CreateReaderNodeAsync(DataElement dataElement, Int32 hashRangeStart, UInt16 replicaCount, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl)
+            {
+                await base.CreateReaderNodeAsync(dataElement, hashRangeStart, replicaCount, persistentStorageCredentials, eventCacheServiceUrl);
             }
 
             public new async Task CreateEventCacheNodeAsync(DataElement dataElement, Int32 hashRangeStart)
